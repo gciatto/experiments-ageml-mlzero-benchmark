@@ -1,0 +1,30 @@
+# Pinned sources. Update deliberately; every change produces new run identities.
+ageml:
+  repository: https://github.com/Mala1180/age-ml
+  inspected_commit: 86e4af6b019a7ac807b046ca27c2e0cd4d8ab6c2   # release 5.8.0, 2026-10-16
+  inspected_on: 2026-10-20
+  protocol: ageml-holdout-v1-test-selected                     # see docs/protocol.md
+  # Advance to the commit implementing ageml-holdout-v2 before primary
+  # comparative runs, and record it here with its campaign id.
+  corrected_commit: null
+mlzero:
+  repository: https://github.com/autogluon/autogluon-assistant
+  commit: f228cd7028e197750391c02d94afcb7eea8da5ff             # 2026-09-01; package 1.1.0 (not unique)
+  search: NodeManager + MCTS
+  patches:
+    - path: patches/0001-ageml-bench-instrumentation.patch
+      sha256: d8808e589c2e09075d49239ed9d77626b28fee23297ca0a82b91b01041799a1b
+  upstream_default_config:
+    path: configs/mlzero/upstream-default-f228cd7.yaml         # verbatim copy of configs/default.yaml
+  retrieval_model: BAAI/bge-base-en-v1.5@a5beb1e3e68b9ab74eb54cfd186867f64f240e1a
+container:
+  dockerfile: environments/mlzero/Dockerfile
+  base_image: python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89
+  uv: 0.12.21
+  miniforge: 26.7.2-0
+  pypi_exclude_newer: 2026-10-01T00:00:00Z
+  image_digest: null   # fill with `docker image inspect -f '{{.Id}}' ageml-mlzero:f228cd7` after building
+template:
+  repository: https://github.com/aequitas-aod/template-python-project-poetry
+  head_on_2026-10-20: e036e4a457a52937371663b1140a9e937c04ce32
+  note: the scaffolding commit was not recorded by the template's init workflow
