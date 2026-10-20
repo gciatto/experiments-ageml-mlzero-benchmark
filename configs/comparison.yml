@@ -1,0 +1,37 @@
+# Primary MLZero-vs-AGE-ML campaign. LLM, resources and splits come from the
+# reference manifest; resolve them with `ageml-bench reference` before running.
+schema_version: 1
+campaign_id: ageml-mlzero-main
+reference_manifest: references/age-ml/reference.json
+required_protocol_id: ageml-holdout-v2
+system: mlzero
+repetitions: [1, 2, 3, 4, 5]
+datasets: [wilt, texture, madelon, har, adult, mnist_784,
+           california_housing, ames_housing, auto_mpg]
+mlzero:
+  commit: f228cd7028e197750391c02d94afcb7eea8da5ff
+  image: ageml-mlzero:f228cd7
+  executor: docker
+  continuous_improvement: true
+  max_iterations: 10000        # nonbinding safety ceiling; the deadline stops the search
+  preserve_candidate_artifacts: true   # remove_current_iteration_folder stays false
+  verbosity: 2
+llm:
+  source: reference_manifest
+  endpoint: https://generativelanguage.googleapis.com/v1beta/openai/
+  api_key_env: GEMINI_API_KEY
+  settings: {}                 # applied to every agent on top of native per-agent values
+resources:
+  source: reference_manifest
+budget:
+  search_wall_seconds: 7200
+  stop_grace_seconds: 30
+evaluation:
+  split_source: reference_manifest
+  refit: false
+  inference_timeout_seconds: 600
+retries:
+  max_infrastructure_retries: 1   # only infrastructure_error / harness_interrupted
+pricing: configs/pricing.yml
+outputs:
+  artifact_root: artifacts

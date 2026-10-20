@@ -1,0 +1,43 @@
+# Pilot cohort: separate campaign id, 10-minute search, provisional resources.
+# Results are never mixed with the main campaign.
+schema_version: 1
+campaign_id: ageml-mlzero-pilot
+reference_manifest: references/age-ml/reference.json
+required_protocol_id: ageml-holdout-v2
+system: mlzero
+repetitions: [1]
+datasets: [wilt, auto_mpg, adult]
+mlzero:
+  commit: f228cd7028e197750391c02d94afcb7eea8da5ff
+  image: ageml-mlzero:f228cd7
+  executor: docker
+  continuous_improvement: true
+  max_iterations: 10000
+  preserve_candidate_artifacts: true
+  verbosity: 2
+llm:
+  source: explicit
+  # the reference's gemini-3.1-flash-lite-preview is shut down; a different
+  # model is a different cohort, never relabelled as the preview
+  model: gemini-3.1-flash-lite
+  endpoint: https://generativelanguage.googleapis.com/v1beta/openai/
+  api_key_env: GEMINI_API_KEY
+  settings: {}
+resources:
+  source: explicit
+  provisional: true
+  cpus: 8
+  memory_gib: 32
+  gpus: 0
+budget:
+  search_wall_seconds: 600
+  stop_grace_seconds: 30
+evaluation:
+  split_source: reference_manifest
+  refit: false
+  inference_timeout_seconds: 600
+retries:
+  max_infrastructure_retries: 1
+pricing: configs/pricing.yml
+outputs:
+  artifact_root: artifacts
