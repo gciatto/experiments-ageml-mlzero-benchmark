@@ -1,0 +1,15 @@
+# Dated LLM price list used for cost ESTIMATES. Never edit prices in place:
+# add a new version and point campaigns at it.
+version: gemini-2026-10-20
+retrieved: 2026-10-20
+currency: USD
+source: https://ai.google.dev/gemini-api/docs/pricing
+models:
+  gemini-3.1-flash-lite:
+    input_per_mtok: 0.25          # text/image/video, standard paid tier
+    cached_input_per_mtok: 0.025  # context-cache reads; storage fees excluded
+    output_per_mtok: 1.50         # "including thinking tokens"
+  gemini-3.1-flash-lite-preview:
+    # shut down; not on the price list at retrieval date
+    input_per_mtok: null
+    output_per_mtok: null
