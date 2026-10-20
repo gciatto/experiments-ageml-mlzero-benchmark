@@ -1,0 +1,226 @@
+diff --git a/src/autogluon/assistant/bench_hooks.py b/src/autogluon/assistant/bench_hooks.py
+new file mode 100644
+index 0000000..814f0c3
+--- /dev/null
++++ b/src/autogluon/assistant/bench_hooks.py
+@@ -0,0 +1,106 @@
++"""ageml-bench instrumentation. Every hook is a no-op unless AGEML_BENCH_DIR is set.
++
++Writes, under $AGEML_BENCH_DIR:
++  events.jsonl          one line per chat creation, search step, commit, stop
++  usage.jsonl           one line per completed LLM call, raw provider usage
++  effective_config.yaml the config handed to NodeManager, after CLI overrides
++  incumbent.json        the native selected candidate at the last committed
++                        successful-step boundary (atomic replace)
++"""
++
++import json
++import os
++import tempfile
++import time
++
++BENCH_DIR = os.environ.get("AGEML_BENCH_DIR")
++EXPORT_ENTRY_POINT = "predict.py"
++
++
++def _append(name, obj):
++    if not BENCH_DIR:
++        return
++    obj = {"ts": time.time(), **obj}
++    with open(os.path.join(BENCH_DIR, name), "a") as f:
++        f.write(json.dumps(obj, default=str) + "\n")
++        f.flush()
++        os.fsync(f.fileno())
++
++
++def _atomic_write(name, text):
++    fd, tmp = tempfile.mkstemp(dir=BENCH_DIR, prefix=f".{name}.")
++    with os.fdopen(fd, "w") as f:
++        f.write(text)
++        f.flush()
++        os.fsync(f.fileno())
++    os.replace(tmp, os.path.join(BENCH_DIR, name))
++
++
++def event(kind, **data):
++    _append("events.jsonl", {"event": kind, **data})
++
++
++def chat_created(session_name, settings):
++    event("chat_created", session=session_name, settings=settings)
++
++
++def llm_call(session_name, ai_message):
++    usage = getattr(ai_message, "usage_metadata", None)
++    meta = getattr(ai_message, "response_metadata", None) or {}
++    _append(
++        "usage.jsonl",
++        {
++            "session": session_name,
++            "reported_model": meta.get("model_name") or meta.get("model"),
++            "usage_metadata": dict(usage) if usage else None,
++            "token_usage": meta.get("token_usage"),
++        },
++    )
++
++
++def effective_config(config, **cli):
++    if not BENCH_DIR:
++        return
++    from omegaconf import OmegaConf
++
++    _atomic_write("effective_config.yaml", OmegaConf.to_yaml(config, resolve=True))
++    event("effective_config", cli=cli)
++
++
++def step(manager, success):
++    node = getattr(manager, "current_node", None)
++    event(
++        "step",
++        time_step=getattr(manager, "time_step", None),
++        node_id=getattr(node, "id", None),
++        stage=getattr(node, "stage", None),
++        success=success,
++        validation_score=getattr(node, "validation_score", None),
++        tool=getattr(node, "tool_used", None),
++    )
++
++
++def commit_incumbent(manager):
++    """Publish the native selection made by create_best_run_copy (same rule)."""
++    if not BENCH_DIR:
++        return
++    node = manager._best_node or manager.last_successful_node
++    if node is None:
++        return
++    folder = manager.get_iteration_folder(node)
++    output = os.path.join(folder, "output")
++    record = {
++        "node_id": node.id,
++        "selected_by": "best_validation_score" if manager._best_node else "last_successful",
++        "native_validation_score": node.validation_score,
++        "node_folder": folder,
++        "output_folder": output,
++        "export_status": "present"
++        if os.path.isfile(os.path.join(output, EXPORT_ENTRY_POINT))
++        else "missing",
++        "tool": node.tool_used,
++        "time_step": manager.time_step,
++        "committed_at": time.time(),
++    }
++    _atomic_write("incumbent.json", json.dumps(record, indent=2, default=str))
++    event("incumbent_committed", **record)
+diff --git a/src/autogluon/assistant/coding_agent.py b/src/autogluon/assistant/coding_agent.py
+index 0bb501a..70c1a62 100644
+--- a/src/autogluon/assistant/coding_agent.py
++++ b/src/autogluon/assistant/coding_agent.py
+@@ -126,6 +126,17 @@ def run_agent(
+     if remove_current_iteration_folder is not None:
+         config.remove_current_iteration_folder = remove_current_iteration_folder
+ 
++    from . import bench_hooks
++
++    bench_hooks.effective_config(
++        config,
++        max_iterations=max_iterations,
++        continuous_improvement=config.continuous_improvement,
++        initial_user_input=initial_user_input,
++        input_data_folder=input_data_folder,
++        output_folder=output_folder,
++    )
++
+     if manager is None:
+         # Create a new NodeManager instance
+         manager = NodeManager(
+@@ -149,17 +160,21 @@ def run_agent(
+ 
+         # Perform one step of the Monte Carlo Tree Search
+         success = manager.step()
++        bench_hooks.step(manager, success)
+ 
+         if success:
+             # Create a best run copy when we find a successful solution
+             manager.create_best_run_copy()
++            bench_hooks.commit_incumbent(manager)
+ 
+             # If not in continuous improvement mode, we can stop
+             if not config.continuous_improvement:
+                 logger.brief("Stopping search - solution found and continuous improvement is disabled")
++                bench_hooks.event("search_stopped", reason="first_success")
+                 break
+         elif success is None:
+             logger.brief("Stopping search - all nodes are terminal.")
++            bench_hooks.event("search_stopped", reason="all_nodes_terminal")
+             break
+         else:
+             pass
+@@ -174,6 +189,7 @@ def run_agent(
+         # Check if we've exceeded the maximum iterations
+         if iteration >= max_iterations:
+             logger.warning(f"[bold red]Warning: Reached maximum iterations ({max_iterations})[/bold red]")
++            bench_hooks.event("search_stopped", reason="max_iterations")
+ 
+     manager.visualize_results()
+     manager.report_token_usage()
+@@ -189,3 +205,4 @@ def run_agent(
+     # Cleanup resources
+     manager.cleanup()
+     logger.debug("Clean Up Successful.")
++    bench_hooks.event("run_agent_returned")
+diff --git a/src/autogluon/assistant/llm/base_chat.py b/src/autogluon/assistant/llm/base_chat.py
+index 9e47b6b..b25ee06 100644
+--- a/src/autogluon/assistant/llm/base_chat.py
++++ b/src/autogluon/assistant/llm/base_chat.py
+@@ -199,6 +199,10 @@ class BaseAssistantChat(BaseModel):
+             self.output_tokens_ += output_tokens
+             self.token_tracker.add_tokens(self.conversation_id, self.session_name, input_tokens, output_tokens)
+ 
++        from .. import bench_hooks
++
++        bench_hooks.llm_call(self.session_name, ai_message)
++
+         self.history_.append(
+             {
+                 "input": message,
+diff --git a/src/autogluon/assistant/llm/openai_chat.py b/src/autogluon/assistant/llm/openai_chat.py
+index d981f41..b05160a 100644
+--- a/src/autogluon/assistant/llm/openai_chat.py
++++ b/src/autogluon/assistant/llm/openai_chat.py
+@@ -24,8 +24,14 @@ class AssistantChatOpenAI(ChatOpenAI, BaseAssistantChat):
+ 
+ def get_openai_models() -> List[str]:
+     try:
++        # OPENAI_BASE_URL is honoured by OpenAI(); ageml-bench sets it to the same
++        # endpoint as proxy_url so discovery and chat agree. Non-OpenAI
++        # endpoints (e.g. Google's compatibility layer) list every model, with
++        # the "models/" prefix stripped, instead of OpenAI-only prefixes.
+         client = OpenAI()
+         models = client.models.list()
++        if os.environ.get("OPENAI_BASE_URL"):
++            return [model.id.removeprefix("models/") for model in models]
+         return [model.id for model in models if model.id.startswith(("gpt-3.5", "gpt-4", "o1", "o3"))]
+     except Exception as e:
+         logger.error(f"Error fetching OpenAI models: {e}")
+@@ -56,4 +62,22 @@ def create_openai_chat(config, session_name: str) -> AssistantChatOpenAI:
+     if hasattr(config, "proxy_url"):
+         kwargs["openai_api_base"] = config.proxy_url
+ 
++    # ageml-bench: forward sampling/reasoning settings that upstream drops
++    if config.get("top_p") is not None:
++        kwargs["top_p"] = config.top_p
++    if config.get("reasoning_effort") is not None:
++        kwargs["reasoning_effort"] = config.reasoning_effort
++
++    from .. import bench_hooks
++
++    bench_hooks.chat_created(
++        session_name,
++        {
++            "provider": "openai",
++            "model": model,
++            "base_url": kwargs.get("openai_api_base"),
++            "env_base_url": os.environ.get("OPENAI_BASE_URL"),
++            **{k: kwargs.get(k) for k in ("temperature", "top_p", "max_tokens", "reasoning_effort")},
++        },
++    )
+     return AssistantChatOpenAI(**kwargs)
