@@ -1,0 +1,180 @@
+{
+  "budget": {
+    "generation_attempts": 10,
+    "nominal_search_seconds": 7200,
+    "pipelines": 30,
+    "timing_boundary": "pipeline jobs only (inspected v1); unverified for this campaign",
+    "workers": 8
+  },
+  "captured_at": "2026-10-20T11:19:04.792+00:00",
+  "datasets": [
+    {
+      "dataset_version": 2,
+      "export_sha256": null,
+      "key": "wilt",
+      "objective": "balanced_accuracy",
+      "openml_id": 40983,
+      "openml_name": "wilt",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "class",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "classification"
+    },
+    {
+      "dataset_version": 1,
+      "export_sha256": null,
+      "key": "texture",
+      "objective": "balanced_accuracy",
+      "openml_id": 40499,
+      "openml_name": "texture",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "Class",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "classification"
+    },
+    {
+      "dataset_version": 1,
+      "export_sha256": null,
+      "key": "madelon",
+      "objective": "balanced_accuracy",
+      "openml_id": 1485,
+      "openml_name": "madelon",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "Class",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "classification"
+    },
+    {
+      "dataset_version": 1,
+      "export_sha256": null,
+      "key": "har",
+      "objective": "balanced_accuracy",
+      "openml_id": 1478,
+      "openml_name": "har",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "Class",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "classification"
+    },
+    {
+      "dataset_version": 2,
+      "export_sha256": null,
+      "key": "adult",
+      "objective": "balanced_accuracy",
+      "openml_id": 1590,
+      "openml_name": "adult",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "class",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "classification"
+    },
+    {
+      "dataset_version": 1,
+      "export_sha256": null,
+      "key": "mnist_784",
+      "objective": "balanced_accuracy",
+      "openml_id": 554,
+      "openml_name": "mnist_784",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "class",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "classification"
+    },
+    {
+      "dataset_version": 1,
+      "export_sha256": null,
+      "key": "california_housing",
+      "objective": "rmse",
+      "openml_id": 43939,
+      "openml_name": "california_housing",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "median_house_value",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "regression"
+    },
+    {
+      "dataset_version": 1,
+      "export_sha256": null,
+      "key": "ames_housing",
+      "objective": "rmse",
+      "openml_id": 42165,
+      "openml_name": "house_prices",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "SalePrice",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "regression"
+    },
+    {
+      "dataset_version": 1,
+      "export_sha256": null,
+      "key": "auto_mpg",
+      "objective": "rmse",
+      "openml_id": 196,
+      "openml_name": "autoMpg",
+      "split_hash": null,
+      "split_seed": 42,
+      "target": "class",
+      "target_source": "openml_default_target_attribute",
+      "target_units": null,
+      "task": "regression"
+    }
+  ],
+  "llm": {
+    "client": "langchain_google_genai.ChatGoogleGenerativeAI(model=...) with provider defaults",
+    "provider": "google",
+    "requested_model": "gemini-3.1-flash-lite-preview",
+    "settings": null
+  },
+  "protocol": {
+    "comparability_status": "historical_protocol",
+    "evidence": "ageml/evaluation/agent.py::get_best_run_across_pipelines scores pipeline finalists on test_df to pick the global winner",
+    "protocol_id": "ageml-holdout-v1-test-selected"
+  },
+  "reference_campaign_id": "ageml-general-gemini-3.1-flash-lite-preview",
+  "repetitions": {
+    "count": 5,
+    "note": "repetitions re-run the search on one fixed split",
+    "search_seed": null,
+    "split_seed": 42
+  },
+  "resources": null,
+  "schema_version": 1,
+  "source": {
+    "commit": "86e4af6b019a7ac807b046ca27c2e0cd4d8ab6c2",
+    "dirty": false,
+    "release": "5.8.0",
+    "repository": "https://github.com/Mala1180/age-ml"
+  },
+  "specification": {
+    "budgets": {
+      "generation_attempts": 10,
+      "pipelines": 30,
+      "time": {
+        "hours": 2
+      },
+      "workers": 8
+    },
+    "path": "resources/general-specification.yml",
+    "sha256": "d7fb1077e7d330063151c0f882a42c3bf276d933c713ee91492c33bf134007e5",
+    "technical_details": [
+      "use Python for the implementation",
+      "use scikit-learn for the ML algorithms (using Pipeline class if possible)"
+    ]
+  }
+}
