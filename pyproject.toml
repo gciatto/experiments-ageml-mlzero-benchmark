@@ -21,7 +21,7 @@ openml = ">=0.15"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.4.0"
-mypy = "^1.10.1"
+mypy = "^2.0.0"
 poethepoet = "^0.37.0"
 poetry = "^1.8.3"
 pytest = "^8.3.5"
