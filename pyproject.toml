@@ -12,7 +12,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 # update the Python versions in .github/workflows/check.yml if you change this
 python = ">=3.12,<3.14"
-pandas = "^2.2"
+pandas = "^3.0.0"
 numpy = ">=1.26"
 scikit-learn = "^1.5"
 pyyaml = "^6.0"
