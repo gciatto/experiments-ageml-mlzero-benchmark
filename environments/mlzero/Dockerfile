@@ -8,7 +8,7 @@
 # freezes PyPI resolution both here and in the per-node environments that
 # MLZero creates at run time. CPU-only campaign: no CUDA base image.
 
-ARG BASE_IMAGE=python:3.11-slim-bookworm@sha256:94a8fee35252d06ab75856f15f12c7bae67b10e8a6da93c7fded82b2610926cd
+ARG BASE_IMAGE=python:3.11-slim-bookworm@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39
 FROM ${BASE_IMAGE}
 
 ARG MLZERO_REPO=https://github.com/autogluon/autogluon-assistant.git
