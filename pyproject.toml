@@ -3,7 +3,7 @@ name = "experiments-ageml-mlzero-benchmark"
 packages = [
     { include = "ageml_mlzero_benchmark" },
 ]
-version = "2.4.1"
+version = "1.0.0"
 description = "MLZero baseline experiments for the AGE-ML agentic AutoML comparison"
 authors = ["Giovanni Ciatto <giovanni.ciatto@unibo.it>"]
 license = "Apache 2.0"
