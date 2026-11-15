@@ -1,3 +1,68 @@
+## 1.0.0 (2026-11-15)
+
+### Features
+
+* **accounting:** summarize llm usage, cost and resources ([a4663a1](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/a4663a1fc4c45753f8aed78b319a21d1af68bad6))
+* add shared hashing, json and run-record helpers ([0908ff8](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/0908ff8af3e72642725295e101d4dcdb0dfe4420))
+* **cli:** add ageml-bench command line interface ([61761a7](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/61761a72b62bf6ebac5c25f148a385eeb420ba40))
+* **config:** load and resolve campaign configurations ([bbaa385](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/bbaa385204b5a641725be945149aac0a5c07749b))
+* **datasets:** export openml data as age-ml does and build immutable splits ([47343ba](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/47343ba9c8a245eb8d20ca95dce0f4c0df7fc4bb))
+* **evaluation:** add trusted prediction checks and metrics ([c228565](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/c228565feb29d9152cd89b69d4bfce00dec5eb8b))
+* **importers:** import age-ml results with explicit provenance ([8dfa185](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/8dfa185f6e3122bf3424335a7d3d961aa7bf5a0a))
+* **mlzero:** add instrumentation and gemini compatibility patch ([2b4ee82](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/2b4ee824c22d6b8f0bf5bb4be1d8a462ce7b6401))
+* **mlzero:** render inputs, build commands and collect artifacts ([79f2d1d](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/79f2d1d802effe5cd85a61232772e6d1cebcf3ce))
+* **providers:** add live gemini endpoint check ([3d4ffd5](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/3d4ffd53c2dae8ec1bde5a09e5643f4342aacf2a))
+* **reference:** capture age-ml reference manifests and pair eligibility ([b9fc307](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/b9fc307e7bfffc8e57952dfe3e61934a5000e476))
+* **reporting:** generate tables, plots and provenance reports ([fc89db0](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/fc89db00522fec7ccd882525e5f5897ac083b9b7))
+* **runner:** supervise searches, run final inference and resume campaigns ([93e3e3c](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/93e3e3cfc315a0f06a31ad4399e730ef58c864fe))
+
+### Dependency updates
+
+* **deps:** update dependency coverage to v7.17.0 ([#10](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/10)) ([6a5ec52](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/6a5ec52e50ee00a9af12383c1a6dcf214aab47bd))
+* **deps:** update dependency mypy to v2 ([#3](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/3)) ([bff276c](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/bff276c78c3f3f7506d1792024b0618ac115240a))
+* **deps:** update dependency poethepoet to ^0.49.0 ([#1](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/1)) ([1b74b5a](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/1b74b5ad9bd03a8a8802f9fc1d43db10875f3a5a))
+* **deps:** update dependency poetry to v2.5.1 ([#4](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/4)) ([a728f15](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/a728f15d1f2a90cd5d21c66e6f80ce1d44c051a2))
+* **deps:** update dependency pytest to v9 ([#5](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/5)) ([cb64b3e](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/cb64b3e6c0eef02cd111d8f4a560a9446f135c9b))
+* **deps:** update node.js to v26 ([#11](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/11)) ([c89488a](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/c89488a0b7b86c8bf6e4590ee601689bdb6a3db7))
+* **deps:** update python:3.11-slim-bookworm docker digest to 94a8fee ([#9](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/9)) ([190259d](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/190259df7bee93a2911eeb9eed1540e744772057))
+
+### Bug Fixes
+
+* **ci:** configure Python 3.12 for deployment ([7cd0a12](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/7cd0a12f5b965b781f984820c8874d7d453fdd96))
+* **ci:** fall back to GitHub Actions token for releases ([105f8e3](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/105f8e343f51b234381ce9673856ca6b5aa01356))
+* **deps:** update dependency pandas to v3 ([#8](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/issues/8)) ([2dc8cd0](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/2dc8cd09e0fc6367fb23634f88b6ce2f9d5d54ac))
+
+### Documentation
+
+* add reproduction guide ([8226d72](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/8226d7256bc878bec44faa407fa3a69b99ca667b))
+* describe the benchmark protocol ([20b3288](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/20b3288038390c9f521a102b0e1c44aee9928105))
+* explain how to run the benchmark and what results to expect ([7610acc](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/7610acc9ddf5bd977ab36ea95b0a758f8dc70acc))
+* record manuscript discrepancies ([f0aa815](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/f0aa8150666f8acedf39a07a5f931c18ec13a863))
+* replace template readme ([4c53b4a](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/4c53b4a98243735379d8a4fb475b5327677c31cc))
+
+### Tests
+
+* cover data, evaluation, import and accounting contracts ([bda731d](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/bda731db069bd5f39596add937e72842ee5f1f4d))
+* cover the runner end to end with a fake mlzero cli ([963655b](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/963655bb12190fdd0ff686cf2c04eb5accf78b93))
+
+### Build and continuous integration
+
+* **mlzero:** add pinned container with supervisor and inference fit guard ([91297ac](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/91297ace18cd11d357bc5620eb9236ab13d7fe28))
+* **mlzero:** vendor the upstream default configuration ([0a5823d](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/0a5823d89ce95c52d028eb903dda5b35b204891f))
+* release on github only, without publishing to pypi or test-pypi ([7772236](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/77722360eec4cc9c28065ae28ae2109fc8178a58))
+* rename package to ageml_mlzero_benchmark and add runtime dependencies ([a9b0bca](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/a9b0bca0f7a61e0754d8d6f31f591431a2ebcc0f))
+* test on python 3.12 and 3.13 on posix runners only ([b296f7f](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/b296f7fe6b8129deca359c4eccbf6d31ca0b6c3e))
+
+### General maintenance
+
+* alignment with AGE-ML experimental setup ([e3090c2](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/e3090c24ac89073b512c837032fc025cd0a6acbc))
+* **config:** add comparison and pilot campaign configurations ([ee4b944](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/ee4b944daf9a4cbdfe7d7636396e1dd81b183216))
+* **config:** add dated gemini pricing file ([6bbf333](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/6bbf333f881ff3f1b8634a2253573046f28fbeef))
+* ignore the artifacts directory ([8999a5e](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/8999a5eba2a9784448820164f1d98b3ac1531c6e))
+* initialise repository renaming files and removing init workflow [skip ci] ([4804b32](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/4804b32aee679efdb6ec4cc012e5a843e93986e2))
+* pin upstream sources in upstreams.lock.yml ([4c3e018](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/4c3e018b86b65091a766d25ad77154a401916bac))
+* **reference:** add reference manifest captured from age-ml 86e4af6 ([c84777a](https://github.com/gciatto/experiments-ageml-mlzero-benchmark/commit/c84777a3690b4fbdf9ddfe91644c4919e73edff6))
+
 ## [2.4.1](https://github.com/aequitas-aod/template-python-project-poetry/compare/2.4.0...2.4.1) (2025-12-19)
 
 ### Dependency updates
