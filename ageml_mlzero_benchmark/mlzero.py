@@ -249,10 +249,37 @@ def search_command(
             {
                 "PYTHONHASHSEED": str(m["search_seed"]),
                 "AGEML_SEARCH_SEED": str(m["search_seed"]),
-                "PYTHONPATH": "/opt/bench/search-seed",
+                "PYTHONPATH": "/opt/bench/search-seed"
+                if docker
+                else str(ROOT / "environments/mlzero/search_seed"),
             }
         )
     if not docker:
+        env.update(
+            {"UV_CACHE_DIR": str(cache / "uv"), "CONDA_PKGS_DIRS": str(cache / "conda")}
+        )
+        if m.get("runtime_manifest"):
+            import os
+
+            from .local_runtime import scoped_command
+
+            env.update(
+                {
+                    "HF_HOME": str(Path(m["python"]).parent.parent.parent / "hf"),
+                    "HF_HUB_OFFLINE": "1",
+                    "CUDA_VISIBLE_DEVICES": "",
+                    "TRANSFORMERS_OFFLINE": "1",
+                    "UV_EXCLUDE_NEWER": "2026-10-01T00:00:00Z",
+                }
+            )
+            env["PATH"] = (
+                str(Path(python).parent)
+                + os.pathsep
+                + m["conda_bin"]
+                + os.pathsep
+                + os.environ["PATH"]
+            )
+            core = scoped_command(core, resolved, container_name + ".scope")
         return core, env
     res = resolved["resources"]
     cache_c = CONTAINER["cache"]

@@ -1,7 +1,7 @@
 """Matched AGE-ML/MLZero campaigns: native Gemini, seed 42, one-hour ten-fold CV.
 
 This entry point is separate from the historical holdout runner. It never
-imports AGE-ML and never executes candidate code on the orchestration host.
+imports AGE-ML. Candidate execution uses Docker or a dedicated local systemd scope.
 """
 
 import argparse
@@ -290,6 +290,14 @@ def campaign_path(cfg):
 def check_image(cfg):
     import subprocess
 
+    if cfg["mlzero"]["executor"] == "local":
+        from .local_runtime import verify
+
+        runtime = verify(cfg["mlzero"]["runtime_manifest"])
+        code = "from langchain_google_genai import ChatGoogleGenerativeAI as C; from autogluon.assistant.llm.gemini_chat import AssistantChatGemini as G; import importlib.metadata; g=G(model='gemini-2.5-flash',google_api_key='constructor-check-only',session_name='doctor',seed=42,temperature=0.0); assert g.seed==42 and g.temperature==0; assert importlib.metadata.version('langchain-google-genai')=='4.2.1'; assert 'seed' in C.model_fields"
+        subprocess.run([runtime["python"], "-c", code], check=True)
+        return {"client": "4.2.1", "runtime_identity": canonical_hash(runtime)}
+
     code = "import json,hashlib,pathlib,importlib.metadata; from langchain_google_genai import ChatGoogleGenerativeAI as C; from autogluon.assistant.llm.gemini_chat import AssistantChatGemini as G; g=G(model='gemini-2.5-flash',google_api_key='constructor-check-only',session_name='doctor',seed=42,temperature=0.0); assert g.seed==42 and g.temperature==0; print(json.dumps({'seed': 'seed' in C.model_fields,'client':importlib.metadata.version('langchain-google-genai'),'patches':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in pathlib.Path('/opt/bench/patches').glob('*.patch')}}))"
     result = subprocess.check_output(
         [
@@ -361,7 +369,13 @@ def run(cfg, dry_run=False, only=None):
     root.mkdir(parents=True, exist_ok=True)
     if not dry_run and not os.environ.get(cfg["llm"]["api_key_env"]):
         raise ValueError("GEMINI_API_KEY is missing")
-    if not dry_run:
+    docker = cfg["mlzero"]["executor"] == "docker"
+    if not dry_run and not docker:
+        from .local_runtime import preflight
+
+        image = canonical_hash(preflight(cfg))
+        check_image(cfg)
+    elif not dry_run:
         import subprocess
 
         subprocess.run(["docker", "info"], check=True, stdout=subprocess.DEVNULL)
@@ -395,6 +409,17 @@ def run(cfg, dry_run=False, only=None):
                     "harness_sha256": sha256_file(Path(__file__)),
                     "adapter_sha256": sha256_file(Path(mlzero.__file__)),
                 }
+                if not docker:
+                    identity["local_executor_sources"] = {
+                        p.name: sha256_file(p)
+                        for p in (
+                            Path(__file__).with_name("local_runtime.py"),
+                            Path(mlzero.__file__).parent.parent
+                            / "environments/mlzero/supervise.py",
+                            Path(mlzero.__file__).parent.parent
+                            / "environments/mlzero/search_seed/sitecustomize.py",
+                        )
+                    }
                 rid = canonical_hash(identity)[:20]
                 base = root / "runs" / ent["key"] / f"rep-{rep}" / rid
                 finals = sorted(base.glob("attempt-*/record.json"))
@@ -414,7 +439,11 @@ def run(cfg, dry_run=False, only=None):
                     if (abandoned / "record.json").exists():
                         continue
                     launch = abandoned / "launch.json"
-                    if launch.exists():
+                    if launch.exists() and not docker:
+                        from .local_runtime import stop_scope
+
+                        stop_scope(read_json(launch)["scope_unit"])
+                    if launch.exists() and docker:
                         import subprocess
 
                         container = read_json(launch)["container_name"]
@@ -453,17 +482,33 @@ def run(cfg, dry_run=False, only=None):
                 name = "mlzero-cv-" + uuid.uuid4().hex[:10]
                 cache = Path(cfg["outputs"]["artifact_root"]) / "cache"
                 cache.mkdir(exist_ok=True)
-                write_json(attempt / "launch.json", {"container_name": name})
+                write_json(
+                    attempt / "launch.json",
+                    {"container_name": name}
+                    if docker
+                    else {"scope_unit": name + ".scope"},
+                )
                 argv, env = mlzero.search_command(cfg, attempt, prepared, cache, name)
                 env["OPENAI_API_KEY"] = os.environ[cfg["llm"]["api_key_env"]]
                 print(
                     f"START {ent['key']} rep={rep} model={cfg['llm']['model']}",
                     flush=True,
                 )
-                sup = runner._supervise(
-                    argv, env, 3600, attempt / "search.log", name, 30
-                )
-                col = mlzero.collect(attempt, True)
+                try:
+                    sup = runner._supervise(
+                        argv,
+                        env,
+                        3600,
+                        attempt / "search.log",
+                        name if docker else None,
+                        30,
+                    )
+                finally:
+                    if not docker:
+                        from .local_runtime import stop_scope
+
+                        stop_scope(name + ".scope")
+                col = mlzero.collect(attempt, docker)
                 # Freeze native selection at the deadline, never choose by trusted score.
                 eligible = [
                     c for c in col["commits"] if c["ts"] <= sup["started_at"] + 3600
@@ -482,7 +527,7 @@ def run(cfg, dry_run=False, only=None):
                     "temperature": 0.0,
                     "search_budget_s": 3600,
                     "search_wall_s": sup["wall_s"],
-                    "termination_reason": runner._termination(sup, col, True),
+                    "termination_reason": runner._termination(sup, col, docker),
                     "status": "no_artifact",
                     "cv_score": None,
                     "test_score": None,
@@ -499,7 +544,7 @@ def run(cfg, dry_run=False, only=None):
                     "protocol_compliance": "audited export; no proof against adversarial generated code",
                 }
                 if incumbent:
-                    folder = mlzero.to_host(incumbent["output_folder"], attempt, True)
+                    folder = mlzero.to_host(incumbent["output_folder"], attempt, docker)
                     try:
                         rec.update(trusted_cv(folder, prepared))
                         rec["status"] = "completed"
@@ -614,6 +659,11 @@ def main(argv=None):
     b.add_argument("--age-campaign", required=True, type=Path)
     b.add_argument("--age-data", required=True, type=Path)
     b.add_argument("--output", required=True, type=Path)
+    b.add_argument(
+        "--local-runtime",
+        type=Path,
+        help="Use a sealed local runtime instead of Docker",
+    )
     b.add_argument("--cpus", type=int, default=16)
     b.add_argument("--memory-gib", type=int, default=50)
     r = sub.add_parser("run")
@@ -628,6 +678,11 @@ def main(argv=None):
     a = p.parse_args(argv)
     if a.command == "bootstrap":
         cfg = bootstrap(a.age_campaign, a.age_data, a.output, a.cpus, a.memory_gib)
+        if a.local_runtime:
+            from .local_runtime import configure
+
+            cfg = configure(cfg, a.local_runtime)
+            a.output.write_text(yaml.safe_dump(cfg, sort_keys=False))
         print(
             f"Prepared {len(cfg['dataset_entries'])} datasets; {len(cfg['repetitions'])} repetitions; model={cfg['llm']['model']}; seed=42; budget=3600 s"
         )

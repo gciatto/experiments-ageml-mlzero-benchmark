@@ -152,7 +152,10 @@ def test_original_holdout_protocol_is_rejected():
 
 
 @pytest.mark.parametrize("late_commit", [False, True])
-def test_native_cv_scheduler_deadline_and_resume(tmp_path, monkeypatch, late_commit):
+@pytest.mark.parametrize("executor", ["docker", "local"])
+def test_native_cv_scheduler_deadline_and_resume(
+    tmp_path, monkeypatch, late_commit, executor
+):
     import subprocess
     from types import SimpleNamespace
 
@@ -197,6 +200,21 @@ def test_native_cv_scheduler_deadline_and_resume(tmp_path, monkeypatch, late_com
     monkeypatch.setattr(
         cv.shutil, "disk_usage", lambda root: SimpleNamespace(free=100 * 1024**3)
     )
+    from ageml_mlzero_benchmark import local_runtime
+
+    stopped = []
+    if executor == "local":
+        cfg["mlzero"].update(
+            executor="local",
+            python="/local/env/bin/python",
+            command=["/local/env/bin/mlzero"],
+            conda_bin="/local/conda/bin",
+            runtime_manifest="/local/runtime.json",
+        )
+        monkeypatch.setattr(local_runtime, "preflight", lambda cfg: {"runtime": "test"})
+        monkeypatch.setattr(
+            local_runtime, "stop_scope", lambda unit: stopped.append(unit)
+        )
     captured = {}
     calls = []
 
@@ -210,7 +228,9 @@ def test_native_cv_scheduler_deadline_and_resume(tmp_path, monkeypatch, late_com
         )
         evaluator().evaluate(factory, prepared / "cv_contract.json", output)
         incumbent = {
-            "output_folder": "/bench/run/mlzero/node_0/output",
+            "output_folder": "/bench/run/mlzero/node_0/output"
+            if executor == "docker"
+            else str(output),
             "native_validation_score": -5.0,
             "ts": 5000 if late_commit else 1001,
         }
@@ -250,3 +270,21 @@ def test_native_cv_scheduler_deadline_and_resume(tmp_path, monkeypatch, late_com
     assert "timeout" in calls[0][0] and "3600s" in calls[0][0]
     assert cv.run(cfg)[0]["run_id"] == result[0]["run_id"]
     assert len(calls) == 1
+    if executor == "local":
+        assert calls[0][0][0] == "systemd-run"
+        assert "MemoryMax=50G" in calls[0][0]
+        assert len(stopped) == 1
+        # Simulate an interrupted orchestration record. The recorded old scope
+        # must be stopped before the next attempt; its usage is retained.
+        (Path(result[0]["attempt"]) / "record.json").unlink()
+        resumed = cv.run(cfg)
+        assert len(calls) == 2 and len(stopped) == 3
+        assert resumed[0]["run_id"] == result[0]["run_id"]
+        assert resumed[0]["attempt"] != result[0]["attempt"]
+        from ageml_mlzero_benchmark import read_json
+
+        interrupted = read_json(Path(result[0]["attempt"]) / "record.json")
+        assert interrupted["status"] == "harness_interrupted"
+        assert interrupted["final"] is False
+    else:
+        assert calls[0][0][0] == "docker"

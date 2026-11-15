@@ -7,8 +7,8 @@
 #     -e UV_CACHE_DIR=/bench/cache/uv -e CONDA_PKGS_DIRS=/bench/cache/conda \
 #     ageml-mlzero:f228cd7 bash /opt/bench/warm_cache.sh
 set -euo pipefail
-REG=/opt/mlzero/src/autogluon/assistant/tools_registry
-ENV=/bench/cache/warm-env
+REG="${AGEML_MLZERO_SOURCE:-/opt/mlzero}/src/autogluon/assistant/tools_registry"
+ENV="${AGEML_CACHE_ROOT:-/bench/cache}/warm-env"
 rm -rf "$ENV"
 conda create -y -p "$ENV" python=3.11
 "$ENV/bin/python" -m pip install uv

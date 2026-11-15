@@ -37,9 +37,10 @@ it.
 
 ## Running the benchmark
 
-You need Linux with Docker (cgroup v2), Python 3.12+ with Poetry, and a Gemini
-API key in `$GEMINI_API_KEY`. Reporting and offline evaluation need neither
-Docker nor the key. Full details are in
+The legacy workflow below uses Linux with Docker (cgroup v2), Python 3.12+
+with Poetry, and a Gemini API key in `$GEMINI_API_KEY`. For current matched-CV
+campaigns without Docker, see [the local workflow](docs/local-hamlet-cv.md).
+Reporting and offline evaluation need neither Docker nor the key. Legacy details are in
 [docs/reproduction.md](docs/reproduction.md).
 
 ```bash
@@ -168,3 +169,7 @@ poetry install
 poetry run poe test           # offline; live tests are marked `live`
 poetry run poe static-checks  # ruff + mypy
 ```
+
+### Run without Docker
+
+For a dedicated Proxmox LXC, use the [local matched-CV workflow](docs/local-hamlet-cv.md). It uses a separate Conda runtime and per-search systemd scopes; it requires no Proxmox host access.

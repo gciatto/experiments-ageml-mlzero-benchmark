@@ -15,7 +15,19 @@ import sys
 import threading
 import time
 
-CG = "/sys/fs/cgroup"
+
+def cgroup_path():
+    # Docker has a private cgroup namespace; local scopes expose an absolute path.
+    with open("/proc/self/cgroup") as stream:
+        for line in stream:
+            if line.startswith("0::"):
+                return os.path.join(
+                    "/sys/fs/cgroup", line.strip().split("::", 1)[1].lstrip("/")
+                )
+    return "/sys/fs/cgroup"
+
+
+CG = cgroup_path()
 
 
 def _read(name):
