@@ -97,7 +97,13 @@ def render_config(resolved: dict[str, Any]) -> dict[str, Any]:
     """
     upstream = yaml.safe_load(UPSTREAM_DEFAULT.read_text())
     llm = resolved["llm"]
-    common = {"provider": "openai", "model": llm["model"], "proxy_url": llm["endpoint"]}
+    common = {
+        "provider": llm.get("transport", "openai"),
+        "model": llm["model"],
+        "proxy_url": llm["endpoint"],
+    }
+    if llm.get("transport") == "gemini":
+        common.update({"top_p": None, "max_tokens": None})
     common.update(llm.get("settings") or {})
     cfg: dict[str, Any] = {
         "continuous_improvement": resolved["mlzero"]["continuous_improvement"],
@@ -227,7 +233,7 @@ def search_command(
         "-n",
         str(m["max_iterations"]),
         "-t",
-        INSTRUCTION,
+        m.get("instruction", INSTRUCTION),
         "-v",
         str(m.get("verbosity", 2)),
     ]
@@ -238,6 +244,14 @@ def search_command(
         "OPENAI_BASE_URL": resolved["llm"]["endpoint"],
         "OPENAI_API_KEY": "",  # filled from llm.api_key_env by the runner
     }
+    if m.get("search_seed") is not None:
+        env.update(
+            {
+                "PYTHONHASHSEED": str(m["search_seed"]),
+                "AGEML_SEARCH_SEED": str(m["search_seed"]),
+                "PYTHONPATH": "/opt/bench/search-seed",
+            }
+        )
     if not docker:
         return core, env
     res = resolved["resources"]
@@ -261,6 +275,14 @@ def search_command(
     ]
     for k in env:
         argv += ["-e", k]  # value inherited from the launching environment
+    if m.get("hard_timeout_seconds"):
+        core = [
+            "timeout",
+            "--signal=TERM",
+            "--kill-after=30s",
+            str(m["hard_timeout_seconds"]) + "s",
+            *core,
+        ]
     return [*argv, m["image"], *core], env
 
 

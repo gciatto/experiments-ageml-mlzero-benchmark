@@ -17,6 +17,15 @@ AGE-ML runs and ablations live in the AGE-ML repository.
 - [upstreams.lock.yml](upstreams.lock.yml): pinned AGE-ML and MLZero commits,
   patch hash and container inputs
 
+## Current AGE-ML campaigns: matched ten-fold CV
+
+For the completed Gemini 2.5 / 3.1 AGE-ML campaigns, use
+[docs/hamlet-cv.md](docs/hamlet-cv.md) and `python -m ageml_mlzero_benchmark.hamlet_cv`.
+This separate workflow reads the actual campaign CSV/fold hashes, uses seed 42,
+native Gemini at temperature 0, and a 3600-second budget. The sections below
+describe the older holdout runner; `configs/comparison.yml` is **not** the config
+for the current AGE-ML results.
+
 ## Status
 
 **Upstream prerequisite.** AGE-ML `86e4af6` (5.8.0) still chooses the global

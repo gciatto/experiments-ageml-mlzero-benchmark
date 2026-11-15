@@ -40,7 +40,7 @@ RUN pip install uv==${UV_VERSION}
 RUN git clone ${MLZERO_REPO} /opt/mlzero && git -C /opt/mlzero checkout ${MLZERO_COMMIT}
 COPY patches/ /opt/bench/patches/
 RUN cd /opt/mlzero && for p in /opt/bench/patches/*.patch; do git apply "$p"; done
-RUN uv pip install --system opencv-python-headless -e /opt/mlzero \
+RUN uv pip install --system --exclude-newer 2026-11-15T00:00:00Z langchain-google-genai==4.2.1 opencv-python-headless -e /opt/mlzero \
     && uv pip freeze --system > /opt/bench/base-freeze.txt
 
 # retrieval model at a fixed revision, and prebuilt tutorial indices, so
@@ -51,6 +51,7 @@ ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 
 COPY environments/mlzero/supervise.py environments/mlzero/warm_cache.sh /opt/bench/
 COPY environments/mlzero/guard/ /opt/bench/guard/
+COPY environments/mlzero/search_seed/ /opt/bench/search-seed/
 RUN printf '%s\n' \
       "mlzero_commit=${MLZERO_COMMIT}" "uv=${UV_VERSION}" "miniforge=${MINIFORGE_VERSION}" \
       "embedding_model=${EMBEDDING_MODEL}@${EMBEDDING_REVISION}" "exclude_newer=${EXCLUDE_NEWER}" \

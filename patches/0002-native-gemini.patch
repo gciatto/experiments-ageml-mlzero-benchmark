@@ -1,0 +1,79 @@
+diff --git a/src/autogluon/assistant/llm/llm_factory.py b/src/autogluon/assistant/llm/llm_factory.py
+index dd163c6..e1b42da 100644
+--- a/src/autogluon/assistant/llm/llm_factory.py
++++ b/src/autogluon/assistant/llm/llm_factory.py
+@@ -7,6 +7,7 @@ from omegaconf import DictConfig
+ from .anthropic_chat import AssistantChatAnthropic, create_anthropic_chat, get_anthropic_models
+ from .azure_openai_chat import AssistantAzureChatOpenAI, create_azure_openai_chat, get_azure_models
+ from .base_chat import GlobalTokenTracker
++from .gemini_chat import create_gemini_chat, get_gemini_models
+ from .bedrock_chat import AssistantChatBedrock, create_bedrock_chat, get_bedrock_models
+ from .minimax_chat import AssistantChatMiniMax, AssistantChatMiniMaxAnthropic, create_minimax_chat, get_minimax_models
+ from .openai_chat import AssistantChatOpenAI, create_openai_chat, get_openai_models
+@@ -25,6 +26,8 @@ class ChatLLMFactory:
+ 
+     @classmethod
+     def get_valid_models(cls, provider):
++        if provider == "gemini":
++            return get_gemini_models()
+         if provider == "azure":
+             return get_azure_models()
+         elif provider == "openai":
+@@ -42,7 +45,7 @@ class ChatLLMFactory:
+ 
+     @classmethod
+     def get_valid_providers(cls):
+-        return ["azure", "openai", "bedrock", "anthropic", "sagemaker", "minimax"]
++        return ["azure", "openai", "bedrock", "anthropic", "sagemaker", "minimax", "gemini"]
+ 
+     @classmethod
+     def get_chat_model(cls, config: DictConfig, session_name: str) -> Union[
+@@ -70,6 +73,8 @@ class ChatLLMFactory:
+                         f"Invalid model: {model} for provider {provider}. All valid models are {valid_models}. If you are using Bedrock, please check if the requested model is available in the provided AWS_DEFAULT_REGION: {os.environ.get('AWS_DEFAULT_REGION')}"
+                     )
+ 
++        if provider == "gemini":
++            return create_gemini_chat(config, session_name)
+         if provider == "openai":
+             return create_openai_chat(config, session_name)
+         elif provider == "azure":
+diff --git a/src/autogluon/assistant/llm/gemini_chat.py b/src/autogluon/assistant/llm/gemini_chat.py
+new file mode 100644
+index 0000000..57ada74
+--- /dev/null
++++ b/src/autogluon/assistant/llm/gemini_chat.py
+@@ -0,0 +1,34 @@
++"""Native Gemini transport for the AGE-ML matched benchmark.
++
++Uses the same client family as AGE-ML, with seed and temperature explicitly
++forwarded. Backend determinism is not guaranteed. No search/reward changes.
++"""
++import os
++import json
++import urllib.request
++from langchain_google_genai import ChatGoogleGenerativeAI
++from .base_chat import BaseAssistantChat
++from .. import bench_hooks
++
++class AssistantChatGemini(ChatGoogleGenerativeAI, BaseAssistantChat):
++    def __init__(self, **kwargs):
++        super().__init__(**kwargs)
++        self.initialize_conversation(self)
++
++    def describe(self):
++        return {"model": self.model, "provider": "gemini", "seed": self.seed}
++
++
++def get_gemini_models():
++    key=os.environ["OPENAI_API_KEY"]  # harness injects the configured key only here
++    req=urllib.request.Request("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",headers={"x-goog-api-key":key})
++    with urllib.request.urlopen(req,timeout=60) as response:
++        return [m["name"].removeprefix("models/") for m in json.load(response).get("models",[])]
++
++
++def create_gemini_chat(config, session_name):
++    if "seed" not in ChatGoogleGenerativeAI.model_fields:
++        raise RuntimeError("Gemini client does not support seed; refusing silent fallback")
++    kwargs={"model":config.model,"google_api_key":os.environ["OPENAI_API_KEY"],"session_name":session_name,"seed":int(config.seed),"temperature":float(config.temperature)}
++    bench_hooks.chat_created(session_name,{"provider":"gemini","model":config.model,"seed":int(config.seed),"temperature":float(config.temperature),"base_url":"https://generativelanguage.googleapis.com/v1beta","seed_support":"requested; backend determinism not guaranteed"})
++    return AssistantChatGemini(**kwargs)
