@@ -30,9 +30,11 @@ jobs:
             echo "skip=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get Python Version
-        id: get-python-version
-        run: echo version=$(python setup.py get_minimum_python_version | tail -n 1) >> $GITHUB_OUTPUT
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          # Match preliminary checks and the AGE-ML experiment container.
+          python-version: '3.12'
 
       - name: Install Poetry
         run: |
