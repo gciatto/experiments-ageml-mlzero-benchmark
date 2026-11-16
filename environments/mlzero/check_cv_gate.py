@@ -135,6 +135,7 @@ def run_check(source):
         "broken-factory",
         "wrapped-factory",
         "unresolved-wrapper",
+        "module-initialization",
     ):
         with tempfile.TemporaryDirectory(prefix="mlzero-cv-gate-") as tmp:
             root = Path(tmp)
@@ -180,6 +181,14 @@ def run_check(source):
                 if regression
                 else 'from sklearn.dummy import DummyClassifier\ndef build_model(X_train,y_train):\n return DummyClassifier(strategy="most_frequent")\n'
             )
+            if task == "module-initialization":
+                code = (
+                    "import logging\n"
+                    "from sklearn.metrics import make_scorer, balanced_accuracy_score\n"
+                    "SCORER = make_scorer(balanced_accuracy_score)\n"
+                    "logging.getLogger('autogluon').setLevel(logging.WARNING)\n"
+                    "CONFIG = dict(seed=42)\n" + code
+                )
             if task == "wrapped-factory":
                 code = (
                     "MODEL_FACTORY_CONTENT = "
@@ -233,7 +242,12 @@ def run_check(source):
             os.environ.update(env)
             try:
                 result = simulate(manager)
-                if task in ("classification", "regression", "wrapped-factory"):
+                if task in (
+                    "classification",
+                    "regression",
+                    "wrapped-factory",
+                    "module-initialization",
+                ):
                     expected = -5.0 if regression else 0.5
                     assert result == (expected, True, False), result
                     assert (
@@ -250,7 +264,7 @@ def run_check(source):
                         manager._best_node is None
                         and manager.last_successful_node is None
                     )
-                    if task in ("legacy-holdout", "unresolved-wrapper"):
+                    if task == "unresolved-wrapper":
                         assert not calls
                     assert "MATCHED_CV_REJECTED" in node.error_message
                 results[task] = {

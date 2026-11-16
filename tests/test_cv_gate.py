@@ -88,10 +88,10 @@ def test_actual_ten_fold_score_replaces_judge_guess(node, task, expected):
     assert len(pd.read_csv(output / "cv_predictions.csv")) == 40
 
 
-def test_old_training_script_rejected_before_execution(node):
+def test_missing_factory_is_execution_failure(node):
     manager, output, _ = node()
     manager.current_node.python_code = 'print("fit and claim holdout score 0.99")'
-    assert "MATCHED_CV_REJECTED" in gate.pre_execution_error(manager)
+    assert gate.pre_execution_error(manager) is None
     decision, feedback, score = gate.candidate_gate(manager, "SUCCESS", "", 0.99)
     assert decision == "FAILURE" and score is None and "build_model" in feedback
     assert not (output / "cv_evaluation.json").exists()
@@ -126,9 +126,8 @@ def test_changed_official_inputs_abort_search(node):
         'def build_model(x,y): return None\nif __name__=="__main__": print("fit")',
     ],
 )
-def test_import_time_training_or_calls_rejected(code):
-    with pytest.raises(ValueError):
-        gate.factory_source(code)
+def test_direct_factory_has_age_ml_import_semantics(code):
+    assert gate.factory_source(code) == code
 
 
 def test_prompt_override_only_for_coders(monkeypatch):
@@ -223,3 +222,71 @@ def test_cv_templates_are_role_specific_and_remove_legacy_script_requirements():
     assert "{code_improvement_prompt}" in python and "{selected_tool}" in python
     assert "Do NOT run training" in bash and "{environment_prompt}" in bash
     assert gate.factory_template("ExecuterPrompt") is None
+
+
+@pytest.mark.parametrize(
+    "initialization",
+    [
+        "from sklearn.metrics import make_scorer, balanced_accuracy_score\nSCORER = make_scorer(balanced_accuracy_score)",
+        "import logging\nlogging.getLogger('autogluon').setLevel(logging.WARNING)",
+        "from pathlib import Path\nROOT = Path.cwd()\nCONFIG = dict(seed=42)",
+        "import os\nTHREADS = int(os.environ.get('OMP_NUM_THREADS', '1'))",
+        "import math\nSCALE = math.sqrt(4)\nif SCALE == 2:\n    ENABLED = True",
+    ],
+)
+def test_valid_module_initialization_reaches_real_cv_unchanged(node, initialization):
+    manager, output, _ = node()
+    source = initialization + "\n" + manager.current_node.python_code
+    manager.current_node.python_code = source
+    assert gate.factory_source(source) == source
+    assert gate.pre_execution_error(manager) is None
+    assert gate.candidate_gate(manager, "SUCCESS", "", 0.99) == ("SUCCESS", "", 0.5)
+    assert (output / "model_factory.py").read_text() == source
+
+
+def test_import_error_is_execution_failure_and_not_silently_repaired(node):
+    manager, output, _ = node()
+    source = (
+        "raise RuntimeError('generated initialization failed')\n"
+        + manager.current_node.python_code
+    )
+    manager.current_node.python_code = source
+    assert gate.pre_execution_error(manager) is None
+    decision, feedback, score = gate.candidate_gate(manager, "SUCCESS", "", 0.99)
+    assert decision == "FAILURE" and score is None
+    assert "generated initialization failed" in feedback
+    assert (output / "model_factory.py").read_text() == source
+    assert not (output / "cv_evaluation.json").exists()
+
+
+def test_direct_factory_is_not_executed_by_static_inspection(tmp_path):
+    marker = tmp_path / "import-marker"
+    source = f"open({str(marker)!r}, 'w').write('imported')\ndef build_model(x,y): return None\n"
+    assert gate.factory_source(source) == source
+    assert not marker.exists()
+
+
+def test_prompts_do_not_impose_literal_only_module_globals():
+    from ageml_mlzero_benchmark.hamlet_cv import TASK
+
+    assert "Only imports, definitions and literal constants" not in TASK
+    assert "Normal Python initialization" in TASK
+    assert "normal Python initialization" in gate.PYTHON_TEMPLATE
+
+
+@pytest.mark.parametrize(
+    "binding",
+    [
+        "build_model = factory",
+        "if True:\n    build_model = factory",
+        "def build_model(x,y): return None\ndef build_model(x,y): return factory(x,y)",
+    ],
+)
+def test_runtime_factory_binding_matches_normal_python_import(node, binding):
+    manager, _, _ = node()
+    source = manager.current_node.python_code.replace(
+        "def build_model(", "def factory("
+    )
+    manager.current_node.python_code = source + "\n" + binding + "\n"
+    assert gate.pre_execution_error(manager) is None
+    assert gate.candidate_gate(manager, "SUCCESS", "", 0.99) == ("SUCCESS", "", 0.5)

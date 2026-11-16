@@ -90,29 +90,9 @@ def factory_source(code, allow_generator=True):
                 payloads.append(value)
         if len(payloads) == 1 and isinstance(payloads[0], str):
             return factory_source(payloads[0], allow_generator=False)
-    if len(definitions) != 1:
-        raise ValueError(
-            "No unique top-level build_model(X_train, y_train) function found. "
-            "Return the factory module directly, or a static MODEL_FACTORY_CONTENT string. "
-            "Leading blank lines, comments, imports and helper classes/functions ARE allowed."
-        )
-    for node in tree.body:
-        if isinstance(
-            node, (ast.Import, ast.ImportFrom, ast.FunctionDef, ast.ClassDef)
-        ):
-            continue
-        if (
-            isinstance(node, ast.Expr)
-            and isinstance(node.value, ast.Constant)
-            and isinstance(node.value.value, str)
-        ):
-            continue
-        if isinstance(node, (ast.Assign, ast.AnnAssign)):
-            ast.literal_eval(node.value)
-            continue
-        raise ValueError(
-            "Factory module top level may only contain imports, definitions, docstrings and literal constants; move data loading/fit/predict into methods"
-        )
+    # Match AGE-ML's import semantics. AST is used only to locate the factory
+    # (or extract an existing static payload), never to whitelist Python style.
+    # Actual import, construction, fit and prediction errors belong to execution.
     return code
 
 
@@ -120,7 +100,8 @@ PYTHON_TEMPLATE = """Generate a SELF-CONTAINED Python factory MODULE using {sele
 Return the module code directly, not a program that writes another Python file.
 Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
 wrapper. Include imports and wrapper classes in the same module. Module scope
-may have imports, definitions, docstrings and literal constants. Do not fit,
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
 read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
 The harness handles saving model_factory.py and ten-fold evaluation.
 All learned preprocessing must be fitted within each fold's fit(X,y), using only

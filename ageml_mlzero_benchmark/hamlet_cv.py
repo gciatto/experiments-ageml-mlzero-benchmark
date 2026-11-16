@@ -54,8 +54,9 @@ then executes the supplied evaluator in your node's conda_env after installation
 Your Bash script must create conda_env with required dependencies (numpy, pandas,
 scikit-learn and your selected ML library); it need not train or print scores.
 Do NOT run fitting, dataset reading, holdout splitting, prediction, or the
-evaluator at module import time. Only imports, definitions and literal constants
-are permitted at module top level. Put fit/predict logic in the returned model.
+evaluator at module import time. Normal Python initialization (including scorer
+construction, logging and computed constants) is allowed. Put fit/predict logic
+in the returned model.
 Do NOT run a separate holdout/full-data fit. Do NOT generate your own evaluation
 or claim a validation score. The harness alone computes the mean of ten fold
 scores, injects it into the existing MCTS reward (negative RMSE for regression),
