@@ -1,3 +1,5 @@
+> Existing campaigns: use [the mandatory CV gate update](cv-gate-v3.md) before running matched CV. The earlier README-only export request was insufficient.
+
 # Run matched Gemini campaigns directly inside the Proxmox container
 
 Docker and access to the Proxmox host shell are not required. Everything below

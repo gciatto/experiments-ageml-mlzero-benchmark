@@ -70,7 +70,7 @@ def test_local_command_has_limits_seed_cache_and_no_docker(tmp_path):
     assert "CPUQuota=1600%" in argv and "MemorySwapMax=0" in argv
     assert "RuntimeMaxSec=3630s" in argv and "3600s" in argv
     assert env["PYTHONHASHSEED"] == "42"
-    assert Path(env["PYTHONPATH"]).is_dir()
+    assert all(Path(p).is_dir() for p in env["PYTHONPATH"].split(":") if p)
     assert env["UV_CACHE_DIR"] == str(tmp_path / "cache/uv")
     assert env["CUDA_VISIBLE_DEVICES"] == ""
     assert str(tmp_path / "input") in argv

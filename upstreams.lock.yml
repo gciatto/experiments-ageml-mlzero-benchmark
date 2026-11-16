@@ -16,6 +16,8 @@ mlzero:
       sha256: d8808e589c2e09075d49239ed9d77626b28fee23297ca0a82b91b01041799a1b
     - path: patches/0002-native-gemini.patch
       sha256: 0ba1e9d9a02591069faa32ef1ef8dcd721347e0bcb2966f829be054e108f9680
+    - path: patches/0003-enforce-matched-cv.patch
+      sha256: 366a9f0f1bdcbc63b59c7eabc1aa076d3c70a554b7c36144fb9319ba14392cd0
   upstream_default_config:
     path: configs/mlzero/upstream-default-f228cd7.yaml         # verbatim copy of configs/default.yaml
   retrieval_model: BAAI/bge-base-en-v1.5@a5beb1e3e68b9ab74eb54cfd186867f64f240e1a

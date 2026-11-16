@@ -7,14 +7,12 @@ imports AGE-ML. Candidate execution uses Docker or a dedicated local systemd sco
 import argparse
 import csv
 import fcntl
-import math
 import os
 import shutil
 import time
 import uuid
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import yaml
 from sklearn.model_selection import KFold, StratifiedKFold
@@ -29,12 +27,12 @@ from . import (
     sha256_file,
     write_json,
 )
-from .evaluation import score
+from .cv_export import trusted_cv
 
 PROTOCOL = "ageml-evaluation-v3/hamlet_cv"
 EVALUATOR = mlzero.ROOT / "environments/mlzero/evaluate_cv.py"
 MODELS = ("gemini-2.5-flash", "gemini-3.1-flash-lite")
-INSTRUCTION = "Follow README.md: use the supplied evaluate_cv.py unchanged for every candidate, ten prescribed folds, fit seed 42; optimize the mean fold score, never a holdout or pooled metric."
+INSTRUCTION = "Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows."
 TASK = """# Ten-fold cross-validation benchmark: {dataset}
 Target column: `{target}`. Task: {task}. Metric: {metric} ({direction} is better).
 
@@ -42,23 +40,28 @@ Target column: `{target}`. Task: {task}. Metric: {metric} ({direction} is better
 and all ten train/validation folds. There is NO independent test set. Do not
 shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
 
-For EVERY candidate, write `model_factory.py` INSIDE its output folder. It must
-provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
 `fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
 fitted on the supplied fold training rows only. AutoGluon and other tools remain
 allowed through a fit/predict wrapper. Do not tune on a fold's validation labels,
 refit on all data, or fit in the factory. Use random_state/seed 42 for stochastic
 models, including wrappers. Do not call another LLM, service or external dataset.
 
-Execute the supplied trusted evaluator UNCHANGED, in your candidate environment:
-`python /bench/input/evaluate_cv.py --factory <output>/model_factory.py --output <output>`
-The candidate environment must provide numpy, pandas and scikit-learn.
-It creates `cv_predictions.csv` and `cv_evaluation.json` only after all folds
-complete, and prints the selection metric. Use THAT mean fold balanced accuracy
-or mean fold RMSE as the native validation score for MCTS. For RMSE, report the
-positive loss; MLZero handles its maximization sign internally. Do not use pooled
-OOF RMSE, training accuracy, a single fold, a holdout, or a claimed score.
-Keep the factory and both evaluator files in the output folder for export.
+Return a SELF-CONTAINED Python MODULE defining build_model(X_train, y_train)
+at module level. The harness writes this generated module to model_factory.py,
+then executes the supplied evaluator in your node's conda_env after installation.
+Your Bash script must create conda_env with required dependencies (numpy, pandas,
+scikit-learn and your selected ML library); it need not train or print scores.
+Do NOT run fitting, dataset reading, holdout splitting, prediction, or the
+evaluator at module import time. Only imports, definitions and literal constants
+are permitted at module top level. Put fit/predict logic in the returned model.
+Do NOT run a separate holdout/full-data fit. Do NOT generate your own evaluation
+or claim a validation score. The harness alone computes the mean of ten fold
+scores, injects it into the existing MCTS reward (negative RMSE for regression),
+and rejects candidates without completed valid CV exports. Earlier tutorial
+examples using holdouts/results.csv do not apply to this benchmark. No final
+full-data refit is required. See the mandatory node-level CV contract in prompts.
 """
 
 
@@ -206,64 +209,6 @@ def bootstrap(age_campaign, age_data, output, cpus=16, memory_gib=50):
     return resolved
 
 
-def trusted_cv(output, prepared):
-    contract = read_json(prepared / "cv_contract.json")
-    ev = read_json(output / "cv_evaluation.json")
-    if (
-        ev.get("contract_sha256") != sha256_file(prepared / "cv_contract.json")
-        or ev.get("source_sha256") != sha256_file(prepared / "data.csv")
-        or ev.get("factory_sha256") != sha256_file(output / "model_factory.py")
-        or ev.get("evaluator_sha256") != sha256_file(prepared / "evaluate_cv.py")
-        or ev.get("fit_seed") != 42
-    ):
-        raise ValueError("CV evaluation provenance mismatch")
-    pred = pd.read_csv(
-        output / "cv_predictions.csv", dtype={"prediction": str}, keep_default_na=False
-    )
-    frame = pd.read_csv(prepared / "data.csv")
-    target = contract["target_column"]
-    if (
-        list(pred.columns) != ["row_id", "fold", "prediction"]
-        or pred.row_id.duplicated().any()
-        or set(pred.row_id) != set(range(len(frame)))
-    ):
-        raise ValueError("Invalid OOF prediction identities")
-    if not set(pred.fold) <= set(range(10)):
-        raise ValueError("Unexpected fold IDs")
-    scores = []
-    for fold, part in enumerate(contract["cv_folds"]):
-        observed = pred.loc[pred.fold.eq(fold)].set_index("row_id")
-        if set(observed.index) != set(part["validation"]):
-            raise ValueError("Wrong fold assignment")
-        y = frame.iloc[part["validation"]][target]
-        p = observed.loc[part["validation"], "prediction"]
-        if contract["task"] == "classification" and not set(p) <= set(
-            frame[target].astype(str)
-        ):
-            raise ValueError("Unknown predicted labels")
-        scores.append(
-            score(
-                "balanced_accuracy" if contract["task"] == "classification" else "rmse",
-                y,
-                p,
-            )
-        )
-    mean = float(np.mean(scores))
-    if (
-        not np.isfinite(mean)
-        or len(ev.get("fold_scores", [])) != 10
-        or not np.allclose(scores, ev["fold_scores"], rtol=1e-10, atol=1e-10)
-        or not math.isclose(mean, ev["cv_score"], rel_tol=1e-10, abs_tol=1e-10)
-    ):
-        raise ValueError("Declared scores disagree with recomputed folds")
-    return {
-        "cv_score": mean,
-        "cv_fold_scores": scores,
-        "score_role": "selection_cv_not_independent_test",
-        "test_score": None,
-    }
-
-
 def validate_inputs(cfg):
     if (
         cfg["protocol"] != PROTOCOL
@@ -310,6 +255,15 @@ def check_image(cfg):
                 "HF_HUB_OFFLINE": "1",
                 "CUDA_VISIBLE_DEVICES": "",
             },
+        )
+        subprocess.run(
+            [
+                runtime["python"],
+                str(mlzero.ROOT / "environments/mlzero/check_cv_gate.py"),
+                "--source",
+                runtime["source"],
+            ],
+            check=True,
         )
         code = "from langchain_google_genai import ChatGoogleGenerativeAI as C; from autogluon.assistant.llm.gemini_chat import AssistantChatGemini as G; import importlib.metadata; g=G(model='gemini-2.5-flash',google_api_key='constructor-check-only',session_name='doctor',seed=42,temperature=0.0); assert g.seed==42 and g.temperature==0; assert importlib.metadata.version('langchain-google-genai')=='4.2.1'; assert 'seed' in C.model_fields"
         subprocess.run([runtime["python"], "-c", code], check=True)
@@ -380,7 +334,7 @@ def doctor(cfg, check_llm=False):
         )
 
 
-def run(cfg, dry_run=False, only=None):
+def run(cfg, dry_run=False, only=None, only_repetition=None):
     validate_inputs(cfg)
     root = campaign_path(cfg)
     root.mkdir(parents=True, exist_ok=True)
@@ -403,9 +357,14 @@ def run(cfg, dry_run=False, only=None):
         ).strip()
     else:
         image = "dry-run-no-image-check"
+    repetitions = [
+        r for r in cfg["repetitions"] if only_repetition is None or r == only_repetition
+    ]
+    if not repetitions:
+        raise ValueError("Requested repetition is not in the frozen campaign")
     selected_count = sum(
         not only or ent["key"] in only for ent in cfg["dataset_entries"]
-    ) * len(cfg["repetitions"])
+    ) * len(repetitions)
     print(
         f"PLAN: {selected_count} invocations; {selected_count} nominal search hours; seed=42; temperature=0; folds=10; model={cfg['llm']['model']}",
         flush=True,
@@ -416,7 +375,7 @@ def run(cfg, dry_run=False, only=None):
         for ent in cfg["dataset_entries"]:
             if only and ent["key"] not in only:
                 continue
-            for rep in cfg["repetitions"]:
+            for rep in repetitions:
                 identity = {
                     "config": cfg,
                     "dataset": ent["key"],
@@ -431,6 +390,8 @@ def run(cfg, dry_run=False, only=None):
                         p.name: sha256_file(p)
                         for p in (
                             Path(__file__).with_name("local_runtime.py"),
+                            Path(__file__).with_name("cv_export.py"),
+                            Path(__file__).with_name("cv_gate.py"),
                             Path(mlzero.__file__).parent.parent
                             / "environments/mlzero/supervise.py",
                             Path(mlzero.__file__).parent.parent
@@ -507,6 +468,7 @@ def run(cfg, dry_run=False, only=None):
                 )
                 argv, env = mlzero.search_command(cfg, attempt, prepared, cache, name)
                 env["OPENAI_API_KEY"] = os.environ[cfg["llm"]["api_key_env"]]
+                env["AGEML_CV_DEADLINE"] = str(time.time() + 3600)
                 print(
                     f"START {ent['key']} rep={rep} model={cfg['llm']['model']}",
                     flush=True,
@@ -698,6 +660,7 @@ def main(argv=None):
     r.add_argument("--config", required=True, type=Path)
     r.add_argument("--dry-run", action="store_true")
     r.add_argument("--only", nargs="*")
+    r.add_argument("--only-repetition", type=int)
     q = sub.add_parser("report")
     q.add_argument("--config", required=True, type=Path)
     d = sub.add_parser("doctor")
@@ -725,7 +688,7 @@ def main(argv=None):
     else:
         cfg = yaml.safe_load(a.config.read_text())
         if a.command == "run":
-            run(cfg, a.dry_run, a.only)
+            run(cfg, a.dry_run, a.only, a.only_repetition)
         elif a.command == "doctor":
             doctor(cfg, a.check_llm)
         else:

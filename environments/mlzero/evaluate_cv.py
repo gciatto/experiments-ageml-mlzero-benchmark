@@ -11,6 +11,7 @@ import importlib.util
 import json
 import os
 import random
+import sys
 import time
 from pathlib import Path
 
@@ -35,6 +36,9 @@ def evaluate(factory_path, contract_path, output):
     np.random.seed(42)
     spec = importlib.util.spec_from_file_location("candidate_factory", factory_path)
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = (
+        module  # normal import semantics, including dataclass annotations
+    )
     spec.loader.exec_module(module)
     scores = []
     rows = []

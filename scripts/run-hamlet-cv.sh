@@ -18,13 +18,17 @@ fi
 if [[ "$#" -eq 0 ]]; then
   set -- configs/gemini25-hamlet-cv.yml configs/gemini31-hamlet-cv.yml
 fi
+run_options=()
+if [[ "${AGEML_BENCH_PILOT:-0}" == 1 ]]; then
+  run_options=(--only adult --only-repetition 1)
+fi
 mkdir -p logs
 for campaign_config in "$@"; do
   campaign_label="$(basename "$campaign_config" .yml)"
   "$benchmark_python" -m ageml_mlzero_benchmark.hamlet_cv doctor \
     --config "$campaign_config" --check-llm
   "$benchmark_python" -m ageml_mlzero_benchmark.hamlet_cv run \
-    --config "$campaign_config" \
+    --config "$campaign_config" "${run_options[@]}" \
     2>&1 | tee "logs/${campaign_label}-$(date +%Y%m%d-%H%M%S).log"
   "$benchmark_python" -m ageml_mlzero_benchmark.hamlet_cv report \
     --config "$campaign_config"

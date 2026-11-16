@@ -244,6 +244,16 @@ def search_command(
         "OPENAI_BASE_URL": resolved["llm"]["endpoint"],
         "OPENAI_API_KEY": "",  # filled from llm.api_key_env by the runner
     }
+    if resolved.get("protocol") == "ageml-evaluation-v3/hamlet_cv":
+        env.update(
+            {
+                "AGEML_CV_INPUT": inp,
+                "AGEML_CV_DEADLINE": "",  # populated immediately before supervised launch
+                "AGEML_CV_DATA_SHA256": sha256_file(input_dir / "data.csv"),
+                "AGEML_CV_CONTRACT_SHA256": sha256_file(input_dir / "cv_contract.json"),
+                "AGEML_CV_EVALUATOR_SHA256": sha256_file(input_dir / "evaluate_cv.py"),
+            }
+        )
     if m.get("search_seed") is not None:
         env.update(
             {
@@ -260,6 +270,8 @@ def search_command(
         )
         if m.get("runtime_manifest"):
             import os
+
+            env["PYTHONPATH"] = env["PYTHONPATH"] + os.pathsep + str(ROOT)
 
             from .local_runtime import scoped_command
 
@@ -281,6 +293,7 @@ def search_command(
             )
             core = scoped_command(core, resolved, container_name + ".scope")
         return core, env
+    env["PYTHONPATH"] = env.get("PYTHONPATH", "") + ":/opt/bench/cv-harness"
     res = resolved["resources"]
     cache_c = CONTAINER["cache"]
     env.update({"UV_CACHE_DIR": f"{cache_c}/uv", "CONDA_PKGS_DIRS": f"{cache_c}/conda"})

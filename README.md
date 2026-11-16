@@ -173,3 +173,5 @@ poetry run poe static-checks  # ruff + mypy
 ### Run without Docker
 
 For a dedicated Proxmox LXC, use the [local matched-CV workflow](docs/local-hamlet-cv.md). It uses a separate Conda runtime and per-search systemd scopes; it requires no Proxmox host access.
+
+For current matched-CV runs, apply the [mandatory pre-selection CV gate](docs/cv-gate-v3.md). Ordinary native results.csv scores are insufficient for this protocol.

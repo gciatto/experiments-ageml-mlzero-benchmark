@@ -63,4 +63,5 @@ export UV_CACHE_DIR="$AGEML_CACHE_ROOT/uv"
 export CONDA_PKGS_DIRS="$AGEML_CACHE_ROOT/conda"
 export UV_EXCLUDE_NEWER=2026-10-01T00:00:00Z
 bash environments/mlzero/warm_cache.sh
+python environments/mlzero/check_cv_gate.py --source "$prefix/source"
 "$benchmark_python" -m ageml_mlzero_benchmark.local_runtime "$prefix"

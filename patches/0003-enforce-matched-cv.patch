@@ -1,0 +1,81 @@
+diff --git a/src/autogluon/assistant/bench_hooks.py b/src/autogluon/assistant/bench_hooks.py
+index 814f0c3..d2db081 100644
+--- a/src/autogluon/assistant/bench_hooks.py
++++ b/src/autogluon/assistant/bench_hooks.py
+@@ -89,6 +89,10 @@ def commit_incumbent(manager):
+         return
+     folder = manager.get_iteration_folder(node)
+     output = os.path.join(folder, "output")
++    export_present = os.path.isfile(os.path.join(output, EXPORT_ENTRY_POINT))
++    if os.environ.get("AGEML_CV_INPUT"):
++        export_present = all(os.path.isfile(os.path.join(output, name)) for name in
++                             ("model_factory.py", "cv_evaluation.json", "cv_predictions.csv"))
+     record = {
+         "node_id": node.id,
+         "selected_by": "best_validation_score" if manager._best_node else "last_successful",
+@@ -96,7 +100,7 @@ def commit_incumbent(manager):
+         "node_folder": folder,
+         "output_folder": output,
+         "export_status": "present"
+-        if os.path.isfile(os.path.join(output, EXPORT_ENTRY_POINT))
++        if export_present
+         else "missing",
+         "tool": node.tool_used,
+         "time_step": manager.time_step,
+diff --git a/src/autogluon/assistant/managers/node_manager.py b/src/autogluon/assistant/managers/node_manager.py
+index 7d319ae..ee74126 100644
+--- a/src/autogluon/assistant/managers/node_manager.py
++++ b/src/autogluon/assistant/managers/node_manager.py
+@@ -806,13 +806,27 @@ class NodeManager:
+                 is_validated: True if this run has a validation score
+                 is_failure: True if this run failed
+         """
+-        # Execute the code
+-        planner_decision, error_summary, validation_score, planner_prompt, stderr, stdout = self.executer(
+-            code_to_execute=self.current_node.bash_script,
+-            code_to_analyze=self.current_node.python_code,
+-            execution_task=self.task_description,
+-            execution_data=self.data_prompt,
+-        )
++        source_error = None
++        if os.environ.get("AGEML_CV_INPUT"):
++            from ageml_mlzero_benchmark.cv_gate import pre_execution_error
++            source_error = pre_execution_error(self)
++        if source_error:
++            planner_decision, error_summary, validation_score = "FAILURE", source_error, None
++            planner_prompt, stderr, stdout = "", "", ""
++        else:
++            # Execute the code
++            planner_decision, error_summary, validation_score, planner_prompt, stderr, stdout = self.executer(
++                code_to_execute=self.current_node.bash_script,
++                code_to_analyze=self.current_node.python_code,
++                execution_task=self.task_description,
++                execution_data=self.data_prompt,
++            )
++        if os.environ.get("AGEML_CV_INPUT"):
++            # Validate/evaluate before best-node or last-successful updates.
++            from ageml_mlzero_benchmark.cv_gate import candidate_gate
++            planner_decision, error_summary, validation_score = candidate_gate(
++                self, planner_decision, error_summary, validation_score
++            )
+ 
+         # Store execution results
+         self.current_node.stdout = stdout
+diff --git a/src/autogluon/assistant/prompts/base_prompt.py b/src/autogluon/assistant/prompts/base_prompt.py
+index 5b9ede0..5372285 100644
+--- a/src/autogluon/assistant/prompts/base_prompt.py
++++ b/src/autogluon/assistant/prompts/base_prompt.py
+@@ -206,7 +206,12 @@ class BasePrompt(ABC):
+         self.maybe_apply_meta_prompting()
+ 
+         # Call the template method that subclasses should override, passing all kwargs
+-        return self._build(**kwargs)
++        rendered = self._build(**kwargs)
++        import os
++        if os.environ.get("AGEML_CV_INPUT"):
++            from ageml_mlzero_benchmark.cv_gate import prompt_contract
++            rendered += prompt_contract(self.manager, self.__class__.__name__)
++        return rendered
+ 
+     def _build(self, **kwargs) -> str:
+         """

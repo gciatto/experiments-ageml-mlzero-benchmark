@@ -52,6 +52,7 @@ ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 COPY environments/mlzero/supervise.py environments/mlzero/warm_cache.sh /opt/bench/
 COPY environments/mlzero/guard/ /opt/bench/guard/
 COPY environments/mlzero/search_seed/ /opt/bench/search-seed/
+COPY ageml_mlzero_benchmark/__init__.py ageml_mlzero_benchmark/cv_export.py ageml_mlzero_benchmark/cv_gate.py ageml_mlzero_benchmark/evaluation.py /opt/bench/cv-harness/ageml_mlzero_benchmark/
 RUN printf '%s\n' \
       "mlzero_commit=${MLZERO_COMMIT}" "uv=${UV_VERSION}" "miniforge=${MINIFORGE_VERSION}" \
       "embedding_model=${EMBEDDING_MODEL}@${EMBEDDING_REVISION}" "exclude_newer=${EXCLUDE_NEWER}" \
