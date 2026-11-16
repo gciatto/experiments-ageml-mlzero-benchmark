@@ -1,0 +1,53 @@
+diff --git a/src/autogluon/assistant/managers/node_manager.py b/src/autogluon/assistant/managers/node_manager.py
+index ee74126..1dcc11e 100644
+--- a/src/autogluon/assistant/managers/node_manager.py
++++ b/src/autogluon/assistant/managers/node_manager.py
+@@ -752,6 +752,9 @@ class NodeManager:
+         # Generate Python code
+         logger.debug("  Calling Python coder agent...")
+         self.current_node.python_code = self.python_coder()
++        if os.environ.get("AGEML_CV_INPUT"):
++            from ageml_mlzero_benchmark.cv_gate import normalize_manager_source
++            normalize_manager_source(self)
+         logger.debug("  Finished Python code generation")
+ 
+         # Write the Python code to a file
+@@ -808,7 +811,8 @@ class NodeManager:
+         """
+         source_error = None
+         if os.environ.get("AGEML_CV_INPUT"):
+-            from ageml_mlzero_benchmark.cv_gate import pre_execution_error
++            from ageml_mlzero_benchmark.cv_gate import pre_execution_error, normalize_manager_source
++            normalize_manager_source(self)
+             source_error = pre_execution_error(self)
+         if source_error:
+             planner_decision, error_summary, validation_score = "FAILURE", source_error, None
+diff --git a/src/autogluon/assistant/prompts/base_prompt.py b/src/autogluon/assistant/prompts/base_prompt.py
+index 5372285..d8f9060 100644
+--- a/src/autogluon/assistant/prompts/base_prompt.py
++++ b/src/autogluon/assistant/prompts/base_prompt.py
+@@ -205,12 +205,23 @@ class BasePrompt(ABC):
+         # Apply meta-prompting if appropriate - this ensures we have the latest context
+         self.maybe_apply_meta_prompting()
+ 
+-        # Call the template method that subclasses should override, passing all kwargs
++        # Matched CV uses a module/install contract, not native full-script templates.
++        import os
++        if os.environ.get("AGEML_CV_INPUT"):
++            from ageml_mlzero_benchmark.cv_gate import factory_template
++            matched = factory_template(self.__class__.__name__)
++            if matched is not None:
++                self.template = matched
+         rendered = self._build(**kwargs)
+         import os
+         if os.environ.get("AGEML_CV_INPUT"):
+             from ageml_mlzero_benchmark.cv_gate import prompt_contract
+             rendered += prompt_contract(self.manager, self.__class__.__name__)
++            if self.__class__.__name__ in ("PythonCoderPrompt", "BashCoderPrompt"):
++                name = "python_coder_prompt.txt" if self.__class__.__name__ == "PythonCoderPrompt" else "bash_coder_prompt.txt"
++                # Persist the exact final prompt sent to the model, after augmentation.
++                self.manager.save_and_log_states(content=rendered, save_name=name,
++                    per_iteration=True, add_uuid=False)
+         return rendered
+ 
+     def _build(self, **kwargs) -> str:

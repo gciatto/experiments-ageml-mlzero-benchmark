@@ -39,13 +39,103 @@ def native_simulate(source):
     return namespace["simulate"]
 
 
+def native_prompt_smoke(source):
+    """Exercise real patched build/_build methods and the exact prompt saved to disk."""
+
+    def method(file, cls_name, name):
+        tree = ast.parse(
+            (source / "src/autogluon/assistant/prompts" / file).read_text()
+        )
+        cls = next(
+            n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == cls_name
+        )
+        node = next(
+            n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == name
+        )
+        ns = {"logger": logging.getLogger("cv-prompt-smoke")}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), str(source), "exec"), ns)  # noqa: S102 -- verified native source only
+        return ns[name]
+
+    build = method("base_prompt.py", "BasePrompt", "build")
+    old = os.environ.get("AGEML_CV_INPUT")
+    os.environ["AGEML_CV_INPUT"] = "/synthetic-input"
+    try:
+        for role, file in [
+            ("PythonCoderPrompt", "python_coder_prompt.py"),
+            ("BashCoderPrompt", "bash_coder_prompt.py"),
+        ]:
+            saved = {}
+
+            def save(content, save_name, saved=saved, **kwargs):
+                saved[save_name] = content
+
+            manager = SimpleNamespace(
+                time_step=0,
+                current_node=object(),
+                get_iteration_folder=lambda n: "/synthetic-node",
+                save_and_log_states=save,
+            )
+            cls = type(
+                role, (), {"build": build, "_build": method(file, role, "_build")}
+            )
+            prompt = cls()
+            prompt.manager = manager
+            prompt.template = "OLD FULL-SCRIPT TEMPLATE MUST NOT REMAIN"
+            prompt.maybe_apply_meta_prompting = lambda: None
+            prompt._generate_code_improvement_prompt = lambda: (
+                "native debug/evolution context"
+            )
+            prompt._generate_validation_prompt = lambda: (
+                "LEGACY HOLDOUT MUST NOT REMAIN"
+            )
+            prompt.get_env_prompt = lambda: "install into /synthetic-node/conda_env"
+            prompt.llm_config = SimpleNamespace(add_coding_format_instruction=False)
+            values = {
+                "selected_tool": "selected-tool",
+                "task_description": "classification task",
+                "data_prompt": "dataset metadata",
+                "tool_prompt": "library guidance",
+                "all_previous_error_analyses": "errors",
+                "tutorial_prompt": "library tutorials",
+                "python_code": "factory module",
+                "previous_bash_script": "old installer",
+            }
+            prompt.render = lambda additional, prompt=prompt, values=values: (
+                prompt.template.format_map({**values, **additional})
+            )
+            rendered = prompt.build()
+            name = (
+                "python_coder_prompt.txt"
+                if role == "PythonCoderPrompt"
+                else "bash_coder_prompt.txt"
+            )
+            assert saved[name] == rendered and "MANDATORY MATCHED-CV" in rendered
+            assert (
+                "OLD FULL-SCRIPT" not in rendered and "LEGACY HOLDOUT" not in rendered
+            )
+            assert "/synthetic-node/conda_env" in rendered
+    finally:
+        if old is None:
+            os.environ.pop("AGEML_CV_INPUT", None)
+        else:
+            os.environ["AGEML_CV_INPUT"] = old
+
+
 def run_check(source):
     import pandas as pd
     from sklearn.model_selection import KFold, StratifiedKFold
 
     simulate = native_simulate(source)
+    native_prompt_smoke(source)
     results = {}
-    for task in ("classification", "regression", "legacy-holdout", "broken-factory"):
+    for task in (
+        "classification",
+        "regression",
+        "legacy-holdout",
+        "broken-factory",
+        "wrapped-factory",
+        "unresolved-wrapper",
+    ):
         with tempfile.TemporaryDirectory(prefix="mlzero-cv-gate-") as tmp:
             root = Path(tmp)
             prepared = root / "input"
@@ -90,6 +180,14 @@ def run_check(source):
                 if regression
                 else 'from sklearn.dummy import DummyClassifier\ndef build_model(X_train,y_train):\n return DummyClassifier(strategy="most_frequent")\n'
             )
+            if task == "wrapped-factory":
+                code = (
+                    "MODEL_FACTORY_CONTENT = "
+                    + repr(code)
+                    + "\nraise RuntimeError('Never execute this generator')\n"
+                )
+            if task == "unresolved-wrapper":
+                code = "MODEL_FACTORY_CONTENT = f'def build_model(x,y): return {undefined_model}'"
             if task == "legacy-holdout":
                 code = 'raise RuntimeError("This legacy holdout script must never execute")'
             if task == "broken-factory":
@@ -135,7 +233,7 @@ def run_check(source):
             os.environ.update(env)
             try:
                 result = simulate(manager)
-                if task in ("classification", "regression"):
+                if task in ("classification", "regression", "wrapped-factory"):
                     expected = -5.0 if regression else 0.5
                     assert result == (expected, True, False), result
                     assert (
@@ -152,7 +250,7 @@ def run_check(source):
                         manager._best_node is None
                         and manager.last_successful_node is None
                     )
-                    if task == "legacy-holdout":
+                    if task in ("legacy-holdout", "unresolved-wrapper"):
                         assert not calls
                     assert "MATCHED_CV_REJECTED" in node.error_message
                 results[task] = {

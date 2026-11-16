@@ -1,0 +1,21 @@
+# Minimized regression fixture from the reported nested-f-string generator pattern.
+BASE_OUTPUT_DIR = '/synthetic/node/output'
+MODEL_FACTORY_CONTENT = f'''
+import uuid
+TIME_LIMIT_PER_FOLD = 360
+RANDOM_SEED = 42
+AUTOGLUON_MODEL_BASE_PATH = "{BASE_OUTPUT_DIR}"
+class AutoGluonModel:
+    def fit(self, X, y):
+        unique_id = str(uuid.uuid4())
+        self.path = f"AutogluonModels_{unique_id}"
+        self.predictor.fit(X, presets='extreme', seed=RANDOM_SEED)
+    def predict(self, X):
+        return self.predictor.predict(X)
+def build_model(X_train, y_train):
+    return AutoGluonModel()
+'''
+def generate_model_factory_script():
+    raise RuntimeError('The outer generator must not execute during normalization')
+if __name__ == '__main__':
+    generate_model_factory_script()

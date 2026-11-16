@@ -162,3 +162,64 @@ def build_model(X_train,y_train):
     return Wrapper()
 """
     assert gate.candidate_gate(manager, "SUCCESS", "", 0.999) == ("SUCCESS", "", 0.5)
+
+
+def test_static_generator_normalized_without_executing_outer_script(node, tmp_path):
+    manager, output, _ = node()
+    body = manager.current_node.python_code
+    marker = tmp_path / "must-not-exist"
+    manager.current_node.python_code = (
+        "BASE_OUTPUT_DIR = "
+        + repr(str(output))
+        + "\nMODEL_FACTORY_CONTENT = "
+        + repr(body)
+        + "\nopen("
+        + repr(str(marker))
+        + ',"w").write("executed")\n'
+    )
+    manager.save_and_log_states = lambda **kw: None
+    gate.normalize_manager_source(manager)
+    assert manager.current_node.python_code == body
+    assert gate.candidate_gate(manager, "SUCCESS", "", 0.99) == ("SUCCESS", "", 0.5)
+    assert not marker.exists()
+
+
+def test_reported_generator_pattern_has_unresolved_fstring_and_is_not_silently_repaired():
+    original = (
+        Path(__file__).parent / "fixtures/adult_factory_generator.txt"
+    ).read_text()
+    with pytest.raises(ValueError, match="unique_id"):
+        gate.factory_source(original)
+    # A separately corrected test fixture proves body/hyperparameter preservation.
+    valid = original.replace(
+        "AutogluonModels_{unique_id}", "AutogluonModels_{{unique_id}}"
+    )
+    result = gate.factory_source(valid)
+    assert "TIME_LIMIT_PER_FOLD = 360" in result
+    assert "presets='extreme'" in result
+    assert "seed=RANDOM_SEED" in result
+    assert "def generate_model_factory_script" not in result
+    assert "def build_model" in result
+
+
+@pytest.mark.parametrize(
+    "value", ['__import__("os").getcwd()', "str(unknown)", 'f"{unknown}"']
+)
+def test_static_extractor_never_executes_arbitrary_string_expressions(value):
+    with pytest.raises(ValueError, match="statically resolvable"):
+        gate.factory_source("MODEL_FACTORY_CONTENT = " + value)
+
+
+def test_whitespace_comments_imports_and_helpers_before_factory_are_allowed():
+    code = "\n\n# comment\nimport os\nclass Helper: pass\ndef helper(): return 1\ndef build_model(x,y): return helper()\n"
+    assert gate.factory_source(code) == code
+
+
+def test_cv_templates_are_role_specific_and_remove_legacy_script_requirements():
+    python = gate.factory_template("PythonCoderPrompt")
+    bash = gate.factory_template("BashCoderPrompt")
+    assert "not a program that writes another Python file" in python
+    assert "if __name__" in python and "do not" in python.lower()
+    assert "{code_improvement_prompt}" in python and "{selected_tool}" in python
+    assert "Do NOT run training" in bash and "{environment_prompt}" in bash
+    assert gate.factory_template("ExecuterPrompt") is None
