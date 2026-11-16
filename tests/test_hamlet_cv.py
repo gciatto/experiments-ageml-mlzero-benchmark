@@ -151,10 +151,12 @@ def test_original_holdout_protocol_is_rejected():
         cv.validate_contract(contract, frame)
 
 
-@pytest.mark.parametrize("late_commit", [False, True])
+@pytest.mark.parametrize(
+    "late_commit,process_crash", [(False, False), (True, False), (True, True)]
+)
 @pytest.mark.parametrize("executor", ["docker", "local"])
 def test_native_cv_scheduler_deadline_and_resume(
-    tmp_path, monkeypatch, late_commit, executor
+    tmp_path, monkeypatch, late_commit, executor, process_crash
 ):
     import subprocess
     from types import SimpleNamespace
@@ -249,20 +251,25 @@ def test_native_cv_scheduler_deadline_and_resume(
             ],
             "usage_rows": [],
             "resources": None,
-            "returned": True,
-            "native_stop": "done",
+            "returned": not process_crash,
+            "native_stop": None if process_crash else "done",
         }
         calls.append((argv, timeout, env["PYTHONHASHSEED"]))
         return {
             "started_at": 1000,
             "wall_s": 10,
-            "exit_code": 0,
+            "exit_code": 1 if process_crash else 0,
             "timed_out": False,
             "launch_error": None,
         }
 
     monkeypatch.setattr(cv.runner, "_supervise", supervise)
     monkeypatch.setattr(mlzero, "collect", lambda *a: captured["collection"])
+    if process_crash:
+        with pytest.raises(RuntimeError, match="Search process crashed"):
+            cv.run(cfg)
+        assert len(calls) == 1
+        return
     result = cv.run(cfg)
     assert result[0]["status"] == ("no_artifact" if late_commit else "completed")
     assert result[0]["test_score"] is None

@@ -31,6 +31,9 @@ def snapshot(prefix):
         "source_hashes": hashes,
         "freeze": sorted(freeze.splitlines()),
         "patches": mlzero.patch_hashes(),
+        "retrieval_constraints_sha256": sha256_file(
+            mlzero.ROOT / "environments/mlzero/retrieval-constraints.txt"
+        ),
         "python_version": subprocess.check_output(
             [str(python), "--version"], text=True
         ).strip(),

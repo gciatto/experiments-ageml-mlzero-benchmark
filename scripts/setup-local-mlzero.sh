@@ -49,16 +49,14 @@ fi
 export PATH="$prefix/env/bin:$PATH"
 python -m pip install 'uv==0.12.21'
 uv pip install --python "$prefix/env/bin/python" --exclude-newer 2026-11-15T00:00:00Z \
+  -r environments/mlzero/retrieval-constraints.txt \
   'langchain-google-genai==4.2.1' opencv-python-headless -e "$prefix/source"
 export HF_HOME="$prefix/hf"
 python - <<'PY'
 from huggingface_hub import snapshot_download
 snapshot_download('BAAI/bge-base-en-v1.5', revision='a5beb1e3e68b9ab74eb54cfd186867f64f240e1a')
-from autogluon.assistant.tools_registry.indexing import TutorialIndexer
-t = TutorialIndexer()
-t.build_indices()
-t.save_indices()
 PY
+python environments/mlzero/check_retrieval.py --rebuild
 export AGEML_MLZERO_SOURCE="$prefix/source"
 export AGEML_CACHE_ROOT="$PWD/artifacts/cache"
 export UV_CACHE_DIR="$AGEML_CACHE_ROOT/uv"

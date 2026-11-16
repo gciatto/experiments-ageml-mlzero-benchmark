@@ -1,0 +1,7 @@
+# Compatible with upstream MLZero's transformers >=4.44.2,<4.49 constraint.
+FlagEmbedding==1.3.5
+transformers==4.48.3
+sentence-transformers==3.4.1
+peft==0.15.2
+# Upstream data-perception code can use DataFrame.applymap.
+pandas==2.2.3

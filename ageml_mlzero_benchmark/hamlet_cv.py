@@ -294,6 +294,23 @@ def check_image(cfg):
         from .local_runtime import verify
 
         runtime = verify(cfg["mlzero"]["runtime_manifest"])
+        if cfg.get("local_runtime_identity") != canonical_hash(runtime):
+            raise ValueError(
+                "Configuration refers to a different local runtime; bootstrap a new cohort"
+            )
+        subprocess.run(
+            [
+                runtime["python"],
+                str(mlzero.ROOT / "environments/mlzero/check_retrieval.py"),
+            ],
+            check=True,
+            env={
+                **os.environ,
+                "HF_HOME": str(Path(runtime["prefix"]) / "hf"),
+                "HF_HUB_OFFLINE": "1",
+                "CUDA_VISIBLE_DEVICES": "",
+            },
+        )
         code = "from langchain_google_genai import ChatGoogleGenerativeAI as C; from autogluon.assistant.llm.gemini_chat import AssistantChatGemini as G; import importlib.metadata; g=G(model='gemini-2.5-flash',google_api_key='constructor-check-only',session_name='doctor',seed=42,temperature=0.0); assert g.seed==42 and g.temperature==0; assert importlib.metadata.version('langchain-google-genai')=='4.2.1'; assert 'seed' in C.model_fields"
         subprocess.run([runtime["python"], "-c", code], check=True)
         return {"client": "4.2.1", "runtime_identity": canonical_hash(runtime)}
@@ -589,6 +606,14 @@ def run(cfg, dry_run=False, only=None):
                     f"END {ent['key']} rep={rep} {rec['status']} CV={rec['cv_score']}",
                     flush=True,
                 )
+                if (
+                    rec["status"] == "no_artifact"
+                    and rec["termination_reason"] == "process_error"
+                ):
+                    raise RuntimeError(
+                        f"Search process crashed before producing a selectable export: {attempt / 'search.log'}. "
+                        "Campaign stopped to avoid repeating a shared setup failure. Inspect this attempt before restarting."
+                    )
     return records
 
 
@@ -664,6 +689,9 @@ def main(argv=None):
         type=Path,
         help="Use a sealed local runtime instead of Docker",
     )
+    b.add_argument(
+        "--campaign-suffix", default="", help="Separate cohort label, e.g. retrieval-v2"
+    )
     b.add_argument("--cpus", type=int, default=16)
     b.add_argument("--memory-gib", type=int, default=50)
     r = sub.add_parser("run")
@@ -682,7 +710,15 @@ def main(argv=None):
             from .local_runtime import configure
 
             cfg = configure(cfg, a.local_runtime)
-            a.output.write_text(yaml.safe_dump(cfg, sort_keys=False))
+        if a.campaign_suffix:
+            import re
+
+            if not re.fullmatch(r"[a-z0-9-]+", a.campaign_suffix):
+                raise ValueError(
+                    "Campaign suffix must contain only lower-case letters, numbers or hyphens"
+                )
+            cfg["campaign_id"] += "-" + a.campaign_suffix
+        a.output.write_text(yaml.safe_dump(cfg, sort_keys=False))
         print(
             f"Prepared {len(cfg['dataset_entries'])} datasets; {len(cfg['repetitions'])} repetitions; model={cfg['llm']['model']}; seed=42; budget=3600 s"
         )
