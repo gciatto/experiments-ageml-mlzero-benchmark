@@ -5,6 +5,7 @@ import ast
 import json
 import logging
 import os
+import shlex
 import shutil
 import sys
 import tempfile
@@ -14,7 +15,6 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from ageml_mlzero_benchmark import sha256_file, write_json
 
 
 def native_simulate(source):
@@ -125,6 +125,8 @@ def run_check(source):
     import pandas as pd
     from sklearn.model_selection import KFold, StratifiedKFold
 
+    from ageml_mlzero_benchmark import sha256_file, write_json
+
     simulate = native_simulate(source)
     native_prompt_smoke(source)
     results = {}
@@ -146,7 +148,9 @@ def run_check(source):
             output.mkdir(parents=True)
             python = node_dir / "conda_env/bin/python"
             python.parent.mkdir(parents=True)
-            python.symlink_to(sys.executable)
+            # Keep this toy candidate in the active environment on Python 3.13.
+            python.write_text(f'#!/bin/sh\nexec {shlex.quote(sys.executable)} "$@"\n')
+            python.chmod(0o755)
             regression = task == "regression"
             frame = pd.DataFrame(
                 {

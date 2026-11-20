@@ -8,6 +8,7 @@ import pandas as pd
 
 from . import read_jsonl
 from .evaluation import better
+from .plotting import COLORS, dataset_label, plot_style, save_figure
 from .reference import pair_checks
 
 FAILURE_KINDS = (
@@ -230,6 +231,12 @@ def plots(summary: pd.DataFrame, records: list[dict[str, Any]], out: Path) -> No
     import matplotlib
 
     matplotlib.use("Agg")
+
+    with plot_style():
+        _plots(summary, records, out)
+
+
+def _plots(summary: pd.DataFrame, records: list[dict[str, Any]], out: Path) -> None:
     import matplotlib.pyplot as plt
 
     recs = terminal(records)
@@ -247,15 +254,32 @@ def plots(summary: pd.DataFrame, records: list[dict[str, Any]], out: Path) -> No
                     and r["system"] == system
                     and r["artifact_status"] == "valid"
                 ]
-                ax.scatter([x] * len(ys), ys, s=18, alpha=0.8)
-            ax.set_xticks([0, 1], ["AGE-ML", "MLZero"])
+                ax.scatter([x] * len(ys), ys, s=22, alpha=0.8, color=COLORS[system])
+                if ys:
+                    ax.scatter(
+                        x,
+                        sum(ys) / len(ys),
+                        marker="D",
+                        s=42,
+                        color=COLORS[system],
+                        edgecolor="white",
+                        zorder=4,
+                    )
+            ax.set_xticks([0, 1], ["AGE-ML\nOriginal", "MLZero"])
             ax.set_xlim(-0.6, 1.6)
-            ax.set_title(key, fontsize=9)
-        axes[0][0].set_ylabel(objective)
-        fig.tight_layout()
-        for ext in ("pdf", "svg"):
-            fig.savefig(out / f"test_{objective}.{ext}")
-        plt.close(fig)
+            ax.set_title(dataset_label(key))
+            ax.grid(axis="y", color=COLORS["grid"], linewidth=0.6)
+            ax.set_axisbelow(True)
+        axes[0][0].set_ylabel(
+            "RMSE ↓" if objective == "rmse" else "Balanced accuracy ↑"
+        )
+        save_figure(
+            fig,
+            out,
+            f"test_{objective}",
+            footnote="Dots: successful repetitions; diamonds: arithmetic means. "
+            "Unsuccessful outcomes are not zero scores. Check report provenance for comparison eligibility.",
+        )
 
     traj = [
         r
@@ -276,14 +300,19 @@ def plots(summary: pd.DataFrame, records: list[dict[str, Any]], out: Path) -> No
                         [p[1] for p in t],
                         where="post",
                         alpha=0.7,
+                        color=COLORS["mlzero"],
                     )
-            ax.set_title(key, fontsize=9)
-            ax.set_xlabel("elapsed (min)")
-        axes[0][0].set_ylabel("native incumbent score")
-        fig.tight_layout()
-        for ext in ("pdf", "svg"):
-            fig.savefig(out / f"trajectories.{ext}")
-        plt.close(fig)
+            ax.set_title(dataset_label(key))
+            ax.set_xlabel("Elapsed time (min)")
+            ax.grid(axis="y", color=COLORS["grid"], linewidth=0.6)
+            ax.set_axisbelow(True)
+        axes[0][0].set_ylabel("Native incumbent score")
+        save_figure(
+            fig,
+            out,
+            "trajectories",
+            footnote="Native selection trajectories; not independent test performance.",
+        )
 
 
 def write_report(campaign: Path, required_protocol: str) -> Path:
