@@ -1,3 +1,5 @@
+mlzero-gemini25-full-audit/*.pdf
+mlzero-gemini25-full-audit/*.png
 *.bak
 
 node_modules/

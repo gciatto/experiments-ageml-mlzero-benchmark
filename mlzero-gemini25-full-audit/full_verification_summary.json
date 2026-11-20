@@ -1,0 +1,20 @@
+{
+  "datasets_with_verified_original_inputs": 9,
+  "independently_recomputed_candidate_exports": 89,
+  "independently_recomputed_selected_winners": 35,
+  "maximum_selected_record_recomputation_error": 0.0,
+  "terminal_phases": {
+    "Timeout during setup": 1,
+    "Valid CV export": 35,
+    "Timeout with evaluation unfinished": 7,
+    "Repair branches exhausted": 2
+  },
+  "failed_run_candidate_errors": {
+    "No returned diagnostic": 8,
+    "Library API / imports": 43,
+    "Environment / dependencies": 21,
+    "Native runtime backtrace": 1
+  },
+  "winner_selection_discrepancies": [],
+  "experiment_reruns": 0
+}
