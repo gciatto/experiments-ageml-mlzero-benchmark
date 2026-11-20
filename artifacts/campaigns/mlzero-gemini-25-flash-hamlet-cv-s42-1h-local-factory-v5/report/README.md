@@ -1,0 +1,1 @@
+Scores are selected mean ten-fold CV scores, NOT independent test scores. Failed outcomes stay in denominators. No p-values; repetitions share seeds and folds. AGE-ML Original only. Resource-time equality is not claimed. Generated-factory fold compliance requires code review; exported hashes and OOF predictions are audited.

@@ -1,0 +1,53 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define paths
+ENV_ROOT="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_0"
+ENV_PATH="${ENV_ROOT}/conda_env"
+COMMON_REQ="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+TABULAR_REQ="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for factory module."
+
+# Ensure parent directories exist for the conda environment
+mkdir -p "$(dirname "$ENV_PATH")"
+
+# 1. Create conda environment with Python 3.11
+echo "Creating conda environment at $ENV_PATH with Python 3.11..."
+conda create -y -p "$ENV_PATH" python=3.11
+
+# Define paths to the new environment's binaries
+PYTHON_BIN="$ENV_PATH/bin/python"
+PIP_BIN="$ENV_PATH/bin/pip"
+UV_BIN="$ENV_PATH/bin/uv" # uv will be installed here
+
+# Verify Python executable exists
+if [ ! -f "$PYTHON_BIN" ]; then
+    echo "Error: Python executable not found at $PYTHON_BIN after conda environment creation. Conda environment creation might have failed."
+    exit 1
+fi
+
+# 2. Activate the environment (conceptually, by using its binaries directly)
+#    For non-interactive scripts, directly calling the environment's
+#    binaries (like $PIP_BIN, $UV_BIN) is more robust than 'conda activate',
+#    which modifies the shell state and may not persist or be correctly sourced.
+#    This ensures all installations happen within the target environment.
+
+# 3. pip install uv
+echo "Installing uv into the environment using $PIP_BIN..."
+"$PIP_BIN" install uv
+
+# Verify uv executable exists
+if [ ! -f "$UV_BIN" ]; then
+    echo "Error: uv executable not found at $UV_BIN after installation. uv installation might have failed."
+    exit 1
+fi
+
+# 4. Install required packages from requirements files using uv
+echo "Installing required packages from $TABULAR_REQ and $COMMON_REQ using $UV_BIN..."
+# This command installs packages specified in the requirements files and their dependencies.
+# 'uv' efficiently handles dependency resolution and avoids unnecessary upgrades/reinstalls.
+"$UV_BIN" pip install -r "$TABULAR_REQ" --prerelease=allow -r "$COMMON_REQ"
+
+echo "Conda environment setup complete at $ENV_PATH."
+echo "The environment is prepared with autogluon.tabular and its dependencies (including numpy, pandas, scikit-learn)."

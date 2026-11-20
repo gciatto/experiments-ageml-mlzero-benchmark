@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-if [[ "$#" -eq 0 ]]; then
-  set -- configs/gemini25-hamlet-cv-local.yml configs/gemini31-hamlet-cv-local.yml
+if [[ -f artifacts/campaign-layout.json ]]; then
+    benchmark_python="${AGEML_BENCH_PYTHON:-$PWD/.venv/bin/python}"
+    mkdir -p logs
+    "$benchmark_python" scripts/campaign_layout.py run "$@" \
+        2>&1 | tee "logs/mlzero-campaign-$(date +%Y%m%d-%H%M%S).log"
+    exit 0
 fi
-# Shared launcher prompts securely, runs doctor, both sequential searches and reports.
 exec bash scripts/run-hamlet-cv.sh "$@"

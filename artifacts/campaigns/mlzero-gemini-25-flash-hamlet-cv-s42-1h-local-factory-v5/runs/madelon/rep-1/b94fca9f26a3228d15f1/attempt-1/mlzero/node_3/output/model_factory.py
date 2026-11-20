@@ -1,0 +1,149 @@
+import pandas as pd
+import os
+import tempfile
+import shutil
+import random
+import numpy as np
+
+from autogluon.tabular import TabularPredictor, TabularDataset
+from autogluon.core.utils.utils import set_seed as ag_set_seed # Alias to avoid conflict if 'set_seed' is used elsewhere
+
+# Set global seeds for reproducibility across Python's random, numpy, and AutoGluon.
+GLOBAL_SEED = 42
+random.seed(GLOBAL_SEED)
+np.random.seed(GLOBAL_SEED)
+ag_set_seed(GLOBAL_SEED) # Set AutoGluon's internal seed for reproducibility
+
+# Define a reasonable time limit for each fold's fit operation.
+# The total shared deadline is 3190 seconds for ten folds.
+# Allocating 300 seconds per fold for fitting (3000 seconds total) leaves
+# approximately 190 seconds for data loading, model initialization, prediction,
+# and other overhead across all ten folds. This is a balanced approach to
+# ensure all fits complete within the deadline.
+FIT_TIME_LIMIT_PER_FOLD = 300  # seconds
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, label_column_name: str, artifact_path: str):
+        """
+        Initializes the wrapper. The AutoGluon predictor itself is not fitted here.
+
+        Args:
+            label_column_name (str): The name of the target column.
+            artifact_path (str): A unique path where AutoGluon will store its artifacts.
+        """
+        self.label_column_name = label_column_name
+        self.artifact_path = artifact_path
+        self.predictor = None
+
+        # Ensure the artifact path exists. AutoGluon will create it if it doesn't,
+        # but explicit creation here can sometimes help with permissions or early error detection.
+        os.makedirs(self.artifact_path, exist_ok=True)
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All learned preprocessing and model training happens within this method.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training labels.
+        """
+        # Combine X and y into a single DataFrame as required by TabularPredictor.
+        # Ensure y's name is set correctly for TabularPredictor to identify the label column.
+        y_df = y.to_frame(name=self.label_column_name)
+        train_data = pd.concat([X, y_df], axis=1)
+
+        # Initialize TabularPredictor.
+        # The problem_type (classification) is inferred automatically.
+        # The eval_metric is specified as 'balanced_accuracy' as per the task description.
+        # Removed 'seed' argument from constructor as it's not supported in this AutoGluon version.
+        self.predictor = TabularPredictor(
+            label=self.label_column_name,
+            eval_metric='balanced_accuracy',
+            path=self.artifact_path,
+            verbosity=0  # Reduce verbosity to avoid excessive logging during evaluation
+        )
+
+        # Fit the predictor.
+        # Using 'best_quality' preset for high accuracy, which includes auto_stacking
+        # and other advanced techniques.
+        # The time_limit is set to ensure each fold's fit operation completes
+        # within the overall shared deadline.
+        # Removed 'random_state' argument from fit as it's not supported in this AutoGluon version.
+        self.predictor.fit(
+            train_data=TabularDataset(train_data),
+            time_limit=FIT_TIME_LIMIT_PER_FOLD,
+            presets='best_quality',
+            # AutoGluon automatically handles internal validation splits,
+            # so there's no need to manually provide tuning_data.
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's predict method returns a Series by default for classification tasks.
+        return self.predictor.predict(TabularDataset(X))
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts
+        when the model wrapper object is garbage collected.
+        This is a best-effort cleanup.
+        """
+        if os.path.exists(self.artifact_path):
+            try:
+                shutil.rmtree(self.artifact_path)
+            except OSError as e:
+                # Log or handle the error if directory removal fails.
+                # This can happen if files are still in use, especially on some OS.
+                print(f"Warning: Error removing artifact directory {self.artifact_path}: {e}")
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted model wrapper for AutoGluon TabularPredictor.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This is used to infer column names
+                                and data types if needed, but not for fitting the model.
+        y_train (pd.Series): Training labels. This is used to infer the label column name,
+                             but not for fitting the model.
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper instance with `fit(X,y)`
+                                 and `predict(X)` methods.
+    """
+    # The label column name is derived from the y_train Series name.
+    # The problem description implies the target column is 'Class'.
+    label_column_name = y_train.name
+    if label_column_name is None:
+        # Fallback if y_train Series has no name, assign a default.
+        # This should ideally not happen if the harness provides a named Series.
+        label_column_name = "target_class"
+        print(f"Warning: y_train Series has no name. Using default label '{label_column_name}'.")
+
+    # Create a unique temporary directory for AutoGluon artifacts for this specific
+    # model instance. This ensures "fresh artifact directories per fold" as required.
+    temp_dir = tempfile.mkdtemp(prefix="autogluon_model_")
+
+    # Instantiate the wrapper, which will hold the unfitted predictor.
+    # The global seed setting handles reproducibility for AutoGluon.
+    model_wrapper = AutoGluonTabularWrapper(
+        label_column_name=label_column_name,
+        artifact_path=temp_dir
+    )
+    return model_wrapper

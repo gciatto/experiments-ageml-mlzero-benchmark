@@ -1,0 +1,9 @@
+{
+  "campaigns": [
+    "mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5",
+    "mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5"
+  ],
+  "numeric_revision": "rmse-float32-compat-v1",
+  "validator_sha256": "9e74451630097ec979a5aad1cae2388a336f2cae5a8fe96f52cfa31669431181",
+  "note": "Canonical paths; recorded run IDs, source identities and historical logs preserved. Only manifest paths and selected-output paths relocated; no model code or scores changed."
+}

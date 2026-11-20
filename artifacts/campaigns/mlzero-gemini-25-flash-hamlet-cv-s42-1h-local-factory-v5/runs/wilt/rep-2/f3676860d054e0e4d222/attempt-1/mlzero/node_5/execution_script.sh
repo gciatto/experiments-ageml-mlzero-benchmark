@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Define environment and requirements paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/f3676860d054e0e4d222/attempt-1/mlzero/node_5/conda_env"
+PYTHON_VERSION="3.11"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda environment setup for node_5 ---"
+
+# Ensure parent directories exist for the conda environment path
+mkdir -p "$(dirname "$CONDA_ENV_PATH")"
+
+# 1. Create the Conda environment with the specified Python version
+echo "Creating conda environment at $CONDA_ENV_PATH with Python $PYTHON_VERSION..."
+conda create --prefix "$CONDA_ENV_PATH" python="$PYTHON_VERSION" --yes
+echo "Conda environment created."
+
+# 2. Activate the environment
+echo "Activating conda environment..."
+# Initialize conda for the current shell session if not already done
+# This is a robust way to ensure `conda activate` works in a script
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$CONDA_ENV_PATH"
+echo "Conda environment activated."
+
+# 3. Install uv
+echo "Installing uv into the environment..."
+# Use the activated environment's pip
+pip install uv
+echo "uv installed."
+
+# 4. Install required packages from the specified requirements files using uv
+echo "Installing packages from requirements files using uv..."
+# Use the activated environment's uv. uv handles exact version installation and dependency resolution.
+uv pip install -r "$AUTOGLUON_TABULAR_REQ_PATH" --prerelease=allow -r "$COMMON_REQ_PATH"
+echo "Packages from requirements files installed."
+
+# 5. Install numpy, pandas, and scikit-learn
+echo "Installing numpy, pandas, and scikit-learn using uv..."
+# Use the activated environment's uv
+uv pip install numpy pandas scikit-learn
+echo "numpy, pandas, and scikit-learn installed."
+
+echo "--- Conda environment setup complete for node_5 ---"

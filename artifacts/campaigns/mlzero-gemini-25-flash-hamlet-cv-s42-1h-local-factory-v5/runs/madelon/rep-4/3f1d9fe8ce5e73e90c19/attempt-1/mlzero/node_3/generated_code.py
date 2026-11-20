@@ -1,0 +1,135 @@
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+import logging
+from autogluon.tabular import TabularPredictor
+
+# Configure logging to suppress AutoGluon's verbose output.
+# AutoGluon is quite verbose by default, which can clutter benchmark logs.
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+# Optionally, suppress specific sub-loggers if needed, e.g., for lightgbm
+# logging.getLogger('lightgbm').setLevel(logging.WARNING)
+
+# Module-level constants
+RANDOM_SEED = 42
+# The total time limit for all ten fits is 180 seconds.
+# To ensure all fits finish within the deadline, we allocate a portion
+# of this time per fold. For 10 folds, 15 seconds per fold leaves
+# 30 seconds for overhead (data loading, prediction, evaluation, etc.).
+# This is a very tight budget, so AutoGluon's presets will be chosen carefully.
+TIME_LIMIT_PER_FOLD = 15 # seconds
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, random_seed=RANDOM_SEED, time_limit=TIME_LIMIT_PER_FOLD):
+        self.predictor = None
+        self.random_seed = random_seed
+        self.time_limit = time_limit
+        self.artifact_path = None # To store the path for cleanup
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon TabularPredictor model.
+        All preprocessing and model training happens within this method,
+        using only the provided X and y for the current fold.
+        """
+        # AutoGluon expects the target column to be part of the DataFrame
+        # and named. We combine X and y into a single DataFrame.
+        if isinstance(X, np.ndarray):
+            # Assuming features are V1, V2, ..., V500 as per problem description
+            feature_columns = [f'V{i+1}' for i in range(X.shape[1])]
+            train_data = pd.DataFrame(X, columns=feature_columns)
+        else: # Assume X is already a pandas DataFrame
+            train_data = X.copy()
+
+        if isinstance(y, np.ndarray):
+            # Assuming target column is named 'Class' as per problem description
+            # Ensure index alignment if X was a DataFrame
+            train_data['Class'] = pd.Series(y, index=X.index if hasattr(X, 'index') else None, name='Class')
+        else: # Assume y is already a pandas Series
+            train_data['Class'] = y.copy()
+
+        # Create a fresh temporary directory for AutoGluon artifacts for this fold.
+        # This ensures "fresh artifact directories per fold" as required.
+        # Using a unique path for each fold is crucial for reproducibility and isolation.
+        self.artifact_path = tempfile.mkdtemp()
+
+        # Initialize TabularPredictor
+        # The label is 'Class' as per the problem description.
+        # eval_metric is 'balanced_accuracy' as per README.md.
+        # problem_type='binary' is appropriate for the Madelon dataset, which is binary classification.
+        self.predictor = TabularPredictor(
+            label='Class',
+            path=self.artifact_path,
+            eval_metric='balanced_accuracy',
+            problem_type='binary', # Madelon is a binary classification dataset
+            verbosity=0 # Suppress AutoGluon's internal print statements during fit
+        )
+
+        # Fit the predictor
+        # Given the very tight time limit (15 seconds), 'good_quality' or 'medium_quality'
+        # presets are more realistic than 'best_quality'. 'good_quality' attempts a decent
+        # ensemble within a reasonable time.
+        # The 'random_state' is passed via 'ag_args_fit' for reproducibility.
+        self.predictor.fit(
+            train_data,
+            time_limit=self.time_limit,
+            presets='good_quality', # Balance quality and speed for the tight time limit
+            ag_args_fit={'random_state': self.random_seed},
+            # ag_args_ensemble={'random_state': self.random_seed} # Also good for ensemble reproducibility
+        )
+
+    def predict(self, X):
+        """
+        Generates predictions for the input data X using the fitted model.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet.")
+
+        if isinstance(X, np.ndarray):
+            # Ensure column names match what AutoGluon expects from training
+            feature_columns = [f'V{i+1}' for i in range(X.shape[1])]
+            predict_data = pd.DataFrame(X, columns=feature_columns)
+        else: # Assume X is already a pandas DataFrame
+            predict_data = X.copy()
+
+        predictions = self.predictor.predict(predict_data)
+        # Return as a 1-dimensional numpy array of predicted class labels,
+        # as requested by the prediction output format.
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Attempts to clean up the temporary directory created by AutoGluon.
+        This is important to prevent disk space exhaustion over multiple folds.
+        Note: __del__ is not guaranteed to be called immediately or at all
+        in some Python environments. A more robust cleanup might involve
+        a context manager or explicit call from the harness, but for a factory
+        module, this is a common pattern.
+        """
+        if self.artifact_path and os.path.exists(self.artifact_path):
+            try:
+                shutil.rmtree(self.artifact_path)
+            except OSError as e:
+                # Log the error if cleanup fails, but don't block execution.
+                logging.warning(f"Failed to remove AutoGluon artifact directory {self.artifact_path}: {e}")
+
+def build_model(X_train, y_train):
+    """
+    Factory function to create a new, unfitted model wrapper.
+    This function is called by the benchmark harness for each cross-validation fold.
+    X_train and y_train are provided for context (e.g., to infer feature names
+    or problem type if not explicitly known), but the model returned must be unfitted.
+    The actual fitting will occur when the harness calls the .fit() method
+    of the returned object.
+    """
+    # X_train and y_train are not used here to initialize the model,
+    # as the model must be unfitted. They are available for context if needed,
+    # e.g., to infer column names or data types for a more dynamic model.
+    # However, for AutoGluon, the column names are handled dynamically in fit().
+    return AutoGluonTabularWrapper()

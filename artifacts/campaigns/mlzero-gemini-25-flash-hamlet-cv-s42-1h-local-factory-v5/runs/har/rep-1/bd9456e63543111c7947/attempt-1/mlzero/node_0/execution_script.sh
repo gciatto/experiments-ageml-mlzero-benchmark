@@ -1,0 +1,53 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define variables for paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-1/bd9456e63543111c7947/attempt-1/mlzero/node_0/conda_env"
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for factory module."
+echo "Conda environment path: $CONDA_ENV_PATH"
+
+# Ensure conda is initialized for the current shell session
+# This is crucial for 'conda activate' to work in non-interactive scripts
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Please ensure Conda is installed and in PATH."
+    exit 1
+fi
+
+# Remove existing environment if it exists to ensure a clean slate
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Removing existing conda environment at $CONDA_ENV_PATH"
+    conda env remove --prefix "$CONDA_ENV_PATH" --yes || { echo "Failed to remove existing conda environment."; exit 1; }
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment with Python 3.11 at $CONDA_ENV_PATH"
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 --yes || { echo "Failed to create conda environment."; exit 1; }
+
+# Activate the environment
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH" || { echo "Failed to activate conda environment."; exit 1; }
+
+# Install uv
+echo "Installing uv into the activated environment..."
+pip install uv || { echo "Failed to install uv."; exit 1; }
+
+# Install required packages from requirements files using uv
+# The order of -r flags is maintained as specified in the prompt.
+# uv handles exact package installation and avoids unnecessary upgrades/reinstalls by default.
+echo "Installing requirements from $AUTOGLUON_TABULAR_REQUIREMENTS_FILE and $COMMON_REQUIREMENTS_FILE using uv..."
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQUIREMENTS_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_FILE" \
+    || { echo "Failed to install requirements with uv."; exit 1; }
+
+# Install numpy, pandas, scikit-learn
+echo "Installing numpy, pandas, scikit-learn using uv..."
+uv pip install numpy pandas scikit-learn || { echo "Failed to install numpy, pandas, scikit-learn."; exit 1; }
+
+echo "Conda environment setup complete at $CONDA_ENV_PATH"

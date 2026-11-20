@@ -1,0 +1,59 @@
+#!/bin/bash
+set -euo pipefail
+
+# --- Configuration ---
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/4d252b8d3aa6da775378/attempt-1/mlzero/node_2/conda_env"
+COMMON_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+PYTHON_VERSION="3.11"
+
+echo "Starting Conda environment setup for Python $PYTHON_VERSION at $CONDA_ENV_PATH"
+
+# --- Conda Initialization ---
+# Ensure conda is initialized for the current shell session.
+# This addresses the "conda init" error from previous attempts by directly sourcing conda.sh.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "ERROR: conda.sh not found. Ensure Conda is installed and in PATH." >&2
+    exit 1
+fi
+
+# Deactivate any currently active conda environment to avoid conflicts
+conda deactivate || true
+
+# --- Clean up existing environment if it exists ---
+# Check if the target path is a registered conda environment
+if conda env list | grep -q "$CONDA_ENV_PATH"; then
+    echo "Existing conda environment found at $CONDA_ENV_PATH. Removing it for a clean installation."
+    conda env remove --prefix "$CONDA_ENV_PATH" --yes
+# If the directory exists but is not a registered conda environment, remove it manually
+elif [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Directory $CONDA_ENV_PATH exists but is not a registered conda environment. Removing directory."
+    rm -rf "$CONDA_ENV_PATH"
+fi
+
+# --- Create and Activate Environment ---
+echo "Creating conda environment with Python $PYTHON_VERSION..."
+conda create --prefix "$CONDA_ENV_PATH" python="$PYTHON_VERSION" --yes
+
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH"
+
+# --- Install Packages ---
+echo "Installing uv..."
+pip install uv
+
+echo "Installing numpy, pandas, scikit-learn..."
+uv pip install numpy pandas scikit-learn
+
+echo "Installing required packages from requirements files using uv..."
+# The --prerelease=allow is crucial for autogluon.multimodal.
+# uv handles the "only install exact packages" and "do not upgrade if already correct" by default,
+# ensuring minimal changes and respecting specified versions.
+uv pip install -r "$MULTIMODAL_REQUIREMENTS_PATH" --prerelease=allow -r "$COMMON_REQUIREMENTS_PATH"
+
+echo "Deactivating conda environment."
+conda deactivate
+
+echo "Conda environment setup complete."

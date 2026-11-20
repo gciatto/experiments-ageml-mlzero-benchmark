@@ -1,0 +1,129 @@
+import pandas as pd
+import numpy as np
+import os
+import logging
+import uuid
+
+# AutoGluon MultiModal imports
+from autogluon.multimodal import MultiModalPredictor
+
+# Set up basic logging to capture information during model building and fitting
+# Using a simple handler that prints to stderr is generally safe in benchmark environments.
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Module-level constants for reproducibility and resource management
+RANDOM_SEED = 42
+# Time limit per fold for MultiModalPredictor.fit().
+# The total shared deadline is 919 seconds for 10 folds.
+# This means an average of 91.9 seconds per fold.
+# Setting it to 80 seconds provides a safe buffer for overhead
+# (e.g., data loading, model initialization, prediction, evaluation)
+# and ensures all ten fits can complete within the overall deadline.
+FIT_TIME_LIMIT_SECONDS = 80
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to conform to the scikit-learn
+    estimator interface (fit/predict). This class handles the specific requirements
+    of the benchmark, such as per-fold fitting and prediction.
+    """
+    def __init__(self, label_column: str):
+        """
+        Initializes the wrapper. The MultiModalPredictor itself is instantiated
+        and fitted within the `fit` method to ensure a fresh, unfitted model
+        for each fold.
+
+        Args:
+            label_column (str): The name of the target column for classification.
+        """
+        self.label_column = label_column
+        self.predictor = None  # MultiModalPredictor instance, set during fit
+        logger.info(f"AutoGluonMultiModalWrapper initialized for label: '{self.label_column}'")
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor using the provided training data.
+        All preprocessing and model training are performed within this method,
+        using only the data from the current fold.
+
+        Args:
+            X (pd.DataFrame): Training features for the current fold.
+            y (pd.Series): Training target labels for the current fold.
+        """
+        # Combine X and y into a single DataFrame as AutoGluon MultiModalPredictor expects
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        logger.info(f"Starting AutoGluon MultiModalPredictor fit for label '{self.label_column}'.")
+        logger.info(f"Training data shape: {train_data.shape}")
+        logger.info(f"Features being used: {X.columns.tolist()}")
+        logger.info(f"Configured time limit per fit: {FIT_TIME_LIMIT_SECONDS} seconds")
+        logger.info(f"Random seed for reproducibility: {RANDOM_SEED}")
+
+        # Initialize MultiModalPredictor.
+        # By not specifying a 'path', AutoGluon will create a temporary directory
+        # for artifacts for each fit call, satisfying the "fresh artifact directories per fold"
+        # requirement.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            problem_type='classification',  # Explicitly set problem type as per task
+            # verbosity=2, # Uncomment for more detailed AutoGluon logs during fit
+        )
+
+        # Fit the predictor with the specified time limit and random seed.
+        # The 'seed' argument ensures reproducibility for this specific fit operation.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=FIT_TIME_LIMIT_SECONDS,
+            seed=RANDOM_SEED,
+            # presets='best_quality', # Can use presets, but default is often good for time-limited runs
+        )
+        logger.info("AutoGluon MultiModalPredictor fitting complete.")
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: Predicted class labels as a NumPy array.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        logger.info(f"Making predictions on input data of shape: {X.shape}")
+        # AutoGluon's predict method returns a pandas Series/DataFrame.
+        # Convert to numpy array to match common scikit-learn contract.
+        predictions = self.predictor.predict(X)
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to build a new, unfitted AutoGluon MultiModal model wrapper.
+    This function is called by the harness for each fold to get a fresh model instance.
+
+    Args:
+        X_train (pd.DataFrame): Training features. Used here to infer the target column name.
+                                (Not used for fitting, as the returned model is unfitted).
+        y_train (pd.Series): Training target. Used here to infer the target column name.
+                             (Not used for fitting, as the returned model is unfitted).
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper with `fit(X,y)` and `predict(X)` methods.
+    """
+    if not isinstance(y_train, pd.Series):
+        raise TypeError("y_train must be a pandas Series.")
+
+    # The target column name is expected to be the name of the y_train Series.
+    label_column = y_train.name
+    if label_column is None:
+        # As per the problem description, the target column is 'class'.
+        # This fallback handles cases where y_train might be a Series without a name.
+        logger.warning("y_train Series has no name. Assuming 'class' as the label column based on task description.")
+        label_column = 'class'
+
+    logger.info(f"Factory function 'build_model' called. Preparing model for target: '{label_column}'")
+    return AutoGluonMultiModalWrapper(label_column=label_column)

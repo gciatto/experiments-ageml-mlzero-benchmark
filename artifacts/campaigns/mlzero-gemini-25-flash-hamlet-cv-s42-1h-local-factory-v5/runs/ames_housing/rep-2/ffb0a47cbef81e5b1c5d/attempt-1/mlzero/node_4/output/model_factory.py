@@ -1,0 +1,132 @@
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import shutil
+from autogluon.multimodal import MultiModalPredictor
+
+# Global seed for reproducibility across all AutoGluon operations.
+# This seed is passed to the MultiModalPredictor constructor.
+GLOBAL_SEED = 42
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon's MultiModalPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self):
+        self.predictor = None
+        self.model_path = None
+        self.label_column_name = None
+        self.feature_columns = None
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model using the provided training data.
+
+        All preprocessing and model fitting are performed within this method,
+        using only the supplied training rows.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target.
+        """
+        self.label_column_name = y.name
+        if self.label_column_name is None:
+            # Fallback if y.name is not set, though the contract implies it will be 'SalePrice'.
+            self.label_column_name = "target" 
+
+        # Combine X and y into a single DataFrame, which is the expected input format for AutoGluon.
+        train_df = X.copy()
+        train_df[self.label_column_name] = y
+
+        # Drop the 'Id' column if it exists, as it's an identifier and not a predictive feature.
+        if 'Id' in train_df.columns:
+            train_df = train_df.drop(columns=['Id'])
+        
+        # Store the names of the feature columns used for training (excluding the label).
+        self.feature_columns = [col for col in train_df.columns if col != self.label_column_name]
+
+        # Create a unique path for this model's artifacts for the current fold.
+        # os.getcwd() typically points to a temporary directory unique to the current fold's execution.
+        # A subdirectory 'autogluon_mm_models' is created within it, and then a UUID-named folder.
+        base_output_dir = os.path.join(os.getcwd(), "autogluon_mm_models")
+        os.makedirs(base_output_dir, exist_ok=True)
+        self.model_path = os.path.join(base_output_dir, str(uuid.uuid4()))
+
+        # Initialize MultiModalPredictor for a regression task.
+        # The 'seed' argument is removed from the constructor as per the error fix.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column_name,
+            problem_type='regression',
+            path=self.model_path,
+        )
+
+        # Fit the predictor.
+        # The global seed is now passed via hyperparameters to the fit method, using "env.seed".
+        # A time_limit is set to ensure each fold's training completes within the overall deadline.
+        # 300 seconds per fold is a conservative estimate given the total shared deadline.
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=300, # seconds per fit call
+            hyperparameters={"env.seed": GLOBAL_SEED} # Added as per error fix
+            # Presets like 'medium_quality' or 'good_quality' could be specified
+            # for faster training, but the default often provides a good balance.
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for making predictions.
+
+        Returns:
+            np.ndarray: A 1D NumPy array of predicted numerical values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # Prepare prediction data: drop the 'Id' column if it's present.
+        X_pred = X.copy()
+        if 'Id' in X_pred.columns:
+            X_pred = X_pred.drop(columns=['Id'])
+        
+        # AutoGluon MultiModalPredictor is generally robust to column order and
+        # handles missing/extra columns by using only the features it was trained on.
+        
+        predictions = self.predictor.predict(X_pred)
+        # Convert the pandas Series output from AutoGluon to a 1D NumPy array
+        # as required by the prediction output format.
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Attempts to clean up the model artifact directory when the wrapper object is deleted.
+        This helps manage disk space, especially in environments with many folds.
+        Note: Python's __del__ method is not guaranteed to be called reliably.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError as e:
+                # Print a warning if cleanup fails, but do not block execution.
+                print(f"Warning: Could not remove model directory {self.model_path}: {e}")
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMultiModalWrapper:
+    """
+    Factory function to create and return a new, unfitted model wrapper.
+    This function is called by the evaluation harness for each fold.
+
+    Args:
+        X_train (pd.DataFrame): Example training features. This argument is provided
+                                for context but is not used for fitting within this function.
+        y_train (pd.Series): Example training target. This argument is provided
+                             for context but is not used for fitting within this function.
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper instance, ready to be
+                                    fitted via its .fit(X, y) method.
+    """
+    return AutoGluonMultiModalWrapper()

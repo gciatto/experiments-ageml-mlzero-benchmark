@@ -1,0 +1,67 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define paths
+# The target conda environment path for node_3
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-4/2638bba56a1dcdafac5f/attempt-1/mlzero/node_3/conda_env"
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluon Tabular."
+
+# Ensure conda is initialized for the script.
+# This is crucial for `conda activate` to work in a non-interactive shell script.
+# It assumes `conda` is already installed and available in the PATH.
+# Attempt to find conda base path, suppressing errors if conda is not found.
+CONDA_BASE=$(conda info --base 2>/dev/null || true)
+if [ -z "$CONDA_BASE" ]; then
+    echo "Error: 'conda' command not found or not initialized. Please ensure Conda is installed and in your PATH." >&2
+    exit 1
+fi
+
+CONDA_SH="$CONDA_BASE/etc/profile.d/conda.sh"
+if [ -f "$CONDA_SH" ]; then
+    source "$CONDA_SH"
+else
+    echo "Error: conda.sh not found at $CONDA_SH. Is Conda installed and initialized correctly?" >&2
+    exit 1
+fi
+
+# Create or activate Conda environment
+echo "Checking for existing conda environment at $CONDA_ENV_PATH..."
+# Check if the directory exists and contains a python executable, indicating a potentially complete environment
+if [ -d "$CONDA_ENV_PATH" ] && [ -f "$CONDA_ENV_PATH/bin/python" ]; then
+    echo "Conda environment already exists. Activating it."
+    conda activate "$CONDA_ENV_PATH"
+    # Optional: Verify Python version if environment already exists.
+    # For a minimal script, we proceed, relying on `uv` to handle dependencies.
+    CURRENT_PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+    if [ "$CURRENT_PYTHON_VERSION" != "3.11" ]; then
+        echo "Warning: Existing environment has Python $CURRENT_PYTHON_VERSION, but 3.11 was requested. Proceeding, but issues might arise." >&2
+    fi
+else
+    echo "Conda environment not found or incomplete. Creating a new one with Python 3.11."
+    # Ensure the parent directory exists before creating the environment
+    mkdir -p "$(dirname "$CONDA_ENV_PATH")"
+    conda create --prefix "$CONDA_ENV_PATH" python=3.11 -y
+    conda activate "$CONDA_ENV_PATH"
+fi
+
+echo "Installing uv into the environment..."
+# Use the pip from the activated environment
+pip install uv
+
+echo "Installing required packages using uv from specified requirements files..."
+# The prompt specifies the order of requirements files:
+# 1. autogluon.tabular/requirements.txt
+# 2. _common/requirements.txt
+# `uv pip install -r <file1> -r <file2>` will combine and resolve dependencies from both.
+# `--prerelease=allow` is included as per the prompt.
+# `uv` by default only installs specified packages and their dependencies,
+# and does not upgrade packages unless explicitly told to, respecting existing versions.
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQUIREMENTS_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_FILE"
+
+echo "Installation complete. Environment '$CONDA_ENV_PATH' is ready."

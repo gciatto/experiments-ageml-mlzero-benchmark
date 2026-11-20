@@ -1,0 +1,42 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the full path for the new Conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-4/6a956d8fefbd8620bdfc/attempt-1/mlzero/node_5/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+# Ensure Conda is initialized for the current shell session
+# This is crucial for non-interactive scripts to use 'conda activate'
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Is Conda installed and initialized in this environment?" >&2
+    exit 1
+fi
+
+# Create the Conda environment with Python 3.11 at the specified path
+echo "Creating Conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 --yes
+
+# Activate the newly created environment
+echo "Activating Conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH"
+
+# Install uv (a fast Python package installer)
+echo "Installing uv..."
+pip install uv
+
+# Install required packages using uv, respecting the specified requirements files.
+# uv by default installs exact versions and their dependencies without upgrading
+# unless explicitly told to, satisfying the "Only install the exact packages"
+# and "Do NOT upgrade or reinstall autogluon.tabular" requirements.
+echo "Installing required packages from $AUTOGLUON_TABULAR_REQUIREMENTS_FILE and $COMMON_REQUIREMENTS_FILE using uv..."
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQUIREMENTS_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_FILE"
+
+echo "Conda environment setup complete and packages installed."

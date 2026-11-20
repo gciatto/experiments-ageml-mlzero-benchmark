@@ -1,0 +1,141 @@
+import os
+import numpy as np
+import pandas as pd
+import random
+import logging
+import datetime
+import shutil
+
+# AutoGluon is allowed and handles many complexities like preprocessing,
+# model selection, and hyperparameter tuning automatically.
+from autogluon.tabular import TabularPredictor
+
+# Suppress AutoGluon's verbose logging to keep the console output clean
+# during evaluation. This helps focus on critical information.
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('autogluon.core').setLevel(logging.WARNING)
+logging.getLogger('autogluon.tabular').setLevel(logging.WARNING)
+
+class AutoGluonTabularModel:
+    """
+    A wrapper class for AutoGluon's TabularPredictor, conforming to the
+    required fit/predict interface.
+    """
+    def __init__(self, model_artifact_path: str):
+        """
+        Initializes the AutoGluonTabularModel wrapper.
+
+        Args:
+            model_artifact_path (str): A unique path where AutoGluon will store
+                                       its models and temporary files for this fold.
+                                       This ensures "fresh artifact directories per fold".
+        """
+        self.predictor = None
+        self.model_artifact_path = model_artifact_path
+
+        # Ensure the artifact directory is clean and ready.
+        # If a directory with this name exists (e.g., from a previous failed run
+        # or an extremely unlikely timestamp collision), remove it to start fresh.
+        if os.path.exists(self.model_artifact_path):
+            shutil.rmtree(self.model_artifact_path)
+        os.makedirs(self.model_artifact_path, exist_ok=True)
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor using the provided training data.
+
+        All preprocessing and model training are encapsulated within this method,
+        using only the data (X, y) provided for the current fold.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Set global seeds for reproducibility for any stochastic processes
+        # within AutoGluon or its underlying libraries.
+        np.random.seed(42)
+        random.seed(42)
+
+        # AutoGluon's TabularPredictor expects the target column to be part
+        # of the DataFrame passed to its fit method. We make a copy to avoid
+        # modifying the original X DataFrame.
+        X_train_df = X.copy()
+        X_train_df[y.name] = y # y.name is expected to be 'class' based on problem description
+
+        # Determine the problem type for AutoGluon.
+        # AutoGluon can often infer this, but explicit setting can be robust.
+        # The 'adult' dataset is binary classification.
+        problem_type = 'binary' if len(y.unique()) == 2 else 'multiclass'
+
+        # Initialize TabularPredictor with the unique path for this fold's artifacts.
+        # The eval_metric is set to 'balanced_accuracy' as specified in the task.
+        self.predictor = TabularPredictor(
+            label=y.name,
+            path=self.model_artifact_path,
+            eval_metric='balanced_accuracy',
+            problem_type=problem_type
+        )
+
+        # Fit the predictor.
+        # The total time for all ten fits is bounded (2120 seconds).
+        # We allocate a conservative time limit per fold (180 seconds) to ensure
+        # all ten fits complete within the overall deadline, allowing for overhead.
+        time_limit_per_fold = 180 # seconds
+
+        self.predictor.fit(
+            X_train_df,
+            time_limit=time_limit_per_fold,
+            presets='medium_quality_fast_inference', # A good balance for speed and accuracy
+            # AutoGluon's fit method does not accept a 'random_state' argument directly.
+            # Global seeds are set at the beginning of this method for reproducibility.
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor.
+
+        Args:
+            X (pd.DataFrame): Features for prediction.
+
+        Returns:
+            np.ndarray: A 1D array of predicted class labels, corresponding
+                        to the input rows.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's predict method expects a DataFrame.
+        predictions = self.predictor.predict(X)
+
+        # Return predictions as a 1D numpy array as required by the contract.
+        return predictions.values
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularModel:
+    """
+    Factory function to create a new, unfitted AutoGluon model wrapper.
+
+    This function is called by the harness for each cross-validation fold.
+    It generates a unique artifact directory for each model instance to ensure
+    isolation and prevent conflicts between folds.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used to infer target column name).
+        y_train (pd.Series): Training target labels (used to infer target column name).
+
+    Returns:
+        AutoGluonTabularModel: An unfitted model object with `fit(X,y)` and `predict(X)` methods.
+    """
+    # The harness places `model_factory.py` in the node output folder.
+    # `os.getcwd()` will point to this folder, which is a suitable base
+    # for creating AutoGluon's temporary artifact directories.
+    base_output_dir = os.getcwd()
+
+    # Generate a unique directory name for AutoGluon artifacts for this specific
+    # model instance (i.e., for this fold). This ensures "fresh artifact directories
+    # per fold" as required. A timestamp combined with a random integer provides
+    # high uniqueness.
+    current_time_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    unique_suffix = f"{current_time_str}_{random.randint(0, 99999):05d}"
+    model_artifact_path = os.path.join(base_output_dir, f"autogluon_model_artifacts_{unique_suffix}")
+
+    return AutoGluonTabularModel(model_artifact_path)

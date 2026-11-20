@@ -1,0 +1,123 @@
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+from autogluon.tabular import TabularPredictor, TabularDataset
+
+# Set a global seed for reproducibility across the module.
+# AutoGluon's internal mechanisms for reproducibility are often handled via
+# specific arguments in its components or by relying on global seeds.
+SEED = 42
+np.random.seed(SEED) # For general numpy operations
+# AutoGluon's TabularPredictor constructor accepts a random_state for internal reproducibility.
+
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor to conform to the fit/predict interface
+    required by the evaluation harness.
+    """
+
+    def __init__(self):
+        self.predictor = None
+        self.temp_dir = None  # Holds the TemporaryDirectory object for cleanup
+        self.path = None      # Stores the path string of the temporary directory
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All preprocessing, model selection, and training are handled internally by AutoGluon.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Create a temporary directory for AutoGluon to store its artifacts.
+        # This ensures each fold's model is isolated and cleaned up properly.
+        # `ignore_cleanup_errors=True` is added for robustness in case of
+        # permission issues during cleanup, though it's usually not needed in temp dirs.
+        self.temp_dir = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
+        self.path = self.temp_dir.name
+
+        # Combine features (X) and target (y) into a single DataFrame,
+        # which is the expected input format for AutoGluon's TabularDataset.
+        # The target column is named 'class' as per the problem description.
+        train_df = X.copy()
+        train_df['class'] = y
+
+        # Initialize TabularPredictor.
+        # - label: Specifies the target column name.
+        # - eval_metric: Sets the primary metric for model selection and tuning.
+        # - path: Directs AutoGluon to save all model artifacts in our temporary directory.
+        # - problem_type: Explicitly set to 'binary' as the 'adult' dataset is a binary classification task.
+        # - random_state: Ensures reproducibility for AutoGluon's internal processes.
+        self.predictor = TabularPredictor(
+            label='class',
+            eval_metric='balanced_accuracy',
+            path=self.path,
+            problem_type='binary',
+            random_state=SEED, # Set seed for reproducibility
+        )
+
+        # Fit the predictor.
+        # - train_data: The combined DataFrame wrapped in a TabularDataset.
+        # - time_limit: Crucially bounds the training time for each fold.
+        #               3 seconds per fold is chosen to ensure all 10 fits
+        #               finish within the remaining shared deadline of 34 seconds (3s * 10 folds = 30s, leaving 4s for overhead).
+        # - presets: 'medium' is chosen for a balance of speed and reasonable quality,
+        #            given the extremely tight time limit. 'best_quality' would likely
+        #            timeout or produce incomplete models under such a short limit.
+        self.predictor.fit(
+            train_data=TabularDataset(train_df),
+            time_limit=3,  # 3 seconds per fold to meet the overall deadline
+            presets='medium', # Balance speed and quality for tight time limits
+        )
+
+    def predict(self, X):
+        """
+        Makes predictions on new data using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features of the data to predict.
+
+        Returns:
+            np.ndarray: A 1-dimensional array of predicted class labels (strings).
+        """
+        # AutoGluon's predict method expects a DataFrame or TabularDataset.
+        # It returns a pandas Series of predictions, which we convert to a
+        # numpy array to match the required output format.
+        predictions = self.predictor.predict(TabularDataset(X))
+        return predictions.values
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts
+        when the AutoGluonTabularWrapper object is garbage collected.
+        This prevents leftover files and ensures a clean environment for subsequent runs.
+        """
+        if self.temp_dir:
+            try:
+                # Ensure the directory exists before attempting to clean up.
+                # This check is mostly for robustness, as temp_dir should be valid if set.
+                if os.path.exists(self.path):
+                    self.temp_dir.cleanup()  # Removes the temporary directory and its contents
+            except OSError as e:
+                # Log or print the error if cleanup fails, but don't block execution.
+                # In a production environment, this might go to a proper logging system.
+                print(f"Error removing temporary directory {self.path}: {e}")
+
+
+def build_model(X_train, y_train):
+    """
+    Factory function to create a new, unfitted model wrapper.
+    This function is called by the harness to obtain a fresh model instance.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used for fitting here).
+        y_train (pd.Series): Training target labels (provided for context, not used for fitting here).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted instance of the model wrapper.
+    """
+    return AutoGluonTabularWrapper()

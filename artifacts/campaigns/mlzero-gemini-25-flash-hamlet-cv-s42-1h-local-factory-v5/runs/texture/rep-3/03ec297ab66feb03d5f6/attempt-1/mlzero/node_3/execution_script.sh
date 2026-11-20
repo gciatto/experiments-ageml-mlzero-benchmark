@@ -1,0 +1,59 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the full path for the Conda environment
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-3/03ec297ab66feb03d5f6/attempt-1/mlzero/node_3/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MM_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+echo "Starting minimal Conda environment setup for AutoGluon MultiModal."
+echo "Target environment path: $ENV_DIR"
+
+# --- Conda Environment Setup ---
+
+# Ensure conda is initialized for the current shell session
+# This is crucial for 'conda activate' to work reliably in a script.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Please ensure Conda is installed and initialized." >&2
+    exit 1
+fi
+
+# Remove existing environment if it exists to ensure a clean slate
+# This prevents 'CondaValueError: The target directory already exists' errors.
+if conda env list | grep -q "$ENV_DIR"; then
+    echo "Removing existing environment at $ENV_DIR..."
+    conda env remove --prefix "$ENV_DIR" -y
+fi
+
+# Create the new conda environment with Python 3.11
+echo "Creating new conda environment with Python 3.11 at $ENV_DIR..."
+conda create --prefix "$ENV_DIR" python=3.11 -y
+
+# Activate the newly created environment
+echo "Activating environment: $ENV_DIR"
+conda activate "$ENV_DIR"
+
+# --- Package Installation ---
+
+echo "Installing uv (a fast Python package installer and resolver)..."
+pip install uv
+
+echo "Installing core libraries: numpy, pandas, scikit-learn..."
+uv pip install numpy pandas scikit-learn
+
+echo "Installing required packages from requirements files using uv..."
+# The order of requirements files and the --prerelease=allow flag are specified.
+# uv's default behavior ensures that packages are installed only if missing or if
+# a different version is required, respecting exact versions specified in requirements.
+# It also handles dependencies without unnecessary upgrades or reinstallation if already satisfied.
+uv pip install \
+    -r "$MM_REQ_PATH" \
+    --prerelease=allow \
+    -r "$COMMON_REQ_PATH"
+
+echo "Conda environment setup complete and packages installed successfully."
+echo "To use this environment, run: conda activate $ENV_DIR"

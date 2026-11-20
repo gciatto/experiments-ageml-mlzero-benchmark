@@ -1,0 +1,118 @@
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import logging
+from autogluon.multimodal import MultiModalPredictor
+from autogluon.common.utils.random import set_random_seed
+
+# Configure logging to suppress excessive AutoGluon output.
+# AutoGluon can be very verbose, especially during initialization and training.
+# Setting to WARNING or ERROR can help keep the logs cleaner.
+logging.basicConfig(level=logging.WARNING)
+
+class AutoGluonMMWrapper:
+    """
+    A wrapper class for AutoGluon's MultiModalPredictor to conform to the
+    MLZero benchmark's fit/predict interface.
+    """
+    def __init__(self, random_state: int = 42, time_limit_per_fit: int = 240):
+        """
+        Initializes the wrapper. The MultiModalPredictor is not instantiated here
+        to ensure it's fresh for each fold's fit call.
+
+        Args:
+            random_state (int): Seed for reproducibility.
+            time_limit_per_fit (int): Maximum time in seconds allowed for each fit call.
+                                      This is crucial for meeting the overall deadline.
+        """
+        self.predictor = None
+        self.random_state = random_state
+        self.time_limit_per_fit = time_limit_per_fit
+        self.model_path = None
+        # The target column name is fixed for this task
+        self.target_column_name = 'median_house_value'
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target values.
+        """
+        # Set random seed for reproducibility within this fold's training
+        set_random_seed(self.random_state)
+
+        # Create a unique temporary directory for AutoGluon artifacts for this fold.
+        # This ensures "fresh artifact directories per fold" and prevents conflicts
+        # or unintended state sharing between folds.
+        # Using /tmp is standard for temporary files.
+        self.model_path = os.path.join("/tmp", f"automm_model_{uuid.uuid4().hex}")
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # Combine features and target into a single DataFrame as required by MultiModalPredictor.
+        # AutoGluon MultiModal expects the label column to be part of the input DataFrame.
+        train_data = X.copy()
+        train_data[self.target_column_name] = y
+
+        # Initialize MultiModalPredictor.
+        # It automatically detects problem_type for regression if the label column is numerical.
+        # Explicitly setting problem_type and eval_metric for clarity and robustness.
+        self.predictor = MultiModalPredictor(
+            label=self.target_column_name,
+            path=self.model_path,
+            problem_type='regression',
+            eval_metric='rmse' # Root Mean Squared Error, lower is better, as per task description
+        )
+
+        # Fit the predictor.
+        # 'presets' are used to balance model quality and training time.
+        # 'medium_quality' is a good compromise for benchmarks with time limits.
+        # The 'time_limit' ensures that each fold's training respects the overall deadline.
+        self.predictor.fit(
+            train_data,
+            time_limit=self.time_limit_per_fit,
+            presets='medium_quality',
+            # Additional hyperparameters can be specified here if needed, e.g.,
+            # hyperparameters={"optim.max_epochs": 10} to further control training duration.
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted MultiModalPredictor.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Predicted target values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # MultiModalPredictor expects a DataFrame for prediction
+        predictions = self.predictor.predict(X)
+
+        # Ensure the output is a numpy array as required by the benchmark contract
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to build a new, unfitted model wrapper.
+    This function is called once per fold by the benchmark harness.
+
+    Args:
+        X_train (pd.DataFrame): Training features for the current fold.
+                                Used here for schema inference, not for fitting.
+        y_train (pd.Series): Training target values for the current fold.
+                             Used here for schema inference, not for fitting.
+
+    Returns:
+        AutoGluonMMWrapper: An unfitted model wrapper instance.
+    """
+    # Return a fresh, unfitted instance of our wrapper.
+    # The `time_limit_per_fit` is set conservatively to ensure all 10 folds complete
+    # within the total shared deadline. For example, 240 seconds * 10 folds = 2400 seconds,
+    # leaving approximately 600 seconds for overhead and other operations.
+    return AutoGluonMMWrapper(random_state=42, time_limit_per_fit=240)

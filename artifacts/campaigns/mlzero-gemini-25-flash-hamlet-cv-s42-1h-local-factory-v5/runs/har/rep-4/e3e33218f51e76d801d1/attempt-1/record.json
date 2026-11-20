@@ -1,0 +1,54 @@
+{
+  "attempt": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1",
+  "campaign_id": "mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5",
+  "cv_score": null,
+  "dataset": "har",
+  "final": true,
+  "finished_at": 1794940105.568178,
+  "fit_seed": 42,
+  "llm_seed_requested": 42,
+  "llm_settings_verified": true,
+  "model": "gemini-2.5-flash",
+  "native_validation_score": null,
+  "protocol": "ageml-evaluation-v3/hamlet_cv",
+  "protocol_compliance": "audited export; no proof against adversarial generated code",
+  "repetition": 4,
+  "resource_limits": {
+    "cpus": 16,
+    "gpus": 0,
+    "memory_gib": 50,
+    "memory_high_gib": 40
+  },
+  "resources": {
+    "cpu_s": 359.78017,
+    "peak_rss_bytes": 5136998400,
+    "resources_final": true,
+    "resources_source": "cgroup"
+  },
+  "run_id": "e3e33218f51e76d801d1",
+  "score_role": "selection_cv_not_independent_test",
+  "search_budget_s": 3600,
+  "search_wall_s": 1805.253526661545,
+  "seed_support": "Requested on native Gemini and local Python/NumPy/sklearn; backend determinism is not guaranteed",
+  "selected": null,
+  "source_sha256": "aae972f53feea2f1d8ee1e493dca072a38033dd84c83dc100d507288ef73a3d3",
+  "split_identity": "14111795c93d148a933b7fdd1a5a887e407e2a9bf12d9578e312bc47d58ac446",
+  "status": "no_artifact",
+  "system": "mlzero",
+  "temperature": 0.0,
+  "termination_reason": "native_completed",
+  "test_score": null,
+  "timing_note": "MLZero initialization, generation, repair and all ten-fold fits are inside 3600 s. AGE-ML planning may precede its exploration deadline; resource-time equivalence is not asserted.",
+  "usage": {
+    "billable_output_tokens": 323723,
+    "cache_read_tokens": 80450,
+    "input_tokens": 627547,
+    "llm_calls": 119,
+    "output_tokens": 323723,
+    "reasoning_tokens": 275518,
+    "reported_models": [
+      "gemini-2.5-flash"
+    ],
+    "usage_coverage": "complete"
+  }
+}

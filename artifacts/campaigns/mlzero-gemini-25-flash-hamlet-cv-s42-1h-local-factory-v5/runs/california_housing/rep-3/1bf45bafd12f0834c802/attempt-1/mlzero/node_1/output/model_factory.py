@@ -1,0 +1,122 @@
+import pandas as pd
+import numpy as np
+import tempfile
+import shutil
+import os
+import logging
+
+# Suppress excessive logging from AutoGluon if desired.
+# For this benchmark, it's often better to let default logging run unless it causes issues.
+# logging.getLogger('autogluon').setLevel(logging.WARNING)
+# logging.getLogger('lightning').setLevel(logging.WARNING) # AutoGluon uses PyTorch Lightning
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon's MultiModalPredictor to conform to the
+    fit/predict model factory contract.
+    """
+    def __init__(self, target_column: str):
+        self.target_column = target_column
+        self.predictor = None
+        self.temp_dir = None  # Path to the temporary directory for AutoGluon artifacts
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target.
+        """
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor
+        train_data = X.copy()
+        train_data[self.target_column] = y
+
+        # Create a unique temporary directory for AutoGluon artifacts for this fold.
+        # This ensures that each fold's training is isolated and uses fresh artifacts.
+        self.temp_dir = tempfile.mkdtemp()
+        
+        # Initialize MultiModalPredictor.
+        # problem_type='regression' is explicitly set for clarity, though AutoGluon
+        # often infers it correctly from numerical target data.
+        # The 'path' argument directs AutoGluon to save its artifacts in the temporary directory.
+        from autogluon.multimodal import MultiModalPredictor
+        self.predictor = MultiModalPredictor(
+            label=self.target_column,
+            problem_type='regression',
+            path=self.temp_dir,
+        )
+
+        # Fit the predictor.
+        # time_limit: Set to 300 seconds to ensure all ten folds finish within the
+        #             shared deadline (3325 seconds total / 10 folds = ~332.5s per fold).
+        #             This leaves a buffer for setup/teardown and other overhead.
+        # seed: Set to 42 for reproducibility of stochastic processes, as required.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=300,
+            seed=42,
+            # Hyperparameter tuning is not explicitly requested and presets are usually
+            # sufficient for a baseline, as per library guidance.
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Generates predictions for the given input features.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Numerical predictions for the target variable.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        
+        # MultiModalPredictor's predict method returns a pandas Series by default.
+        # Convert it to a numpy array as required by the prediction output format.
+        predictions = self.predictor.predict(X)
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts.
+        This is crucial for ensuring fresh artifact directories per fold and
+        preventing disk space accumulation.
+        """
+        if self.temp_dir and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir)
+                # print(f"Cleaned up temporary directory: {self.temp_dir}") # Uncomment for debugging
+            except OSError as e:
+                # Log or ignore errors during cleanup, e.g., if directory is already removed
+                # or if there are permission issues.
+                # print(f"Error removing temporary directory {self.temp_dir}: {e}") # Uncomment for debugging
+                pass
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMultiModalWrapper:
+    """
+    Factory function to generate an unfitted model wrapper for AutoGluon MultiModal.
+
+    This function is called once per cross-validation fold to obtain a fresh,
+    unfitted model instance.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used to infer target column name).
+        y_train (pd.Series): Training target (used to infer target column name).
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper instance,
+                                    exposing `fit(X, y)` and `predict(X)` methods.
+    """
+    # Infer the target column name from the y_train Series.
+    # It's expected that y_train will have a name (e.g., 'median_house_value').
+    if y_train.name is None:
+        # Fallback if y_train is an unnamed Series, though unlikely in this benchmark context.
+        target_column = "target"
+        logging.warning("y_train Series has no name; using 'target' as target_column.")
+    else:
+        target_column = y_train.name
+
+    return AutoGluonMultiModalWrapper(target_column=target_column)

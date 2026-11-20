@@ -1,0 +1,141 @@
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import logging
+from autogluon.tabular import TabularPredictor, TabularDataset
+
+# --- Module-level constants and configurations ---
+# The name of the target column as specified in the data contract.
+TARGET_COLUMN = 'Class'
+
+# Random seed for reproducibility across AutoGluon's internal processes.
+RANDOM_SEED = 42
+
+# Total time limit for all ten fits is 3486 seconds.
+# To ensure all ten fits complete within the shared deadline,
+# a conservative time limit per fold is set.
+# 300 seconds per fold * 10 folds = 3000 seconds, leaving 486 seconds for overhead.
+TIME_LIMIT_PER_FOLD = 300
+
+# AutoGluon presets for model quality. 'best_quality' is recommended for
+# maximizing predictive accuracy, as per AutoGluon documentation.
+PRESETS = 'best_quality'
+
+# The evaluation metric specified in the README.md for this task.
+EVAL_METRIC = 'balanced_accuracy'
+
+# Configure logging to suppress excessive AutoGluon output if desired.
+# For a benchmark, default logging is often useful for debugging,
+# but can be adjusted to WARNING or ERROR to reduce verbosity.
+# logging.basicConfig(level=logging.INFO) 
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, random_seed: int, time_limit: int, presets: str, eval_metric: str):
+        """
+        Initializes the wrapper with configuration parameters for AutoGluon.
+
+        Args:
+            random_seed (int): Seed for random number generators.
+            time_limit (int): Maximum time in seconds for AutoGluon's fit process.
+            presets (str): AutoGluon presets for model quality (e.g., 'best_quality').
+            eval_metric (str): The metric to optimize during AutoGluon's training.
+        """
+        self.random_seed = random_seed
+        self.time_limit = time_limit
+        self.presets = presets
+        self.eval_metric = eval_metric
+        self.predictor = None
+        self.model_path = None # Stores the path where the AutoGluon model is saved
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All learned preprocessing, feature engineering, and model training are
+        handled internally by AutoGluon and fitted exclusively on X and y.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training labels.
+        """
+        # Ensure y is a Series with the correct name, handling cases where it might be an array.
+        if not isinstance(y, pd.Series):
+            y = pd.Series(y, name=TARGET_COLUMN, index=X.index)
+        else:
+            y.name = TARGET_COLUMN # Ensure the target column name is correct
+
+        # Combine X and y into a single DataFrame, which AutoGluon expects.
+        train_data = pd.concat([X, y], axis=1)
+
+        # Generate a unique path for AutoGluon artifacts for this specific fold.
+        # This ensures "fresh artifact directories per fold" as required.
+        # AutoGluon will create this directory in the current working directory
+        # (which is typically the fold's output directory set by the harness).
+        self.model_path = f"autogluon_models_{uuid.uuid4()}"
+        
+        # Initialize TabularPredictor with the specified parameters.
+        self.predictor = TabularPredictor(
+            label=TARGET_COLUMN,
+            eval_metric=self.eval_metric,
+            path=self.model_path,
+            random_seed=self.random_seed
+        )
+
+        # Fit the predictor. AutoGluon automatically handles problem type inference
+        # (e.g., multiclass classification for integer labels), feature engineering,
+        # model selection, and hyperparameter tuning within the given time limit.
+        self.predictor.fit(
+            train_data=TabularDataset(train_data), # TabularDataset can also take a DataFrame directly
+            time_limit=self.time_limit,
+            presets=self.presets,
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions on new data using the fitted AutoGluon model.
+
+        Args:
+            X (pd.DataFrame): Features of the samples to predict.
+
+        Returns:
+            np.ndarray: A 1-dimensional array of predicted class labels (integers).
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's predict method directly returns class labels for classification.
+        predictions = self.predictor.predict(TabularDataset(X)) # Can also take a DataFrame directly
+        
+        # Ensure the output is a 1-dimensional array of integers as required.
+        return predictions.to_numpy().astype(int)
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted model wrapper instance.
+    This function is called by the benchmark harness to obtain a fresh model
+    for each cross-validation fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This is provided to inform
+                                the factory about data characteristics but is
+                                not used for fitting at this stage.
+        y_train (pd.Series): Training labels. Similar to X_train, not used
+                             for fitting here.
+        
+    Returns:
+        AutoGluonTabularWrapper: An unfitted instance of the model wrapper,
+                                 ready to have its .fit(X, y) method called.
+    """
+    # X_train and y_train are provided to build_model but are not used to fit
+    # anything at this stage. They are passed to the wrapper's fit method later
+    # when the harness calls model.fit(X_train_fold, y_train_fold).
+    return AutoGluonTabularWrapper(
+        random_seed=RANDOM_SEED,
+        time_limit=TIME_LIMIT_PER_FOLD,
+        presets=PRESETS,
+        eval_metric=EVAL_METRIC
+    )

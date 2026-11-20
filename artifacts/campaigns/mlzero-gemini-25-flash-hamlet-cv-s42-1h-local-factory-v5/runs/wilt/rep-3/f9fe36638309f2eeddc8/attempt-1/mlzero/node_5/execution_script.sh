@@ -1,0 +1,38 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-3/f9fe36638309f2eeddc8/attempt-1/mlzero/node_5/conda_env"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+echo "--- Starting Conda environment setup for node_5 ---"
+
+# 1. Create Conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+# 2. Activate the environment
+echo "Activating conda environment..."
+# Initialize conda for the current shell session if not already done
+# This line is crucial for 'conda activate' to work in a non-interactive script
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$CONDA_ENV_PATH"
+
+# 3. Install uv
+echo "Installing uv into the environment..."
+pip install uv
+
+# 4. Install required packages using uv
+echo "Installing packages from requirements files and additional libraries (numpy, pandas, scikit-learn) using uv..."
+# Install packages from both requirements files, allowing prereleases for autogluon.multimodal,
+# and explicitly adding numpy, pandas, scikit-learn.
+# uv will handle dependency resolution, ensuring only specified packages and their dependencies are installed,
+# and avoiding unnecessary upgrades/reinstalls if versions match.
+uv pip install \
+    -r "$MULTIMODAL_REQ_PATH" \
+    --prerelease=allow \
+    -r "$COMMON_REQ_PATH" \
+    numpy pandas scikit-learn
+
+echo "--- Conda environment setup complete for node_5 ---"

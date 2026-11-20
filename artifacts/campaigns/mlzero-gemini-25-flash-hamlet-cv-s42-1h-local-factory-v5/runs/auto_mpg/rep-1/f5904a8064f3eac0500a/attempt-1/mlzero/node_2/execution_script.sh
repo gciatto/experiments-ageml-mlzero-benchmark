@@ -1,0 +1,59 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define environment path and requirements paths
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-1/f5904a8064f3eac0500a/attempt-1/mlzero/node_2/conda_env"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluon MultiModal factory module."
+
+# 1. Ensure conda is available in the PATH
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Anaconda/Miniconda is installed and in your PATH." >&2
+    exit 1
+fi
+
+# 2. Remove existing environment directory to ensure a clean installation
+# This ensures "Create and configure a conda environment" starts fresh.
+if [ -d "$ENV_DIR" ]; then
+    echo "Removing existing environment directory at $ENV_DIR..."
+    rm -rf "$ENV_DIR"
+fi
+
+# 3. Create a new conda environment with Python 3.11
+echo "Creating conda environment at $ENV_DIR with Python 3.11..."
+conda create -p "$ENV_DIR" python=3.11 -y
+
+# 4. Activate the environment
+# Source conda.sh to enable 'conda activate' in non-interactive scripts.
+# This is crucial for subsequent commands to use the new environment's tools.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: Could not find conda.sh for activation. Please ensure conda is properly initialized." >&2
+    exit 1
+fi
+echo "Activating conda environment: $ENV_DIR"
+conda activate "$ENV_DIR"
+
+# 5. Install uv
+echo "Installing uv into the new environment..."
+pip install uv
+
+# 6. Install required packages from requirements files using uv
+# The --prerelease=allow flag is included as specified.
+# uv handles installing exact packages and their dependencies, and will not
+# upgrade/reinstall if versions are already satisfied.
+echo "Installing required packages from $MULTIMODAL_REQ_PATH and $COMMON_REQ_PATH using uv..."
+uv pip install -r "$MULTIMODAL_REQ_PATH" --prerelease=allow -r "$COMMON_REQ_PATH"
+
+# 7. Install additional packages: numpy, pandas, scikit-learn
+echo "Installing numpy, pandas, scikit-learn into the new environment using uv..."
+uv pip install numpy pandas scikit-learn
+
+# 8. Deactivate the environment (good practice)
+echo "Deactivating conda environment..."
+conda deactivate
+
+echo "Installation complete. Environment is ready at $ENV_DIR."

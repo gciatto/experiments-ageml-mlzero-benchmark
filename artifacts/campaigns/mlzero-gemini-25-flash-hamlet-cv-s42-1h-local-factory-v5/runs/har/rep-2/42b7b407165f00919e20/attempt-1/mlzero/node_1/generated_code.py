@@ -1,0 +1,151 @@
+import pandas as pd
+import numpy as np
+import random
+import os
+import uuid
+import shutil
+import logging
+
+# AutoGluon MultiModal
+from autogluon.multimodal import MultiModalPredictor
+
+# Configure logging to suppress excessive output from AutoGluon during benchmark
+# This helps keep the console clean and focuses on essential information.
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('lightning').setLevel(logging.WARNING)
+logging.getLogger('transformers').setLevel(logging.WARNING)
+logging.getLogger('torch').setLevel(logging.WARNING)
+logging.getLogger('mmcv').setLevel(logging.WARNING)
+logging.getLogger('mmdet').setLevel(logging.WARNING)
+
+
+# --- Module-level initialization ---
+# Set global seeds for reproducibility across different libraries and operations.
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+# AutoGluon MultiModalPredictor also accepts a random_state parameter for internal reproducibility.
+
+# Define constants for the task
+TARGET_COLUMN = 'Class'
+PROBLEM_TYPE = 'classification'
+EVAL_METRIC = 'balanced_accuracy'
+
+# The total remaining time for all ten fits is 3125 seconds.
+# To ensure all ten fits finish within the deadline, we allocate a conservative
+# time limit per fold, leaving buffer for overhead (e.g., data loading, model initialization, cleanup).
+# 250 seconds per fit * 10 folds = 2500 seconds, which leaves 625 seconds for other operations.
+FIT_TIME_LIMIT_SECONDS = 250
+
+# --- Wrapper Class ---
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to conform to the fit/predict API
+    required by the benchmark harness.
+    """
+    def __init__(self, random_state: int = SEED, time_limit: int = FIT_TIME_LIMIT_SECONDS):
+        self.predictor = None
+        self.random_state = random_state
+        self.time_limit = time_limit
+        self.model_path = None  # Stores the unique path for model artifacts for cleanup
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor.
+        All learned preprocessing and model training are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features for the current fold.
+            y (pd.Series): Training target for the current fold.
+        """
+        # Combine features and target into a single DataFrame, as required by MultiModalPredictor.fit()
+        train_data = X.copy()
+        train_data[TARGET_COLUMN] = y
+
+        # Create a unique temporary directory for model artifacts for this specific fold.
+        # This ensures that each fold's model is trained and saved independently,
+        # preventing interference and ensuring "fresh artifact directories per fold".
+        self.model_path = f"./autogluon_multimodal_model_{uuid.uuid4().hex}"
+        
+        # Ensure the directory is clean if it somehow exists (highly unlikely with UUID)
+        if os.path.exists(self.model_path):
+            shutil.rmtree(self.model_path)
+        
+        # Initialize MultiModalPredictor.
+        # - `label`: Specifies the target column.
+        # - `problem_type`: Explicitly set to 'classification'.
+        # - `eval_metric`: Set to 'balanced_accuracy' as per task requirements.
+        # - `path`: Directs AutoGluon to save model artifacts in our unique temporary directory.
+        # - `random_state`: Ensures reproducibility for AutoGluon's internal processes.
+        self.predictor = MultiModalPredictor(
+            label=TARGET_COLUMN,
+            problem_type=PROBLEM_TYPE,
+            eval_metric=EVAL_METRIC,
+            path=self.model_path,
+            random_state=self.random_state,
+            # Using a preset like "medium_quality" can help manage training time and resource usage.
+            # For this benchmark, we'll rely on the time_limit to control training duration.
+            # presets="medium_quality" 
+        )
+
+        # Fit the predictor with the specified training data and time limit.
+        # `verbosity=0` suppresses most of AutoGluon's extensive logging output during training.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=self.time_limit,
+            verbosity=0
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # MultiModalPredictor's predict method directly returns class labels for classification tasks.
+        predictions = self.predictor.predict(X)
+        return predictions
+
+    def __del__(self):
+        """
+        Cleans up the model artifact directory when the wrapper object is garbage collected.
+        This helps manage disk space, especially in environments with many folds.
+        Note: Python's garbage collection timing is not guaranteed, so cleanup might not
+        happen immediately or at all in some edge cases, but it's a best-effort approach.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+                # print(f"Cleaned up model directory: {self.model_path}") # Uncomment for debugging
+            except OSError as e:
+                # print(f"Error removing directory {self.model_path}: {e}") # Uncomment for debugging
+                pass # Ignore errors during cleanup
+
+
+# --- Factory Function ---
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted model wrapper.
+    This function is called by the benchmark harness for each fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used for fitting here).
+        y_train (pd.Series): Training target (provided for context, not used for fitting here).
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper instance
+                                    exposing `fit(X,y)` and `predict(X)` methods.
+    """
+    # X_train and y_train are provided by the harness for context, but the contract
+    # requires returning an *unfitted* model. The actual fitting will occur when
+    # the `fit` method of the returned wrapper is invoked by the harness.
+    return AutoGluonMultiModalWrapper()

@@ -1,0 +1,50 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define paths and versions
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-5/efedc0a6a5c72d011358/attempt-1/mlzero/node_1/conda_env"
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+PYTHON_VERSION="3.11"
+
+echo "Starting Conda environment setup at ${CONDA_ENV_PATH}"
+
+# Ensure conda is initialized for the current shell session
+# This is crucial for non-interactive scripts to make 'conda' command available.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "ERROR: conda.sh not found. Please ensure Conda is installed and initialized."
+    exit 1
+fi
+
+# Create the conda environment with the specified Python version
+echo "Creating conda environment with Python ${PYTHON_VERSION}..."
+# Using -y to automatically confirm creation. If the directory exists and is not empty,
+# conda create will typically fail, which is desired for error propagation.
+conda create -p "${CONDA_ENV_PATH}" python="${PYTHON_VERSION}" -y || { echo "ERROR: Failed to create conda environment at ${CONDA_ENV_PATH}."; exit 1; }
+echo "Conda environment created."
+
+# Activate the newly created environment
+echo "Activating conda environment..."
+conda activate "${CONDA_ENV_PATH}" || { echo "ERROR: Failed to activate conda environment at ${CONDA_ENV_PATH}."; exit 1; }
+echo "Conda environment activated."
+
+# Install uv using the environment's pip
+echo "Installing uv..."
+pip install uv || { echo "ERROR: Failed to install uv."; exit 1; }
+echo "uv installed."
+
+# Install required packages from the specified requirements files using uv
+# --prerelease=allow is included as per the prompt.
+# uv handles exact package versions and avoids unnecessary reinstallation by default.
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "${MULTIMODAL_REQ_FILE}" --prerelease=allow -r "${COMMON_REQ_FILE}" || { echo "ERROR: Failed to install packages from requirements files."; exit 1; }
+echo "Packages from requirements files installed."
+
+# Install numpy, pandas, and scikit-learn using uv
+echo "Installing numpy, pandas, scikit-learn using uv..."
+uv pip install numpy pandas scikit-learn || { echo "ERROR: Failed to install numpy, pandas, scikit-learn."; exit 1; }
+echo "numpy, pandas, scikit-learn installed."
+
+echo "Conda environment setup complete for the factory module."

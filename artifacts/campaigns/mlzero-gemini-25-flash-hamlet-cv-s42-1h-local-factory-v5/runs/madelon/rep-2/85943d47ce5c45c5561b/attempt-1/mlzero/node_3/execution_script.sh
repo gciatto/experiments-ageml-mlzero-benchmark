@@ -1,0 +1,59 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define paths
+CONDA_ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-2/85943d47ce5c45c5561b/attempt-1/mlzero/node_3/conda_env"
+REQ_COMMON_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_AUTOGLUON_TABULAR_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting Conda environment setup for AutoGluon Tabular (node_3)..."
+
+# Ensure conda is available
+if ! command -v conda &> /dev/null; then
+    echo "Error: conda command not found. Please ensure Anaconda or Miniconda is installed and in your PATH."
+    exit 1
+fi
+
+# Initialize conda for the current bash session to make 'conda activate' available.
+# This is crucial for non-interactive scripts where conda might not be fully initialized.
+CONDA_BASE=$(conda info --base)
+source "${CONDA_BASE}/etc/profile.d/conda.sh"
+
+# Remove existing environment directory to ensure a clean installation.
+# Deactivate the environment first if it's currently active to avoid issues with removal.
+if [ -d "${CONDA_ENV_DIR}" ]; then
+    echo "Removing existing environment directory: ${CONDA_ENV_DIR}"
+    # Check if the target environment is currently active
+    if [[ "$(conda env list | grep -E "^${CONDA_ENV_DIR}\s+\*")" ]]; then
+        echo "Deactivating currently active environment before removal."
+        conda deactivate
+    fi
+    rm -rf "${CONDA_ENV_DIR}"
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment at ${CONDA_ENV_DIR} with Python 3.11..."
+conda create --prefix "${CONDA_ENV_DIR}" python=3.11 -y
+
+# Activate the newly created environment
+echo "Activating environment: ${CONDA_ENV_DIR}"
+conda activate "${CONDA_ENV_DIR}"
+
+# Install uv using the environment's pip
+echo "Installing uv..."
+pip install uv
+
+# Install required packages from requirements files and explicit packages using uv.
+# uv respects version specifiers in requirements.txt and will not upgrade
+# packages beyond what's specified unless explicitly told to.
+echo "Installing packages from requirements files and explicit packages (numpy, pandas, scikit-learn) using uv..."
+uv pip install \
+    --prerelease=allow \
+    -r "${REQ_AUTOGLUON_TABULAR_PATH}" \
+    -r "${REQ_COMMON_PATH}" \
+    numpy pandas scikit-learn
+
+echo "Deactivating environment..."
+conda deactivate
+
+echo "Conda environment setup complete for node_3."

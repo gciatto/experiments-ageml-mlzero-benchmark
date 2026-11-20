@@ -1,0 +1,33 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define environment path and requirements files
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-3/9c73adddfe0aa804051e/attempt-1/mlzero/node_1/conda_env"
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda environment setup ---"
+
+# 1. Create the conda environment with Python 3.11
+echo "Creating conda environment at $ENV_PATH with Python 3.11..."
+conda create --prefix "$ENV_PATH" python=3.11 --yes || { echo "ERROR: Failed to create conda environment."; exit 1; }
+
+# 2. Activate the newly created environment
+echo "Activating conda environment..."
+# Ensure conda is initialized in the current shell session
+source "$(conda info --base)/etc/profile.d/conda.sh" || { echo "ERROR: Failed to source conda initialization script."; exit 1; }
+conda activate "$ENV_PATH" || { echo "ERROR: Failed to activate conda environment."; exit 1; }
+
+# 3. Install uv into the environment
+echo "Installing uv into the environment..."
+pip install uv || { echo "ERROR: Failed to install uv."; exit 1; }
+
+# 4. Install required packages from specified requirements files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$ML_REQ_FILE" --prerelease=allow -r "$COMMON_REQ_FILE" || { echo "ERROR: Failed to install packages from requirements files."; exit 1; }
+
+# 5. Install additional core ML packages: numpy, pandas, scikit-learn, and autogluon.tabular
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular using uv..."
+uv pip install numpy pandas scikit-learn autogluon.tabular || { echo "ERROR: Failed to install core ML packages."; exit 1; }
+
+echo "--- Conda environment setup complete ---"

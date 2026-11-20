@@ -1,0 +1,103 @@
+import pandas as pd
+import numpy as np
+import os
+import time
+import shutil
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, target_column_name: str, random_seed: int = 42):
+        """
+        Initializes the wrapper. The AutoGluon predictor itself is initialized
+        during the fit call to ensure it's fresh for each fold.
+
+        Args:
+            target_column_name (str): The name of the target column.
+            random_seed (int): Seed for reproducibility.
+        """
+        self.predictor: TabularPredictor = None
+        self.target_column_name = target_column_name
+        self.random_seed = random_seed
+        self.model_path: str = None
+
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        Args:
+            X_train (pd.DataFrame): Training features.
+            y_train (pd.Series): Training labels.
+        """
+        # Combine features and target into a single DataFrame as required by AutoGluon
+        train_data = X_train.copy()
+        train_data[self.target_column_name] = y_train
+
+        # Create a unique path for AutoGluon artifacts for this specific fit call.
+        # This ensures isolation between different folds/runs, even if the
+        # working directory isn't completely cleaned by the harness.
+        # Using a timestamp to guarantee uniqueness.
+        timestamp = int(time.time() * 1000)
+        self.model_path = f"autogluon_model_{timestamp}"
+        
+        # Defensive: remove directory if it somehow exists from a previous run in the same path.
+        if os.path.exists(self.model_path):
+            shutil.rmtree(self.model_path)
+        
+        # Initialize TabularPredictor with specified parameters.
+        # 'balanced_accuracy' is the metric specified in README.md.
+        # verbosity=0 to suppress excessive logging.
+        self.predictor = TabularPredictor(
+            label=self.target_column_name,
+            path=self.model_path,
+            eval_metric='balanced_accuracy',
+            verbosity=0
+        )
+
+        # Fit the model with a time limit and presets for balanced performance.
+        # 'good_quality' is a reasonable preset for general tabular classification.
+        # The total remaining time is 3032 seconds. For 10 folds, a time_limit of 250 seconds
+        # per fold results in 2500 seconds for fitting, leaving 532 seconds for overhead,
+        # which should ensure all fits complete within the shared deadline.
+        # The 'seed' argument is removed from .fit() as it's no longer accepted by AutoGluon.
+        self.predictor.fit(
+            train_data=train_data,
+            presets='good_quality',
+            time_limit=250, # Adjusted time limit for safety across 10 folds
+            # seed=self.random_seed # Removed: AutoGluon's fit method no longer accepts a 'seed' argument directly.
+        )
+
+    def predict(self, X_test: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon model.
+
+        Args:
+            X_test (pd.DataFrame): Test features.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        
+        # AutoGluon's predict method directly takes the feature DataFrame.
+        predictions = self.predictor.predict(X_test)
+        return predictions
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to generate a new, unfitted AutoGluon model wrapper.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used for signature, not for model initialization).
+        y_train (pd.Series): Training labels (used for signature, not for model initialization).
+
+    Returns:
+        AutoGluonModelWrapper: An unfitted model wrapper instance.
+    """
+    # The target column name 'Class' is derived from the problem description.
+    # The seed 42 is required by the problem statement.
+    return AutoGluonModelWrapper(target_column_name="Class", random_seed=42)

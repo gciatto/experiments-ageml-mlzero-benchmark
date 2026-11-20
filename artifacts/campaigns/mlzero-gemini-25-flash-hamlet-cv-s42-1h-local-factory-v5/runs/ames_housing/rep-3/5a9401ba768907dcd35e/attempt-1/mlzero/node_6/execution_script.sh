@@ -1,0 +1,50 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the target conda environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_6/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# 1. Ensure conda is available
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Anaconda/Miniconda is installed and in your PATH."
+    exit 1
+fi
+
+# 2. Remove existing environment if it exists, to ensure a clean installation
+if [ -d "$ENV_PATH" ]; then
+    echo "Removing existing conda environment at $ENV_PATH..."
+    conda env remove -p "$ENV_PATH" -y || true
+fi
+
+# 3. Create a new conda environment with Python 3.11
+echo "Creating new conda environment at $ENV_PATH with Python 3.11..."
+conda create -p "$ENV_PATH" python=3.11 -y
+
+# 4. Initialize conda for the current shell session and activate the environment
+echo "Initializing conda and activating environment..."
+# This line is crucial for conda commands to work correctly in a non-interactive script.
+# It addresses previous issues with conda activation in scripted environments.
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$ENV_PATH"
+
+# 5. Install uv (a fast Python package installer) using the activated environment's pip
+echo "Installing uv..."
+pip install uv
+
+# 6. Install all required packages using uv:
+#    - numpy, pandas, scikit-learn (explicitly requested by the prompt)
+#    - autogluon.tabular (the selected ML library, explicitly requested and used in factory module)
+#    - packages from common and ML requirements files (as specified)
+echo "Installing numpy, pandas, scikit-learn, autogluon.tabular, and packages from requirements files using uv..."
+uv pip install \
+    numpy pandas scikit-learn autogluon.tabular \
+    -r "$ML_REQ_FILE" --prerelease=allow \
+    -r "$COMMON_REQ_FILE"
+
+echo "--- Conda Environment Setup Complete ---"

@@ -1,0 +1,115 @@
+import os
+import tempfile
+import shutil
+import numpy as np
+import pandas as pd
+import sys
+from autogluon.tabular import TabularPredictor
+
+# Module-level constant for time limit per fold
+# The total shared deadline is 99 seconds for ALL ten fits.
+# Allocating 8 seconds per fold for AutoGluon's fit, leaving buffer for overhead.
+TIME_LIMIT_PER_FOLD = 8
+RANDOM_SEED = 42
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper for AutoGluon's TabularPredictor to conform to the fit/predict interface.
+    Manages temporary directories for model artifacts and sets a time limit per fit.
+    """
+    def __init__(self, random_state: int, time_limit: int):
+        self.predictor = None
+        self.model_path = None
+        self.random_state = random_state
+        self.time_limit = time_limit
+
+    def _cleanup_model_path(self):
+        """Helper to clean up the temporary directory."""
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError as e:
+                # Print a warning if cleanup fails, but do not block execution.
+                print(f"Warning: Could not remove temporary directory {self.model_path}: {e}", file=sys.stderr)
+            finally:
+                self.model_path = None # Reset path after attempt to remove
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+        A unique temporary directory is created for each fit call to store model artifacts.
+        All learned preprocessing is fitted within this method, using only the provided
+        training rows (X, y).
+        """
+        # If fit is called multiple times on the same wrapper instance,
+        # clean up previous model_path before creating a new one.
+        self._cleanup_model_path()
+
+        # Create a unique temporary directory for this fold's artifacts.
+        # This ensures "fresh artifact directories per fold" as required.
+        self.model_path = tempfile.mkdtemp(prefix="autogluon_model_")
+
+        # AutoGluon expects a single DataFrame with features and target.
+        train_data = X.copy()
+        label_column_name = y.name
+        train_data[label_column_name] = y
+
+        # Initialize TabularPredictor.
+        # label: target column name (inferred from y.name).
+        # path: where to save models (unique per fit).
+        # eval_metric: 'root_mean_squared_error' for regression, as specified in the task.
+        self.predictor = TabularPredictor(
+            label=label_column_name,
+            path=self.model_path,
+            eval_metric='root_mean_squared_error',
+            # AutoGluon typically infers problem_type='regression' correctly for numerical targets.
+        )
+
+        # Fit the predictor.
+        # presets='extreme' is suggested for best quality on datasets <30K samples.
+        # time_limit: bounds the training time for each fold to ensure all fits finish within the deadline.
+        # ag_args_fit: allows passing random_state for internal operations like data splitting and model initialization.
+        self.predictor.fit(
+            train_data,
+            presets='extreme',  # Use 'extreme' preset as suggested
+            time_limit=self.time_limit,
+            ag_args_fit={'random_state': self.random_state},
+            # verbosity=0 # Set to 0 to suppress most output, can be useful for very short time limits
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's predict method expects a DataFrame.
+        predictions = self.predictor.predict(X)
+        
+        # Return numpy array as expected by scikit-learn-like interfaces.
+        return predictions.values
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for model artifacts.
+        This method is called when the object is garbage collected.
+        While not guaranteed to run in all scenarios, it's a best-effort cleanup.
+        """
+        self._cleanup_model_path()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted AutoGluon model wrapper.
+    
+    Args:
+        X_train (pd.DataFrame): Training features (used for context, e.g., column names).
+        y_train (pd.Series): Training target (used for context, e.g., target column name).
+        
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper with fit/predict methods.
+    """
+    # X_train and y_train are provided to build_model for context (e.g., target column name),
+    # but the model is returned unfitted. The actual fitting happens in the wrapper's .fit() method.
+    
+    return AutoGluonTabularWrapper(random_state=RANDOM_SEED, time_limit=TIME_LIMIT_PER_FOLD)

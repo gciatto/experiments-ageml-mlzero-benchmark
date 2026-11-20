@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the target conda environment path
+CONDA_ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-2/85943d47ce5c45c5561b/attempt-1/mlzero/node_1/conda_env"
+
+# Define paths to requirement files
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# Ensure conda is initialized in the current shell session
+# This makes 'conda' commands available.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: Conda initialization script not found. Please ensure Conda is installed and accessible."
+    exit 1
+fi
+
+# Deactivate any currently active conda environment to ensure a clean state
+conda deactivate || true
+
+# Create parent directories for the conda environment if they don't exist
+mkdir -p "$(dirname "$CONDA_ENV_DIR")"
+echo "Ensured parent directory for $CONDA_ENV_DIR exists."
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment at '$CONDA_ENV_DIR' with Python 3.11..."
+conda create -y -p "$CONDA_ENV_DIR" python=3.11
+
+# Activate the newly created environment
+echo "Activating conda environment '$CONDA_ENV_DIR'..."
+conda activate "$CONDA_ENV_DIR"
+
+# Install uv using pip within the activated environment
+echo "Installing 'uv' into the environment..."
+pip install uv
+
+# Install required packages from the specified requirement files using uv
+echo "Installing packages from requirement files using 'uv pip install'..."
+uv pip install -r "$ML_REQUIREMENTS_FILE" --prerelease=allow -r "$COMMON_REQUIREMENTS_FILE"
+
+# Install additional packages required by the factory module (numpy, pandas, scikit-learn, lightgbm)
+echo "Installing additional core packages: numpy, pandas, scikit-learn, lightgbm..."
+uv pip install numpy pandas scikit-learn lightgbm
+
+echo "--- Conda Environment Setup Complete ---"
+
+# Deactivate the environment to leave the shell in a clean state
+conda deactivate || true

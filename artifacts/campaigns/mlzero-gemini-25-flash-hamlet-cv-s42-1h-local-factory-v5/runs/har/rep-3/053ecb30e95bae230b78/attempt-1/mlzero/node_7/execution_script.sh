@@ -1,0 +1,75 @@
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status.
+set -x # Print commands and their arguments as they are executed.
+
+# Define the full path for the conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-3/053ecb30e95bae230b78/attempt-1/mlzero/node_7/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda environment setup for node_7 ---"
+
+# 1. Ensure conda is initialized for the current shell session
+# This is crucial for 'conda activate' to work correctly.
+# Check if conda is available and initialize it if not already.
+if ! command -v conda &> /dev/null; then
+    echo "Error: conda command not found. Please ensure conda is installed and in your PATH."
+    exit 1
+fi
+source "$(conda info --base)/etc/profile.d/conda.sh"
+
+# 2. Remove any existing environment at the target path to ensure a clean slate.
+# The '|| true' prevents the script from failing if the environment does not exist.
+echo "Removing existing conda environment at '$CONDA_ENV_PATH' if it exists..."
+conda env remove --prefix "$CONDA_ENV_PATH" --yes || true
+
+# 3. Create a new conda environment with Python 3.11.
+echo "Creating conda environment at '$CONDA_ENV_PATH' with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 --yes
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to create conda environment at '$CONDA_ENV_PATH'."
+    exit 1
+fi
+
+# 4. Activate the newly created environment.
+echo "Activating conda environment..."
+conda activate "$CONDA_ENV_PATH"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to activate conda environment. Check if 'bin/activate' exists in '$CONDA_ENV_PATH'."
+    exit 1
+fi
+
+# 5. Install uv (a fast Python package installer) into the activated environment.
+echo "Installing uv into the environment..."
+pip install uv
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install uv."
+    exit 1
+fi
+
+# 6. Install mandatory core libraries: numpy, pandas, scikit-learn.
+# These are explicitly requested and are fundamental for the factory module.
+echo "Installing numpy, pandas, scikit-learn into the environment using uv pip install..."
+uv pip install numpy pandas scikit-learn
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install numpy, pandas, scikit-learn."
+    exit 1
+fi
+
+# 7. Install required packages from requirements files using uv.
+# This command installs packages from both requirements files, allowing prereleases.
+# uv will ensure only specified packages and their dependencies are installed,
+# and will not upgrade/reinstall if already at the correct version.
+echo "Installing packages from requirements files using uv pip install..."
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQUIREMENTS_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_FILE"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install packages from requirements files."
+    exit 1
+fi
+
+echo "--- Conda environment setup complete for node_7 ---"
