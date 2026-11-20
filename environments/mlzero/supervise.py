@@ -1,9 +1,10 @@
-"""Run a command and keep resources.json current (stdlib only, runs in the container).
+"""Run a command and keep resources.json current (stdlib only, POSIX).
 
     python supervise.py <resources.json> -- <command...>
 
-Samples the container cgroup (v2) every few seconds so a hard kill still
-leaves the last measurement. SIGTERM is forwarded to the child's process group.
+Samples cgroup v2 when available, with child rusage as the POSIX fallback.
+Unavailable cgroup measurements are null, not zero. SIGTERM is forwarded to
+the child's process group.
 """
 
 import json
@@ -16,21 +17,27 @@ import threading
 import time
 
 
-def cgroup_path():
+def cgroup_path() -> str | None:
     # Docker has a private cgroup namespace; local scopes expose an absolute path.
-    with open("/proc/self/cgroup") as stream:
-        for line in stream:
-            if line.startswith("0::"):
-                return os.path.join(
-                    "/sys/fs/cgroup", line.strip().split("::", 1)[1].lstrip("/")
-                )
-    return "/sys/fs/cgroup"
+    try:
+        with open("/proc/self/cgroup") as stream:
+            for line in stream:
+                if line.startswith("0::"):
+                    return os.path.join(
+                        "/sys/fs/cgroup", line.strip().split("::", 1)[1].lstrip("/")
+                    )
+    except OSError:
+        # macOS has no /proc; restricted Linux hosts may deny access to it.
+        return None
+    return None
 
 
 CG = cgroup_path()
 
 
 def _read(name):
+    if CG is None:
+        return None
     try:
         with open(os.path.join(CG, name)) as f:
             return f.read()
@@ -51,7 +58,9 @@ def sample(start):
         "cgroup_peak_bytes": int(peak) if peak else None,
         # rusage covers only reaped children; maxrss is per-process, not summed
         "rusage_children_cpu_s": ru.ru_utime + ru.ru_stime,
-        "rusage_children_maxrss_bytes": ru.ru_maxrss * 1024,
+        # Darwin reports bytes, while Linux reports KiB.
+        "rusage_children_maxrss_bytes": ru.ru_maxrss
+        * (1 if sys.platform == "darwin" else 1024),
         "sampled_at": time.time(),
     }
 
