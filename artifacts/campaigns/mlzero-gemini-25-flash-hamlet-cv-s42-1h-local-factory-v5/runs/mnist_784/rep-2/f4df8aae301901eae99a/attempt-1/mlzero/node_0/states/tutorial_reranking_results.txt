@@ -1,0 +1,42 @@
+Selected Tutorials After Reranking:
+==================================================
+
+1. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/image_prediction/beginner_image_cls.md
+   Retrieval Score: 0.7575
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates image classification using AutoGluon MultiModal, covering implementation of a complete workflow from setup to deployment. It teaches how to:...
+------------------------------
+
+2. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/problem_types_and_metrics.md
+   Retrieval Score: 0.7569
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, sem...
+------------------------------
+
+3. Title: Condensed: Create Dataset
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/focal_loss.md
+   Retrieval Score: 0.7114
+   Content Preview: # Condensed: Create Dataset
+
+Summary: This tutorial demonstrates implementing focal loss in AutoGluon for handling imbalanced image classification datasets. It covers techniques for calculating class ...
+------------------------------
+
+4. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/hyperparameter_optimization.md
+   Retrieval Score: 0.7056
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates hyperparameter optimization (HPO) for multimodal models using AutoGluon's MultiModalPredictor. It covers implementing Ray Tune-based HPO for...
+------------------------------
+
+5. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/multimodal_prediction/beginner_multimodal.md
+   Retrieval Score: 0.7639
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal, a framework for multimodal machine learning that handles mixed data types. It covers implementing a pet adoption speed...
+------------------------------

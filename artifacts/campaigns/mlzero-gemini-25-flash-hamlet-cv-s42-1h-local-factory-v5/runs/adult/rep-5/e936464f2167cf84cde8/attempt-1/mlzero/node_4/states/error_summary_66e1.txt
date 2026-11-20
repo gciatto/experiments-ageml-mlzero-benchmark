@@ -1,0 +1,1 @@
+The provided execution results only contain logs for environment setup and package installation. There is no output from the actual model training (`fit`) or prediction (`predict`) phases, nor is there any reported validation score (e.g., balanced accuracy). This prevents verification of the model's functional success and completion of the evaluation task.

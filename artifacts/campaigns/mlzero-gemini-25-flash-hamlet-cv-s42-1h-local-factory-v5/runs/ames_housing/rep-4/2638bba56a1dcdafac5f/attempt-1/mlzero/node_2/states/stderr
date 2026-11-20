@@ -1,0 +1,2 @@
+Error: Conda initialization script not found at /opt/conda/etc/profile.d/conda.sh
+Please ensure CONDA_BASE_PATH is set correctly and conda is installed.

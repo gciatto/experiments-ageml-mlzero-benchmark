@@ -1,0 +1,51 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define paths for the conda environment and requirements files
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-2/42b7b407165f00919e20/attempt-1/mlzero/node_0/conda_env"
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_AUTOGLUON_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# 1. Ensure conda is initialized in the current shell session
+# This is crucial for 'conda activate' to work in non-interactive scripts.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda initialization script not found. Is conda installed and in PATH?"
+    exit 1
+fi
+
+# 2. Remove any existing environment at the target path to ensure a clean installation
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Existing environment found at $CONDA_ENV_PATH. Removing it..."
+    # Attempt to remove via conda, but also forcefully remove directory if conda command fails
+    conda env remove --prefix "$CONDA_ENV_PATH" -y || true
+    rm -rf "$CONDA_ENV_PATH"
+fi
+
+# 3. Create the new conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 -y
+
+# 4. Activate the newly created environment
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH"
+
+# 5. Install uv into the activated environment
+echo "Installing uv into the environment..."
+pip install uv
+
+# 6. Install required packages from the specified requirements files using uv
+# The --prerelease=allow flag is included as per instructions.
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$REQUIREMENTS_AUTOGLUON_TABULAR" --prerelease=allow -r "$REQUIREMENTS_COMMON"
+
+# 7. Install additional core packages: numpy, pandas, scikit-learn using uv
+echo "Installing numpy, pandas, scikit-learn into the environment using uv..."
+uv pip install numpy pandas scikit-learn
+
+echo "--- Conda Environment Setup Complete ---"
+```

@@ -1,0 +1,157 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+import logging
+
+# Suppress AutoGluon/PyTorch/Transformers logging to reduce verbosity during evaluation.
+# This can help in focusing on critical errors and potentially speed up execution
+# slightly by reducing I/O and console output.
+logging.getLogger("autogluon").setLevel(logging.WARNING)
+logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
+logging.getLogger("transformers").setLevel(logging.WARNING)
+logging.getLogger("mmdet").setLevel(logging.WARNING)
+logging.getLogger("mmcv").setLevel(logging.WARNING)
+
+from autogluon.multimodal import MultiModalPredictor
+
+# Module-level constants
+SEED = 42
+# The total remaining time for all ten fits and overhead is 3311 seconds.
+# For 10 folds, this averages to ~331 seconds per fold.
+# Setting time_limit to 300 seconds per fit to allow for overhead
+# (initialization, data loading, saving, etc.) and ensure all fits complete.
+TIME_LIMIT_PER_FOLD = 300  # seconds
+
+class AutoGluonMMWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    `fit(X, y)` and `predict(X)` interface required by the benchmark harness.
+    """
+    def __init__(self, path: str, problem_type: str, presets: str, seed: int):
+        """
+        Initializes the wrapper. The MultiModalPredictor itself is instantiated
+        and fitted within the `fit` method to ensure a fresh model per fold.
+
+        Args:
+            path (str): The base directory path for storing AutoGluon artifacts.
+                        A unique temporary path is generated for each model instance.
+            problem_type (str): The type of machine learning problem (e.g., "classification").
+            presets (str): AutoGluon preset string (e.g., "high_quality").
+            seed (int): Random seed for reproducibility.
+        """
+        self.path = path
+        self.problem_type = problem_type
+        self.presets = presets
+        self.seed = seed
+        self.predictor = None
+        self.label_column = "Class"  # As specified in the problem description
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+        All preprocessing and model training are performed within this method,
+        using only the provided training data for the current fold.
+
+        Args:
+            X (pd.DataFrame): Training features for the current fold.
+            y (pd.Series): Training labels for the current fold.
+        """
+        # Ensure the artifact path is clean for this fit operation.
+        # This is crucial for satisfying the "fresh artifact directories per fold" requirement.
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path)
+        os.makedirs(self.path, exist_ok=True)
+
+        # AutoGluon MultiModalPredictor expects a single DataFrame containing
+        # both features and the target column.
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Initialize MultiModalPredictor.
+        # It's instantiated here to ensure a fresh predictor for each fold's fit call.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            problem_type=self.problem_type,
+            path=self.path,
+            presets=self.presets,
+            eval_metric="balanced_accuracy",  # Metric specified in README.md
+        )
+
+        # Fit the predictor with the specified time limit and seed.
+        # The seed is passed to the fit method as per AutoGluon's recommendation
+        # and to address the previous error regarding seed placement.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=TIME_LIMIT_PER_FOLD,
+            seed=self.seed,
+            # No explicit hyperparameter tuning (HPO) is enabled here,
+            # as the chosen preset ("high_quality") already configures
+            # a robust set of hyperparameters and models. HPO can be time-consuming.
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # MultiModalPredictor.predict returns class labels for classification tasks.
+        predictions = self.predictor.predict(X)
+        return predictions
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for model artifacts when the
+        wrapper object is garbage collected. This helps manage disk space.
+        The `fit` method also ensures cleanup at the start of each fit.
+        """
+        if os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                # Errors during cleanup are ignored to prevent crashes,
+                # as the directory might be in use or already removed.
+                pass
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Generates a fresh, unfitted model wrapper for classification using AutoGluon MultiModal.
+    This function conforms to the benchmark's factory contract.
+
+    Args:
+        X_train (pd.DataFrame): Training features. Provided for context by the harness,
+                                but not used for fitting within this function call.
+        y_train (pd.Series): Training labels. Provided for context by the harness,
+                             but not used for fitting within this function call.
+
+    Returns:
+        AutoGluonMMWrapper: An unfitted model wrapper instance with `fit(X,y)`
+                            and `predict(X)` methods.
+    """
+    # Create a unique temporary directory for each model instance.
+    # This ensures that each fold's model training uses a distinct, clean
+    # directory for storing artifacts, satisfying the "fresh artifact directories per fold"
+    # requirement.
+    model_dir = tempfile.mkdtemp(prefix="ag_mm_model_")
+    
+    # Instantiate the wrapper with appropriate settings for the classification task.
+    # The "high_quality" preset is chosen to balance performance and training time
+    # within the given time limits for the Madelon dataset, which is known for
+    # its high dimensionality.
+    return AutoGluonMMWrapper(
+        path=model_dir,
+        problem_type="classification",
+        presets="high_quality",
+        seed=SEED
+    )
+```

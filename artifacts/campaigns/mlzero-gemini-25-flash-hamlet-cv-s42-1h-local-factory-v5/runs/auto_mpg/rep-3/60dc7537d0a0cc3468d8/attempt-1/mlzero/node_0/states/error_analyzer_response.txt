@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid keyword argument `random_state`. This argument is not recognized by the `TabularPredictor` initialization method, leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor. If reproducibility is desired for the model training process, pass `random_state` as an argument to the `predictor.fit()` method instead.

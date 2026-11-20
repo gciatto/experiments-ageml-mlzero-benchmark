@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TypeError` indicates that the `MultiModalPredictor` constructor was called with an unsupported `seed` keyword argument. This argument is not part of the `MultiModalPredictor`'s initialization signature.
+SUGGESTED_FIX: Remove the `seed=SEED` argument from the `MultiModalPredictor` constructor call in the `fit` method of the `AutoGluonMMWrapper` class. Global `random.seed()` and `np.random.seed()` calls are typically sufficient for reproducibility.

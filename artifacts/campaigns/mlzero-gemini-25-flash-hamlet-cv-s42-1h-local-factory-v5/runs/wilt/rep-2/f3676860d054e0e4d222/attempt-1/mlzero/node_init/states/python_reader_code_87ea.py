@@ -1,0 +1,52 @@
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/data.csv"
+
+try:
+    # Attempt to read the file as a CSV
+    df = pd.read_csv(file_path)
+
+    full_output_parts = []
+
+    # 1. Display column names
+    columns = df.columns.tolist()
+    col_str = "Columns: "
+    if len(columns) > 20:
+        col_str += str(columns[:10] + ['...'] + columns[-10:])
+    else:
+        col_str += str(columns)
+    full_output_parts.append(col_str)
+
+    # 2. Show first 3 rows with truncated cell content and no index
+    # Adjust display options for concise output to fit character limit
+    pd.set_option('display.max_colwidth', 20) # Truncate cell content to 20 characters
+    pd.set_option('display.width', 1000) # Prevent aggressive wrapping
+
+    head_str_prefix = "\nFirst 3 rows:\n"
+    
+    # Limit the number of columns displayed in head to keep output short
+    cols_for_head = df.columns.tolist()
+    if len(cols_for_head) > 5: # Display only the first 5 columns if more than 5 exist
+        cols_for_head = cols_for_head[:5]
+    
+    head_data_str = df[cols_for_head].head(3).to_string(index=False)
+    full_output_parts.append(head_str_prefix + head_data_str)
+
+    final_output = "\n".join(full_output_parts)
+    print(final_output[:768]) # Truncate the final output to ensure it's under 768 characters
+
+except Exception:
+    # If pandas fails (e.g., not a valid CSV, file not found), treat as text file
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(768) # Read up to 768 characters
+            print(content)
+    except Exception:
+        # Fallback for binary or truly unreadable files
+        output_info = f"File: {file_path}\n"
+        if os.path.exists(file_path):
+            output_info += f"Size: {os.path.getsize(file_path)} bytes"
+        else:
+            output_info += "File not found."
+        print(output_info[:768])

@@ -1,0 +1,67 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define the target conda environment path
+CONDA_ENV_ROOT="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-1/229bb9b7d9896f1e5a08/attempt-1/mlzero/node_6"
+CONDA_ENV_PATH="${CONDA_ENV_ROOT}/conda_env"
+
+# Define paths to requirements files
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_MULTIMODAL="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+# --- Conda Environment Setup ---
+
+# Check if conda is available
+if ! command -v conda &> /dev/null; then
+    echo "Error: Conda command not found. Please ensure Conda is installed and initialized." >&2
+    exit 1
+fi
+
+# Ensure the parent directory for the conda environment exists
+mkdir -p "${CONDA_ENV_ROOT}"
+
+echo "Preparing conda environment at ${CONDA_ENV_PATH}..."
+
+# Remove existing environment directory for a clean installation
+if [ -d "${CONDA_ENV_PATH}" ]; then
+    echo "Removing existing environment directory: ${CONDA_ENV_PATH}"
+    rm -rf "${CONDA_ENV_PATH}"
+fi
+
+# Create a new conda environment with Python 3.11
+echo "Creating new conda environment with Python 3.11..."
+conda create -p "${CONDA_ENV_PATH}" python=3.11 -y
+
+# Activate the environment
+echo "Activating environment: ${CONDA_ENV_PATH}"
+# Initialize conda for the current shell session if not already
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Conda might not be fully installed or initialized." >&2
+    exit 1
+fi
+conda activate "${CONDA_ENV_PATH}"
+
+# --- Package Installation ---
+
+echo "Installing uv into the environment..."
+pip install uv
+
+echo "Installing required packages from requirements files using uv..."
+# Install packages from the specified requirements files
+# --prerelease=allow is included as requested.
+# uv's default behavior for `pip install -r` aligns with "Do NOT upgrade or reinstall"
+# by only installing if not present or if a different version is required.
+uv pip install \
+    -r "${REQUIREMENTS_MULTIMODAL}" \
+    --prerelease=allow \
+    -r "${REQUIREMENTS_COMMON}"
+
+echo "Installing numpy, pandas, and scikit-learn using uv..."
+uv pip install numpy pandas scikit-learn
+
+echo "Conda environment setup and package installation complete."
+echo "Environment is located at: ${CONDA_ENV_PATH}"
+```

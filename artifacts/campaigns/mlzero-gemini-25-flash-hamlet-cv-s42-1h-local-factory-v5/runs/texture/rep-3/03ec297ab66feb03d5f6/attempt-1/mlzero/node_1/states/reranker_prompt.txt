@@ -1,0 +1,148 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+The data science task is **classification**.
+
+The input format is tabular data, consisting of 40 numerical features named `V1` through `V40`. This input is provided as a Pandas DataFrame to the model's `predict` method.
+
+The prediction output format is a 1-dimensional array of predicted class labels (integers), with its length matching the number of input samples.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/data.csv
+Content:
+Columns (41 total): V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, ..., V32, V33, V34, V35, V36, V37, V38, V39, V40, Class
+
+First 3 rows:
+    V1     V2     V3     V4     V5     V6     V7     V8     V9    V10    V11    V12    V13    V14    V15    V16    V17    V18    V19    V20    V21    V22    V23    V24    V25    V26    V27    V28    V29    V30    V31    V32    V33    V34    V35    V36    V37    V38    V39    V40  Class
+-1.223 -0.798 -0.867 -0.639 -0.545 -0.412 -0.795 -0.629 -0.547 -0.868 -1.223 -0.879 -0.747 -0.818 -0.671 -0.718 -0.991 -0.778 -0.759 -0.892 -1.223 -0.899 -0.987 -0.750 -0.699 -0.566 -0.911 -0.786 -0.700 -1.015 -1.223 -0.766 -0.555 -0.714 -0.545 -0.587 -0.871 -0.620 -0.568 -0.607      5
+-1.410 -1.029 -1.013 -0.895 -0.762 -0.676 -1.043 -0.851 -0....
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: texture
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and othe
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json
+Content:
+File content (first 768 characters):
+{
+  "cv_folds": [
+    {
+      "train": [
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        1...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `ValueError` indicates that `random_seed` is an invalid keyword argument for the `TabularPredictor` constructor. The `TabularPredictor`'s `__init__` method does not accept a `random_seed` parameter, leading to the error during initialization.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. Instead, pass the `random_seed` parameter directly to the `predictor.fit()` method to ensure reproducibility during the training process.
+
+Available Tutorials:
+1. Title: Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+   Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

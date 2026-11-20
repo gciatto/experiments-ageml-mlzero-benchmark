@@ -1,0 +1,186 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+This is a **tabular regression** task.
+
+**Problem Type:** Regression. The goal is to predict the continuous numerical value of the `SalePrice` column.
+
+**Input Format:** Tabular data provided in `data.csv`. Each row represents an instance, and columns (excluding `Id` and `SalePrice`) serve as features. The `Id` column must not be used as a feature.
+
+**Prediction Output Format:** A continuous numerical value representing the predicted `SalePrice` for each input instance.
+
+**Additional Details:**
+*   **Metric:** Root Mean Squared Error (RMSE), where lower is better.
+*   **Evaluation:** Ten-fold cross-validation is used, with predefined folds specified in `cv_contract.json`. There is no independent test set.
+*   **Constraints:** The dataset must not be shuffled, split, filtered, reordered, or sampled. All preprocessing must be encapsulated within the model and fitted only on the training data of each fold. Stochastic models should use `random_state/seed 42`.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv
+Content:
+Columns: Id, MSSubClass, MSZoning, LotFrontage, LotArea, Street, Alley, LotShape, LandContour, Utilities, ..., PoolArea, PoolQC, Fence, MiscFeature, MiscVal, MoSold, YrSold, SaleType, SaleCondition, SalePrice
+
+Id MSSubClass MSZoning LotFrontage LotArea Street Alley LotShape LandContour Utilities LotConfig LandSlope Neighborhood Condition1 Condition2 BldgType HouseStyle OverallQual OverallCond YearBuilt YearRemodAdd RoofStyle RoofMatl Exterior1st Exterior2nd MasVnrType MasVnrArea ExterQual ExterCond Foundation BsmtQual BsmtCond BsmtExposure BsmtFinType1 BsmtFinSF1 BsmtFinType2 BsmtFinSF2 BsmtUnfSF TotalBsmtSF Heating HeatingQC CentralAir Electrical 1stFlrSF 2ndFlrSF LowQualFinSF GrLivArea BsmtFullBath BsmtHalfBath FullBath HalfBath BedroomAbvGr KitchenAbvG...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: ames_housing
+Target column: `SalePrice`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools r
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/cv_contract.json
+Content:
+{
+  "cv_folds": [
+    {
+      "train": [
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        2...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The system's trusted cross-validation evaluator script (`evaluate_cv.py`) failed to import the `numpy` library, resulting in a `ModuleNotFoundError`. This indicates that `numpy` is missing from the specific Python environment where the evaluation harness executes its internal scripts, which is distinct from the user-defined model's `conda_env`.
+SUGGESTED_FIX: The user's installation script correctly installs `numpy` for their model's environment. This error points to a missing dependency in the evaluation harness's own execution environment for `evaluate_cv.py`. The user should report this issue to the platform administrators, as they need to ensure `numpy` is available for the system's evaluator script.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script failed because the `numpy` module was not found. This is likely caused by the conda environment setup failing or exiting prematurely due to an "unbound variable" error (`CONDA_SHLVL`) during environment activation, which prevented `numpy` and other necessary packages from being installed correctly within the intended Python environment.
+SUGGESTED_FIX: First, debug the bash script to resolve the `CONDA_SHLVL: unbound variable` error during conda environment activation, potentially by temporarily disabling strict variable checking (`set -u`) around the `conda activate` command. After ensuring the environment activates successfully, verify that `numpy` is correctly installed within that environment by checking the output of the `uv pip install` commands.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function could not be found in `autogluon.core.utils.utils`. This is due to an API change in the installed AutoGluon version `1.6.4b20260930`, where this utility function has been moved to a different module.
+SUGGESTED_FIX: Update the import statement for `set_seed` to its new location, which is typically `autogluon.common.utils.utils.set_seed` in recent AutoGluon versions. Verify the exact path in the installed AutoGluon packages if the suggested path does not resolve the issue.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script, a system component, failed with a `ModuleNotFoundError` for `numpy`. This indicates that the Python environment used to execute `evaluate_cv.py` did not have `numpy` installed or accessible, despite the user's bash script explicitly installing `numpy` into the designated `conda_env`.
+SUGGESTED_FIX: Verify that `numpy` is indeed successfully installed and available within the `conda_env` created by your bash script. If the installation is confirmed, ensure that your environment setup is comprehensive and includes all necessary packages for any Python script that the evaluation harness might execute within that `conda_env`.
+
+ERROR_SUMMARY: The Python script failed to import `numpy` because the specified conda environment was not correctly activated. The bash script's attempt to initialize conda using `eval "$(conda shell hook --shell bash)"` was insufficient, leading to `conda activate` failing with an error about `conda init`. Consequently, the Python interpreter did not find `numpy` in its path.
+SUGGESTED_FIX: Modify the bash script's environment activation. Replace the `eval "$(conda shell hook --shell bash)"` line with a direct sourcing of the `conda.sh` script from the base conda installation (e.g., `source "$(conda info --base)/etc/profile.d/conda.sh"`), then proceed with `conda activate "$ENV_PATH"`. This ensures the shell is properly initialized for conda commands.
+
+Available Tutorials:
+1. Title: Condensed: ```python
+   Summary: This tutorial covers AutoGluon's TabularPredictor for automated machine learning on tabular data. It demonstrates implementation of quick model training with minimal code, automated handling of data preprocessing, and model deployment. Key functionalities include: loading tabular data, training multiple models simultaneously, making predictions, evaluating performance, and saving/loading models. The tutorial explains different performance presets (from "medium" to "extreme"), feature importance analysis, and optimization strategies for classification and regression tasks. AutoGluon automatically handles missing values, feature engineering, and model selection, making it valuable for rapid prototyping and production-quality predictive modeling with just a few lines of code.
+2. Title: Condensed: ```python
+   Summary: This tutorial demonstrates AutoGluon TabularPredictor for machine learning tasks, covering hyperparameter tuning with search spaces for neural networks and gradient boosting models, model ensembling through stacking/bagging, and decision threshold calibration for binary classification. It explains inference optimization techniques including model persistence, inference speed constraints, ensemble reduction, and model distillation. The tutorial provides practical code examples for accelerating predictions (up to 160x speedup), managing memory usage, and evaluating model performance. Key functionalities include feature importance analysis, loading/saving predictors, making batch and single-instance predictions, and optimizing deployment with techniques like refit_full, persist, and infer_limit parameters.
+3. Title: Condensed: ```python
+   Summary: AutoGluon Tabular predictor deployment tutorial provides a guide to AutoGluon TabularPredictor deployment
+4. Title: Condensed: Installation
+   Summary: This tutorial demonstrates implementing foundation models for tabular data using AutoGluon. It covers three key models: Mitra (for small datasets with zero-shot and fine-tuning capabilities), TabICL (leveraging in-context learning for limited data), and TabPFNv2 (utilizing prior knowledge for small datasets). The code shows how to prepare data, train individual models for classification and regression tasks, and create ensembles combining multiple foundation models. Developers can learn to implement these specialized tabular models with different configurations, evaluate their performance, and handle both classification and regression problems with small to medium-sized datasets.
+5. Title: Condensed: ```python
+   Summary: This tutorial demonstrates AutoGluon's MultilabelPredictor implementation for predicting multiple target columns simultaneously. It covers creating a custom class that manages multiple TabularPredictors, with methods for training, prediction, evaluation, and model persistence. Key features include handling different problem types (regression, classification) for each target, optional correlation consideration between labels during prediction, and customizable evaluation metrics. The code helps with multi-target machine learning tasks, offering flexibility in how predictions are generated and evaluated. The implementation provides a clean API for training multiple models with a single interface while maintaining individual model access.
+6. Title: Condensed: ```
+   Summary: This tutorial demonstrates how to use AutoGluon for fraud detection in the IEEE Fraud detection competition. AutoGluon's TabularPredictor can be used to train a model for binary classification with minimal code. It shows how to use TabularPredictor for binary classification with TabularPredictor for binary classification with TabularPredictor for binary classification.
+7. Title: Condensed: ```python
+   Summary: This tutorial demonstrates how to implement custom models in AutoGluon by extending the AbstractModel class, specifically creating a custom RandomForest implementation. It covers preprocessing with label encoding, dynamic model selection based on problem type, and proper integration with AutoGluon's ecosystem. Key functionalities include custom model training, feature preprocessing, model saving/loading, bagged ensembles for improved performance, and hyperparameter tuning using search spaces. The tutorial helps with tasks like implementing custom ML algorithms within AutoGluon, integrating models with TabularPredictor, and optimizing model performance through bagging and hyperparameter optimization.
+8. Title: Condensed: ```python
+   Summary: This tutorial demonstrates how to create and use custom evaluation metrics in AutoGluon, focusing on what makes them better for model optimization. It covers the implementation of custom metrics for classification, regression, and probability-based tasks, with examples of accuracy, ROC AUC, and MSE. The metrics are defined using make_scorer and can be used for model evaluation and comparison.
+9. Title: Condensed: ```python
+   Summary: This tutorial explains GPU acceleration in AutoGluon, covering basic GPU allocation with `num_gpus` parameter, model-specific GPU assignment using hyperparameters dictionary, and multi-modal configuration retrieval. It details special installation requirements for GPU-enabled LightGBM and demonstrates advanced resource allocation techniques to control CPU/GPU usage at predictor, ensemble, and individual model levels. The tutorial helps with optimizing machine learning workflows by efficiently distributing computational resources across different models and training processes, particularly useful for implementing parallel hyperparameter optimization with controlled resource allocation for tabular, multimodal, and gradient-boosted models.
+10. Title: Condensed: ```
+   Summary: This tutorial explains AutoGluon's automatic feature engineering capabilities for tabular data. It covers type-specific processing: numerical columns remain unchanged, categorical columns are integer-encoded, datetime columns are converted to numerical values with extracted temporal features (year, month, day, weekday), and text columns use either n-gram encoding or Transformer networks with MultiModal. The tutorial demonstrates how to implement custom feature generation pipelines using PipelineFeatureGenerator, CategoryFeatureGenerator, and IdentityFeatureGenerator classes, with examples of limiting categorical values and handling specific data types. It also addresses missing value handling and provides tips for customizing the feature engineering process.
+11. Title: Condensed: ```python
+   Summary: This tutorial demonstrates how to prevent AutoGluon from dropping specific features during preprocessing. It covers three key techniques: (1) creating custom models with the `drop_unique=False` parameter to preserve single-value features, (2) implementing a `CustomFeatureGeneratorWithUserOverride` that uses `IdentityFeatureGenerator` to bypass preprocessing for tagged features, and (3) tagging features with special types like 'user_override' to control their processing. These methods are valuable for maintaining important features in machine learning pipelines, ensuring model interpretability, and handling domain-specific features that shouldn't undergo standard transformations.
+12. Title: Condensed: ```python
+   Summary: This tutorial demonstrates using AutoGluon Multimodal for multimodal classification on the PetFinder dataset. It covers: (1) implementing multimodal machine learning with images and tabular data, including proper image path handling and feature metadata configuration; (2) solving pet adoption prediction tasks by integrating different data types; and (3) key functionalities including data preparation for multimodal inputs, configuring feature metadata to identify image columns, creating appropriate hyperparameter configurations, and training a TabularPredictor that automatically handles mixed data types. The tutorial showcases how to process image paths, configure models for multimodal inputs, and evaluate performance on test data.
+13. Title: Condensed: ```python
+   Summary: " "Tabular: "Tabular: "Tabular Hypersc 'Hypersc 'Hypertuning 1.Hat 'Hypertuning 'Hypertuning 'Hyperturf: "Hypertuning 'Hyperparred 'Hyperparcel: "Hypertuner: "Hyperturf: "Hypertuner: "Hypertuner: "Hyperturf: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hyperparameter Tuning"
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

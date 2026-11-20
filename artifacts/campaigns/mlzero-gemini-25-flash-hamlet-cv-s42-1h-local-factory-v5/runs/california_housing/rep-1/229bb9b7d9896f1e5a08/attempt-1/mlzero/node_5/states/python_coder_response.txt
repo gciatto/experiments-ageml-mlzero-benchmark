@@ -1,0 +1,139 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+import random # Import for general random seed setting
+from autogluon.tabular import TabularPredictor
+
+# Module-level constants for the regression task
+TARGET_COLUMN = 'median_house_value'
+RANDOM_SEED = 42
+PROBLEM_TYPE = 'regression'
+# AutoGluon's metric for RMSE is 'root_mean_squared_error'
+EVAL_METRIC = 'root_mean_squared_error'
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon TabularPredictor to conform to the
+    fit(X, y) and predict(X) interface required by the benchmark harness.
+    """
+    def __init__(self):
+        self.predictor = None
+        self.model_path = None # Stores the unique temporary directory for the model
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon TabularPredictor model.
+        All preprocessing and model training are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series or np.ndarray): Training target values.
+        """
+        # Set global seeds for reproducibility, as AutoGluon's internal
+        # random_state might not cover all underlying libraries or operations.
+        random.seed(RANDOM_SEED)
+        np.random.seed(RANDOM_SEED)
+
+        # Create a unique temporary directory for this fit call.
+        # This ensures "fresh artifact directories per fold" as required,
+        # preventing interference between different folds' models.
+        self.model_path = tempfile.mkdtemp(prefix="autogluon_model_")
+
+        # Combine X and y into a single DataFrame as required by AutoGluon's fit method.
+        # Ensure y is a Series with the correct name for AutoGluon to identify the target.
+        if isinstance(y, pd.Series):
+            y_series = y
+        elif isinstance(y, np.ndarray):
+            # Create a Series from numpy array, using X's index for alignment
+            y_series = pd.Series(y, name=TARGET_COLUMN, index=X.index)
+        else:
+            raise TypeError("y must be a pandas Series or numpy array.")
+
+        train_data = pd.concat([X, y_series], axis=1)
+
+        # Allocate a time limit for each fold's fit operation.
+        # The total remaining time is 2891 seconds for 10 folds, averaging ~289 seconds/fold.
+        # Setting a conservative limit of 280 seconds per fold to ensure all fits
+        # complete within the shared deadline and allow for potential overhead.
+        time_limit_per_fold = 280
+
+        # Initialize TabularPredictor with task-specific parameters.
+        # The 'random_state' argument is passed to the constructor for reproducibility.
+        self.predictor = TabularPredictor(
+            label=TARGET_COLUMN,
+            problem_type=PROBLEM_TYPE,
+            eval_metric=EVAL_METRIC,
+            path=self.model_path, # Use the unique temporary directory for this model instance
+            random_state=RANDOM_SEED, # Fix: Pass random_state to constructor as per previous error suggestion
+        )
+
+        # Fit the predictor. AutoGluon handles all internal preprocessing,
+        # validation splits, model selection, and hyperparameter tuning within this call.
+        # Using 'extreme' preset as guided. Note: This preset often requires a GPU for optimal performance.
+        self.predictor.fit(
+            train_data,
+            presets='extreme', # As guided: 'extreme' preset.
+            time_limit=time_limit_per_fold,
+            # Fix: Removed 'seed' argument from fit(), as it's not supported by TabularPredictor.fit().
+        )
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Predicted numerical values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's predict method expects a DataFrame as input.
+        predictions = self.predictor.predict(X)
+        
+        # Return predictions as a numpy array, which is a common output format
+        # for sklearn-like interfaces.
+        return predictions.values
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for the AutoGluon model.
+        This helps manage disk space, especially in environments with many folds
+        or repeated model instantiations.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError as e:
+                # Print a warning if cleanup fails, but do not block execution.
+                # This can happen if files are still in use or due to permission issues.
+                print(f"Warning: Could not remove AutoGluon model directory {self.model_path}: {e}")
+
+def build_model(X_train, y_train):
+    """
+    Factory function to generate a new, unfitted model wrapper for AutoGluon Tabular.
+    This function adheres to the benchmark contract, returning an object with
+    `fit(X,y)` and `predict(X)` methods.
+
+    Args:
+        X_train (pd.DataFrame): Example training features. This argument is provided
+                                by the harness but is not used for fitting or
+                                initialization at this factory stage.
+        y_train (pd.Series): Example training target. Similarly, not used for
+                             fitting or initialization here.
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper instance exposing
+                                 `fit(X,y)` and `predict(X)` methods.
+    """
+    # The X_train and y_train arguments are provided for context but the model
+    # returned by this factory function must be unfitted. Actual fitting occurs
+    # when the .fit(X, y) method of the returned wrapper is called.
+    return AutoGluonTabularWrapper()
+```

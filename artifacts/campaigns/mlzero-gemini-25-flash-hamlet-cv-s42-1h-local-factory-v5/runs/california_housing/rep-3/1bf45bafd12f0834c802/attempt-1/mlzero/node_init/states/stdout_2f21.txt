@@ -1,0 +1,8 @@
+JSON dictionary detected.
+Top-level keys: ['cv_folds', 'dataset_id', 'dataset_version', 'evaluation_protocol', 'partitions', 'protocol_version', 'row_identity', 'source_row_count', 'source_sha256', 'split_hashes', 'split_identity', 'split_seed', 'splitter', 'stratification', 'target_column', 'task']
+First few key-value pairs:
+  'cv_folds': [{'train': [2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2078...
+  'dataset_id': california_housing
+  'dataset_version': 45e44ec0cb85a0de4a0a9174a92b3fecac9415bf0173247a541680eccb50c699
+  ...
+

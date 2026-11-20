@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Define the target Conda environment path
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-5/8ea4d1996b754081a6d4/attempt-1/mlzero/node_1/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+# Ensure conda is initialized for the current shell session
+# This is crucial for 'conda activate' to work reliably.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Is Conda installed and in PATH?" >&2
+    exit 1
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment at $ENV_DIR with Python 3.11..."
+conda create -p "$ENV_DIR" python=3.11 -y
+
+# Activate the newly created environment
+echo "Activating conda environment: $ENV_DIR"
+conda activate "$ENV_DIR"
+
+# Install uv into the activated environment
+echo "Installing uv..."
+pip install uv
+
+# Install required packages from the specified requirements files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$ML_REQ_FILE" --prerelease=allow -r "$COMMON_REQ_FILE"
+
+# Install additional packages: numpy, pandas, scikit-learn, and autogluon
+# These are explicitly required by the factory module and problem description.
+echo "Installing numpy, pandas, scikit-learn, and autogluon using uv..."
+uv pip install numpy pandas scikit-learn autogluon
+
+echo "Conda environment setup complete at $ENV_DIR."

@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit` method was called with an unsupported keyword argument, `random_seed`. The installed AutoGluon version (1.6.4b20260930) does not accept `random_seed` directly in the `fit` method.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `predictor.fit()` call. To ensure reproducibility, set the random seed globally using `autogluon.core.utils.utils.set_seed(self.seed)` at the beginning of the `fit` method or within the `build_model` function.

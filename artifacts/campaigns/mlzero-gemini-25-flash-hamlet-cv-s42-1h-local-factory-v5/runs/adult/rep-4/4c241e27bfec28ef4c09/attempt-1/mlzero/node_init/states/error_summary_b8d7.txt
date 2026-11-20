@@ -1,0 +1,1 @@
+1. The code uses `DataFrame.applymap`, which is deprecated. `DataFrame.map` should be used instead. 2. When displaying the first 2 rows, the code arbitrarily limits the number of columns shown to 3, which was not specified in the task description. The task implies showing all columns of the first 2-3 rows with cell content truncated.

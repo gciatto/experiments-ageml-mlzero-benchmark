@@ -1,0 +1,167 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+The data science task is **regression**.
+
+**Input Format:** Tabular data provided as a CSV file (`data.csv`). The input features are the columns: `longitude`, `latitude`, `housing_median_age`, `total_rooms`, `total_bedrooms`, `population`, `households`, `median_income`, and `ocean_proximity`.
+
+**Prediction Output Format:** A single numerical (float) value representing the predicted `median_house_value`.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/data.csv
+Content:
+Columns:
+['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income', 'ocean_proximity', 'median_house_value']
+
+First 3 rows:
+ longitude  latitude  housing_median_age  total_rooms  total_bedrooms  population  households  median_income ocean_proximity  median_house_value
+   -122.23     37.88                  41        880.0           129.0       322.0       126.0         8.3252        NEAR BAY            452600.0
+   -122.22     37.86                  21       7099.0          1106.0      2401.0      1138.0         8.3014        NEAR BAY            358500.0
+   -122.24     37.85                  52       1467.0           190.0       496.0       177.0         7.2574        NEAR BAY            352...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: california_housing
+Target column: `median_house_value`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon an
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/cv_contract.json
+Content:
+File content (first 768 chars):
+{
+  "cv_folds": [
+    {
+      "train": [
+        2064,
+        2065,
+        2066,
+        2067,
+        2068,
+        2069,
+        2070,
+        2071,
+        2072,
+        2073,
+        2074,
+        2075,
+        2076,
+        2077,
+        2078,
+        2079,
+        2080,
+        2081,
+        2082,
+        2083,
+        2084,
+        2085,
+        2086,
+        2087,
+        2088,
+        2089,
+        2090,
+        2091,
+        2092,
+        2093,
+        2094,
+        2095,
+        2096,
+        2097,
+        2098,
+        2099,
+        2100,
+        2101,
+        2102,
+        2103,
+        2104,
+        2105,
+        2106,
+        2107,
+        2108,
+        2109,
+        2110,
+        2111,
+        2112,
+      ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `TabularPredictor.fit` method was called with an unsupported keyword argument, 'seed'. The version of AutoGluon being used (1.6.4b) does not accept 'seed' as a direct parameter for its `fit` method, as indicated by the `ValueError` and the list of valid arguments.
+SUGGESTED_FIX: Remove the `seed` argument from the `predictor.fit` method call within the `AutoGluonTabularWrapper` class. If reproducibility is still desired, consult AutoGluon's documentation for alternative methods to set a global random seed or ensure deterministic behavior.
+
+ERROR_SUMMARY: The `ValueError` indicates that the `random_seed` argument was passed to the `autogluon.tabular.TabularPredictor` constructor, but this argument is not supported by the installed AutoGluon version (1.6.3) for its `__init__` method. The `random_seed` parameter is intended for the `fit` method of `TabularPredictor` in this version.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. If reproducibility is desired, pass `random_seed=RANDOM_SEED` to the `predictor.fit()` method instead.
+
+ERROR_SUMMARY: The `MultiModalPredictor.fit()` method was called with an unsupported `random_seed` keyword argument. This indicates an API mismatch with the installed version of `autogluon.multimodal`, where `random_seed` is not a direct parameter of the `fit` method.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `predictor.fit()` method call. If reproducibility is required, consult the `autogluon.multimodal` documentation for the installed version to determine the correct way to set a random seed, potentially through global settings or within the `hyperparameters` dictionary.
+
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor.fit()` method was called with an invalid keyword argument, `random_seed`. This parameter is not accepted by the `fit` method in the AutoGluon version being used.
+SUGGESTED_FIX: Move the `random_seed` parameter from the `predictor.fit()` method call to the `TabularPredictor` constructor. The `TabularPredictor` constructor accepts `random_seed` for global reproducibility settings.
+
+ERROR_SUMMARY: The bash script failed to properly initialize the conda environment due to an "unbound variable" error when checking `CONDA_SHLVL` with `set -u` enabled. This prevented `conda.sh` from being sourced, leading to an incomplete environment activation. As a result, the `numpy` package was not correctly installed or made available in the Python environment used to execute `evaluate_cv.py`, causing a `ModuleNotFoundError`.
+SUGGESTED_FIX: Modify the bash script to safely check for the `CONDA_SHLVL` variable by changing `"${CONDA_SHLVL}"` to `"${CONDA_SHLVL:-}"` in the `if` condition. This will allow the conda initialization script to be sourced correctly, ensuring the environment is fully activated and all dependencies are installed and accessible within the intended Python environment.
+
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid keyword argument, `random_seed`. The installed version of AutoGluon (1.6.4b) does not accept `random_seed` directly in its constructor, as explicitly stated by the `ValueError` and the list of valid keyword arguments.
+SUGGESTED_FIX: Remove the `random_seed` parameter from the `TabularPredictor` initialization. If global reproducibility is still desired, consider setting a global seed for AutoGluon using `autogluon.core.utils.utils.set_seed()` or passing it within the `learner_kwargs` dictionary to the `TabularPredictor` constructor.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function is no longer available at `autogluon.core.utils.utils` in the installed AutoGluon version (1.6.4b). This is due to an API change where the function has been moved to a different module.
+SUGGESTED_FIX: Update the import statement for `set_seed` in your Python code. Change the import path from `autogluon.core.utils.utils` to `autogluon.common.utils.utils`.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function cannot be found in `autogluon.common.utils.utils`. This is likely due to a change in the AutoGluon library structure, where utility functions like `set_seed` have been relocated in the installed pre-release version `1.6.4b20260930`.
+SUGGESTED_FIX: Review the AutoGluon documentation or source code for version `1.6.4b20260930` to identify the correct module path for the `set_seed` function. Update the import statement in `model_factory.py` to reflect this new location, as utility functions often move between major versions or pre-releases.
+
+ERROR_SUMMARY: The `TypeError` indicates that the `AbstractTabularLearner`'s constructor, which is internally called by `TabularPredictor`, received an unexpected `random_seed` keyword argument. This occurs because `random_seed` was passed via `learner_kwargs` in the `TabularPredictor` initialization, but the underlying learner in the installed AutoGluon version (1.6.4b) does not support this parameter in its `__init__` method.
+SUGGESTED_FIX: Remove the `learner_kwargs={'random_seed': RANDOM_SEED}` parameter from the `TabularPredictor` initialization. If you need to set a random seed for reproducibility, use `autogluon.core.utils.utils.set_seed(RANDOM_SEED)` globally before initializing the predictor or calling its `fit` method.
+
+Available Tutorials:
+1. Title: Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+   Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

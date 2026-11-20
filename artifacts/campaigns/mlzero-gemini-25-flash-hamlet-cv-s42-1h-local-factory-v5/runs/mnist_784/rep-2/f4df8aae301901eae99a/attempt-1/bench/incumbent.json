@@ -1,0 +1,11 @@
+{
+  "node_id": 0,
+  "selected_by": "best_validation_score",
+  "native_validation_score": 0.1009285180347799,
+  "node_folder": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-2/f4df8aae301901eae99a/attempt-1/mlzero/node_0",
+  "output_folder": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-2/f4df8aae301901eae99a/attempt-1/mlzero/node_0/output",
+  "export_status": "present",
+  "tool": "autogluon.multimodal",
+  "time_step": 0,
+  "committed_at": 1794968544.8521607
+}

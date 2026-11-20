@@ -1,0 +1,1 @@
+The execution failed because the Conda base installation, which AutoGluon likely depends on or which the execution environment expects, was not found at `/opt/conda`. This prevented the AutoGluon `TabularPredictor` from initializing or running, thus no model could be trained or evaluated.

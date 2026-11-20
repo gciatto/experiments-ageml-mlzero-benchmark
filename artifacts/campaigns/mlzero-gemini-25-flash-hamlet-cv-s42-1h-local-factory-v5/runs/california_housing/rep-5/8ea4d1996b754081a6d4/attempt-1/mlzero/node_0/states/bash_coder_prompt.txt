@@ -1,0 +1,167 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-5/8ea4d1996b754081a6d4/attempt-1/mlzero/node_0:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.tabular if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import logging
+from autogluon.tabular import TabularPredictor, TabularDataset
+
+# --- Module-level constants and configurations ---
+
+# Target column name for the regression task.
+TARGET_COLUMN = 'median_house_value'
+
+# Random seed for reproducibility across AutoGluon runs.
+RANDOM_SEED = 42
+
+# Time limit in seconds for each individual model fit operation.
+# The total remaining search time is 3410 seconds for ALL ten fits.
+# Allocating 200 seconds per fit (200 * 10 = 2000 seconds) leaves
+# 1410 seconds for overhead (data loading, Python startup, etc.) across all folds,
+# ensuring all fits finish within the shared deadline.
+FIT_TIME_LIMIT_SECONDS = 200
+
+# Configure logging to suppress excessive AutoGluon output.
+# This helps keep benchmark logs clean and focused.
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('autogluon.core').setLevel(logging.WARNING)
+logging.getLogger('autogluon.tabular').setLevel(logging.WARNING)
+
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+
+    This wrapper ensures that:
+    1. A fresh, unfitted model is returned by `build_model`.
+    2. All preprocessing and model fitting occur within the `fit` method,
+       using only the training data provided to that method.
+    3. Unique artifact directories are used for each model instance (per fold).
+    4. The `fit` operation is time-bound.
+    """
+
+    def __init__(self):
+        """
+        Initializes the AutoGluon TabularPredictor with a unique path for artifacts.
+        """
+        # Create a unique path for AutoGluon artifacts for each model instance.
+        # This ensures that each fold's model has its own isolated storage,
+        # preventing conflicts and ensuring "fresh artifact directories per fold".
+        self.model_path = os.path.join('autogluon_artifacts', str(uuid.uuid4()))
+
+        # Initialize TabularPredictor.
+        # - `label`: Specifies the target column.
+        # - `path`: Directory to store model artifacts.
+        # - `problem_type`: Explicitly set to 'regression' for this task.
+        # - `eval_metric`: Set to 'rmse' as it's a common metric for regression
+        #                  and AutoGluon's default for regression.
+        # - `verbosity=0`: Suppresses most AutoGluon output during training
+        #                  for cleaner benchmark logs.
+        self.predictor = TabularPredictor(
+            label=TARGET_COLUMN,
+            path=self.model_path,
+            problem_type='regression',
+            eval_metric='rmse',
+            verbosity=0
+        )
+        self.is_fitted = False
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All learned preprocessing and model training are performed within this method.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target values.
+        """
+        # Combine features (X) and target (y) into a single DataFrame,
+        # which is the expected input format for TabularPredictor's `fit` method.
+        train_df = X.copy()
+        train_df[TARGET_COLUMN] = y
+
+        # Convert the pandas DataFrame to AutoGluon's TabularDataset format.
+        train_data = TabularDataset(train_df)
+
+        # Fit the predictor.
+        # - `train_data`: The combined training features and target.
+        # - `time_limit`: Bounds the training time for this fold.
+        # - `presets='best'`: Uses AutoGluon's configuration for high accuracy,
+        #                     which includes various models and ensembling.
+        # - `seed`: Ensures reproducibility of the training process.
+        # AutoGluon automatically handles internal validation splits and
+        # feature engineering within this `fit` call.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=FIT_TIME_LIMIT_SECONDS,
+            presets='best',
+            seed=RANDOM_SEED,
+        )
+        self.is_fitted = True
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: An array of predicted numerical (float) values.
+        """
+        if not self.is_fitted:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's predict method directly takes a DataFrame of features.
+        predictions = self.predictor.predict(X)
+
+        # Ensure the output is a numpy array of float values, as required.
+        return predictions.values.astype(float)
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted model wrapper instance.
+
+    This function adheres to the contract by returning a fresh model
+    without performing any fitting or data loading at the module level.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This argument is part of the
+                                contract but is NOT used for fitting or
+                                initialization within this function.
+        y_train (pd.Series): Training target. This argument is part of the
+                             contract but is NOT used for fitting or
+                             initialization within this function.
+
+    Returns:
+        AutoGluonTabularWrapper: A new, unfitted instance of the model wrapper.
+    """
+    # As per the contract, X_train and y_train are not used here.
+    # The actual fitting will occur when the harness calls the `fit` method
+    # of the returned wrapper instance.
+    return AutoGluonTabularWrapper()
+### Previous errors
+
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-5/8ea4d1996b754081a6d4/attempt-1/mlzero/node_0/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3390 seconds.

@@ -1,0 +1,53 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-4/2638bba56a1dcdafac5f/attempt-1/mlzero/node_0/conda_env"
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluon Tabular."
+
+# Ensure conda is initialized for the script.
+# This is crucial for `conda activate` to work in a non-interactive shell script.
+# It assumes `conda` is already installed and available in the PATH.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Is Conda installed and initialized in the environment?" >&2
+    exit 1
+fi
+
+# Create or activate Conda environment
+echo "Checking for existing conda environment at $CONDA_ENV_PATH..."
+if [ -d "$CONDA_ENV_PATH" ] && [ -f "$CONDA_ENV_PATH/bin/python" ]; then
+    echo "Conda environment already exists. Activating it."
+    conda activate "$CONDA_ENV_PATH"
+    # Note: If the existing environment's Python version is not 3.11,
+    # subsequent pip installs might fail or install incompatible packages.
+    # For a minimal script, we proceed, relying on `uv` to handle dependencies.
+else
+    echo "Conda environment not found or incomplete. Creating a new one with Python 3.11."
+    conda create --prefix "$CONDA_ENV_PATH" python=3.11 -y
+    conda activate "$CONDA_ENV_PATH"
+fi
+
+echo "Installing uv into the environment..."
+pip install uv
+
+echo "Installing required packages using uv from specified requirements files..."
+# The prompt specifies the order of requirements files:
+# 1. autogluon.tabular/requirements.txt
+# 2. _common/requirements.txt
+# `uv pip install -r <file1> -r <file2>` will combine and resolve dependencies from both.
+# `--prerelease=allow` is included as per the prompt.
+# `uv` by default only installs specified packages and their dependencies,
+# and does not upgrade packages unless explicitly told to, respecting existing versions.
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQUIREMENTS_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_FILE"
+
+echo "Installation complete. Environment '$CONDA_ENV_PATH' is ready."
+```

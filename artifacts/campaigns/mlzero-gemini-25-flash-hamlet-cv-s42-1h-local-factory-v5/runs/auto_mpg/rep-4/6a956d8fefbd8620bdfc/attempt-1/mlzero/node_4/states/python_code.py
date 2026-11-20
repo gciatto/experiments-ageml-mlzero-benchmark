@@ -1,0 +1,127 @@
+import pandas as pd
+import numpy as np
+from autogluon.tabular import TabularPredictor
+import uuid
+from pathlib import Path
+import logging
+
+# Configure logging to suppress excessive AutoGluon output if desired.
+# For this benchmark, default logging might be acceptable, but often
+# setting a higher level can reduce console clutter.
+# logging.getLogger('autogluon').setLevel(logging.WARNING)
+
+# Module-level constants
+SEED = 42
+
+# The total remaining time for all ten fits and overhead is 2466 seconds.
+# To ensure all ten fits finish within the deadline, we set a conservative
+# time limit per fold. For 10 folds, 200 seconds per fold means 2000 seconds
+# for fitting, leaving 466 seconds for other operations and overhead.
+# This is a reasonable starting point, but could be adjusted if needed.
+FIT_TIME_LIMIT_PER_FOLD = 200
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, seed: int, output_path: Path):
+        """
+        Initializes the wrapper.
+
+        Args:
+            seed (int): Random seed for reproducibility.
+            output_path (Path): Unique path for AutoGluon to store its artifacts
+                                for this specific model instance (fold).
+        """
+        self.seed = seed
+        self.output_path = output_path
+        self.predictor: TabularPredictor = None
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        All preprocessing and model training are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target values.
+        """
+        # Combine X and y into a single DataFrame for AutoGluon.
+        # AutoGluon expects the target column to be present in the training DataFrame.
+        train_df = X.copy()
+        
+        # Ensure y has a name; if not, assign a default.
+        # The problem statement specifies 'class' as the target column name.
+        label_column_name = y.name if y.name else 'class'
+        train_df[label_column_name] = y
+
+        # Initialize TabularPredictor.
+        # Based on the previous error, `random_seed` is NOT a constructor argument
+        # for the installed AutoGluon version (1.6.4b).
+        # The path is unique for each fold to prevent data leakage and conflicts.
+        self.predictor = TabularPredictor(
+            label=label_column_name,
+            problem_type='regression',
+            path=str(self.output_path) # AutoGluon expects a string path
+        )
+
+        # Fit the predictor with a time limit to ensure completion within the deadline.
+        # AutoGluon handles all internal preprocessing (e.g., missing values,
+        # categorical encoding) automatically during the fit process.
+        # Pass `random_seed` to the `fit` method as per the suggested fix for the error.
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=FIT_TIME_LIMIT_PER_FOLD,
+            random_seed=self.seed, # Moved random_seed from constructor to fit method.
+            # For potentially better performance, presets='best_quality' could be used,
+            # but it might increase training time. Sticking to default for now to
+            # prioritize meeting the time limits.
+            # ag_args_fit={'num_gpus': 0} can be added if GPU is available but not desired.
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Generates predictions for the given input features.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: A 1-dimensional array of predicted continuous values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        
+        predictions = self.predictor.predict(X)
+        
+        # AutoGluon's predict method returns a pandas Series or DataFrame.
+        # The contract requires a 1-dimensional numpy array.
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted model wrapper for AutoGluon.
+
+    This function is called by the harness for each cross-validation fold.
+    It must return a fresh, unfitted model instance.
+
+    Args:
+        X_train (pd.DataFrame): Training features for the current fold.
+                                (Used here to infer column names/types, not for fitting).
+        y_train (pd.Series): Training target for the current fold.
+                             (Used here to infer target name/type, not for fitting).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper with `fit(X,y)` and `predict(X)` methods.
+    """
+    # Generate a unique output directory path for AutoGluon artifacts for this specific
+    # model instance (representing one fold). This ensures "fresh artifact directories per fold"
+    # and prevents conflicts or data leakage between folds.
+    # The path is relative to the current working directory, which is the node output folder.
+    unique_dir_name = f"autogluon_model_{uuid.uuid4()}"
+    output_path = Path(unique_dir_name)
+
+    return AutoGluonTabularWrapper(seed=SEED, output_path=output_path)

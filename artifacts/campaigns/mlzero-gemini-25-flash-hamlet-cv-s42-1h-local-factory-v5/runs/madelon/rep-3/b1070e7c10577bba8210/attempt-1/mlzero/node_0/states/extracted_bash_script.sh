@@ -1,0 +1,46 @@
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# Define the target Conda environment path
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-3/b1070e7c10577bba8210/attempt-1/mlzero/node_0/conda_env"
+
+# Define paths to the requirements files
+REQ_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_AUTOGLUON_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda environment setup ---"
+
+# 1. Create a new conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+# Remove existing environment if it exists to ensure a clean setup
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Existing environment found at $CONDA_ENV_PATH. Removing it..."
+    conda env remove -p "$CONDA_ENV_PATH" -y || true # Use || true to prevent script from failing if env doesn't exist or removal fails for minor reasons
+fi
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+echo "Conda environment created."
+
+# 2. Activate the environment
+echo "Activating the conda environment..."
+# Initialize conda for the current shell session if not already done
+# This is crucial for 'conda activate' to work reliably in non-interactive scripts
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$CONDA_ENV_PATH"
+
+echo "Environment activated: $(which python)"
+
+# 3. Install uv
+echo "Installing uv in the activated environment..."
+pip install uv
+
+echo "uv installed."
+
+# 4. Install required packages using uv pip install
+echo "Installing packages from requirements files using uv..."
+# The command is explicitly provided in the prompt, ensuring numpy, pandas, scikit-learn
+# and autogluon.tabular are installed via their dependencies.
+uv pip install -r "$REQ_AUTOGLUON_TABULAR" --prerelease=allow -r "$REQ_COMMON"
+
+echo "All required packages installed."
+echo "--- Conda environment setup complete ---"

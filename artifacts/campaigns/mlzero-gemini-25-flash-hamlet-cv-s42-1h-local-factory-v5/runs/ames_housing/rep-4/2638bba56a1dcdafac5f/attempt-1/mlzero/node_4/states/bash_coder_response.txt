@@ -1,0 +1,53 @@
+```bash
+#!/bin/bash
+set -e
+
+# Define the target Conda environment path
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-4/2638bba56a1dcdafac5f/attempt-1/mlzero/node_4/conda_env"
+
+# Define paths to the requirements files
+ML_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+# --- Conda Initialization ---
+# IMPORTANT: Ensure CONDA_BASE_PATH points to your actual Conda installation root.
+# Common paths include /opt/conda, ~/miniconda3, or ~/anaconda3.
+# The previous errors indicate issues with Conda initialization.
+CONDA_BASE_PATH="/opt/conda" # Assuming a system-wide installation in /opt/conda
+
+if [ ! -d "$CONDA_BASE_PATH" ]; then
+    echo "Error: Conda base installation not found at $CONDA_BASE_PATH." >&2
+    echo "Please ensure Conda is installed or adjust CONDA_BASE_PATH in this script." >&2
+    exit 1
+fi
+
+# Initialize Conda for the current shell session to enable 'conda' commands
+echo "Initializing Conda from $CONDA_BASE_PATH..."
+source "$CONDA_BASE_PATH/etc/profile.d/conda.sh"
+
+# Ensure the parent directory for the conda environment exists
+mkdir -p "$(dirname "$ENV_DIR")"
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment at $ENV_DIR with Python 3.11..."
+conda create -p "$ENV_DIR" python=3.11 --yes
+
+# Activate the newly created environment
+echo "Activating conda environment: $ENV_DIR"
+conda activate "$ENV_DIR"
+
+# Install uv using the environment's pip
+echo "Installing uv into the environment..."
+pip install uv
+
+# Install required packages from the specified requirements files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$ML_REQ_PATH" --prerelease=allow -r "$COMMON_REQ_PATH"
+
+# Install additional packages: numpy, pandas, scikit-learn, and autogluon.tabular
+# These are explicitly requested or inferred from the factory module's imports.
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular using uv..."
+uv pip install numpy pandas scikit-learn autogluon.tabular
+
+echo "Conda environment setup complete for node_4."
+```

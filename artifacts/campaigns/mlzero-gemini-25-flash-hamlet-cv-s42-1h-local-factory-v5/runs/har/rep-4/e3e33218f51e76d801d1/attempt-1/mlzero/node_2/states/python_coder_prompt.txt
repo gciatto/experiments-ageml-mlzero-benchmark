@@ -1,0 +1,134 @@
+Generate a SELF-CONTAINED Python factory MODULE using machine learning.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+The data science task is **classification**.
+
+*   **Problem Type**: Classification.
+*   **Input Format**: Tabular data, where `X` represents features and `y` represents the target column named `Class`.
+*   **Prediction Output Format**: Discrete class labels, corresponding to the values found in the `Class` column.
+*   **Evaluation Metric**: Balanced accuracy (higher is better).
+
+**Methodology Constraints**:
+The task requires training models using a 10-fold cross-validation setup, with predefined folds specified in `cv_contract.json`. There is no independent test set. Models must be returned by `build_model(X_train, y_train)` as new, unfitted objects with `fit(X,y)` and `predict(X)` methods. All preprocessing must be internal to the model and fitted only on the training data for each fold. Stochastic models must use `random_state/seed 42`. No external data, services, or unstated assumptions are permitted.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/README.md
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (text):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+       ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+In the bash script, install all necessary packages.
+### Native debug/evolution context
+
+### Previous errors
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unrecognized `seed` keyword argument. The AutoGluon library's `fit` method does not accept a `seed` parameter directly; instead, reproducibility is typically controlled by passing `random_state` to the `TabularPredictor` constructor.
+SUGGESTED_FIX: Remove the `seed` argument from the `predictor.fit()` method call. Instead, pass the `seed` value as `random_state` to the `TabularPredictor` constructor when initializing the predictor object.
+
+ERROR_SUMMARY: The `MultiModalPredictor` constructor received an unexpected `random_state` keyword argument, leading to a `TypeError`. The `random_state` parameter is not a valid argument for the `MultiModalPredictor`'s initialization method in the AutoGluon version being used.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor call. To ensure reproducibility, pass the `random_state` value as a hyperparameter, specifically `env.seed`, within the `hyperparameters` dictionary to the `predictor.fit()` method.
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+# Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+# Intro to Use Machine Learning or Deep Learning algorithms
+
+You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_2/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3263 seconds.

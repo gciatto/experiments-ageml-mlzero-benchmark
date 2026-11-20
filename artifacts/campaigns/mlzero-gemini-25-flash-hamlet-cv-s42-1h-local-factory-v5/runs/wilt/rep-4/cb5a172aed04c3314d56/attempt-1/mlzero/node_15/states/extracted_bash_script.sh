@@ -1,0 +1,56 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define environment and file paths
+# The CONDA_ENV_PATH is specifically set for node_15 as requested.
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-4/cb5a172aed04c3314d56/attempt-1/mlzero/node_15/conda_env"
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting conda environment setup for node_15 at: ${CONDA_ENV_PATH}"
+
+# Ensure 'conda' command is available in the PATH.
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Conda is installed and in your PATH."
+    exit 1
+fi
+
+# Initialize conda for the current shell session.
+# This is crucial for 'conda activate' to function correctly and addresses previous errors.
+CONDA_BASE=$(conda info --base)
+if [ -f "${CONDA_BASE}/etc/profile.d/conda.sh" ]; then
+    source "${CONDA_BASE}/etc/profile.d/conda.sh"
+else
+    echo "Error: conda initialization script not found at expected location: ${CONDA_BASE}/etc/profile.d/conda.sh"
+    echo "Cannot proceed with environment setup. Please check your conda installation."
+    exit 1
+fi
+
+# Remove existing environment if it exists to ensure a clean installation.
+# This uses 'conda env list' for a robust check.
+if conda env list | grep -q "${CONDA_ENV_PATH}"; then
+    echo "Removing existing conda environment at ${CONDA_ENV_PATH}..."
+    conda env remove -p "${CONDA_ENV_PATH}" -y || { echo "Failed to remove existing conda environment."; exit 1; }
+fi
+
+echo "Creating new conda environment with Python 3.11 at ${CONDA_ENV_PATH}..."
+conda create -p "${CONDA_ENV_PATH}" python=3.11 -y || { echo "Failed to create conda environment."; exit 1; }
+
+echo "Activating conda environment: ${CONDA_ENV_PATH}"
+# Activate the environment using 'conda activate', addressing previous errors.
+conda activate "${CONDA_ENV_PATH}" || { echo "Failed to activate conda environment."; exit 1; }
+
+echo "Installing uv into the activated environment..."
+pip install uv || { echo "Failed to install uv."; exit 1; }
+
+echo "Installing required packages (numpy, pandas, scikit-learn, and from requirement files) using uv..."
+# Install numpy, pandas, scikit-learn, and packages from the specified requirement files.
+# The order is important: autogluon.tabular requirements first, then common.
+# '--prerelease=allow' is included for autogluon.tabular dependencies.
+# uv will install exact packages and their dependencies, avoiding unnecessary upgrades.
+uv pip install \
+    numpy pandas scikit-learn \
+    -r "${AUTOGLUON_TABULAR_REQ_FILE}" --prerelease=allow \
+    -r "${COMMON_REQ_FILE}" || { echo "Failed to install required packages."; exit 1; }
+
+echo "Conda environment setup complete for node_15."

@@ -1,0 +1,1 @@
+The evaluation harness failed to read the `cv_contract.json` file due to an `IndentationError: unexpected indent`. This critical error prevented the cross-validation process from starting, meaning the provided Python model code was not executed, fitted, or evaluated.

@@ -1,0 +1,53 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define the target Conda environment path
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-5/e936464f2167cf84cde8/attempt-1/mlzero/node_5/conda_env"
+
+# Define paths to the requirements files
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluon Tabular factory module."
+
+# Ensure Conda is initialized for the current shell session
+# This is crucial for 'conda activate' to work reliably in a script.
+# It checks if Conda is already active (via CONDA_SHLVL) and sources conda.sh if not.
+if [ -z "${CONDA_SHLVL:-}" ]; then
+    CONDA_BASE=$(conda info --base 2>/dev/null || echo "")
+    if [ -n "$CONDA_BASE" ] && [ -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
+        echo "Initializing Conda..."
+        source "$CONDA_BASE/etc/profile.d/conda.sh"
+    else
+        echo "Error: Conda base environment not found or conda.sh not accessible. Please ensure Conda is installed and initialized in your shell." >&2
+        exit 1
+    fi
+fi
+
+# Remove existing environment if it exists to ensure a clean slate
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Removing existing conda environment at $CONDA_ENV_PATH..."
+    conda env remove -p "$CONDA_ENV_PATH" -y || { echo "Failed to remove existing conda environment." >&2; exit 1; }
+fi
+
+# Create a new Conda environment with Python 3.11
+echo "Creating new conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y || { echo "Failed to create conda environment." >&2; exit 1; }
+
+# Activate the newly created environment
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH" || { echo "Failed to activate conda environment." >&2; exit 1; }
+
+# Install uv using pip within the activated environment
+echo "Installing uv..."
+pip install uv || { echo "Failed to install uv." >&2; exit 1; }
+
+# Install required packages using uv from the specified requirements files
+# The order of -r arguments is maintained as specified in the prompt.
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$REQUIREMENTS_TABULAR" --prerelease=allow -r "$REQUIREMENTS_COMMON" || { echo "Failed to install required packages with uv." >&2; exit 1; }
+
+echo "Conda environment setup complete at $CONDA_ENV_PATH."
+echo "The environment now contains Python 3.11, uv, numpy, pandas, scikit-learn, and autogluon.tabular with their dependencies."
+```

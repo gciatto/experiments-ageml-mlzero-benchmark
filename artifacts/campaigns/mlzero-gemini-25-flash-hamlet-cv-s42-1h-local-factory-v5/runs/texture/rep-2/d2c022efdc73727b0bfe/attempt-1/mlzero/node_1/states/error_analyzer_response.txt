@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor` constructor received an invalid keyword argument `random_state`. The installed beta version of AutoGluon (1.6.4b20260930) does not accept `random_state` directly in its constructor, as indicated by the error message's list of valid keyword arguments.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor call. To maintain reproducibility, pass the `random_state` value within the `learner_kwargs` dictionary, for example, by setting `learner_kwargs={'random_state': self.random_state}`.

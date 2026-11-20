@@ -1,0 +1,141 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+This data science task is a **classification** problem.
+
+The **input format** is tabular data, provided as a CSV file (`data.csv`).
+
+The **prediction output format** is the predicted class label for the target column `Class`.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: har
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other to
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (text):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+       ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `numpy` package was not successfully installed or made discoverable within the created conda environment, despite an explicit `uv pip install numpy` command. This led to a `ModuleNotFoundError` when the evaluation script attempted to import it.
+SUGGESTED_FIX: Modify the bash script to install `numpy` using `pip` directly (e.g., `"$PIP_BIN" install numpy`) before installing other packages with `uv`. Alternatively, ensure `numpy` is explicitly listed in one of the requirements files (`REQUIREMENTS_COMMON` or `REQUIREMENTS_AUTOGLUON_TABULAR`) to ensure `uv` handles it as a primary dependency.
+
+Available Tutorials:
+1. Title: Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+   Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

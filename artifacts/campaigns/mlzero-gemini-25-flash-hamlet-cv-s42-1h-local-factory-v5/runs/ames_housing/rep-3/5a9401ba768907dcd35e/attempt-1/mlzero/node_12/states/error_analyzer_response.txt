@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ValueError` indicates that the `TabularPredictor.fit()` method was called with an unrecognized `seed` keyword argument. AutoGluon's `fit` method does not directly accept a `seed` parameter for reproducibility.
+SUGGESTED_FIX: Remove the `seed=self.random_seed` argument from the `self.predictor.fit()` method call. The evaluation harness already sets global random seeds for Python's `random` and NumPy, which AutoGluon typically respects for reproducibility.

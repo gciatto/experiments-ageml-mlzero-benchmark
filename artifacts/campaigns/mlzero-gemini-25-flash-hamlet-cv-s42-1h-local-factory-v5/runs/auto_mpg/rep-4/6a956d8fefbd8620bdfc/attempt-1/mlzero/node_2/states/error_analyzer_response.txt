@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `set_seed` function, which is used for global random seed initialization, was imported from `autogluon.core.utils.utils`. However, this function has been moved or removed from that specific module in the installed `autogluon==1.6.4b` version, leading to an `ImportError`.
+SUGGESTED_FIX: Modify the import statement for `set_seed` in the Python code. Consult the AutoGluon documentation or source code for version `1.6.4b` to identify the correct module path for `set_seed`, which is typically `autogluon.common.utils.utils`.

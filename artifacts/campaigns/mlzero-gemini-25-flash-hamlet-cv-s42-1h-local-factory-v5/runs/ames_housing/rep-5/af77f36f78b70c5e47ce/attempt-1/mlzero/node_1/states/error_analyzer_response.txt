@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unrecognized keyword argument, `random_seed`. The installed version of AutoGluon does not accept `random_seed` as a direct parameter to its `fit` method, leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `self.predictor.fit()` call within the `AutoGluonModelWrapper.fit` method. If reproducibility is critical, consult AutoGluon's documentation for the correct way to set a random seed, potentially through `ag_args_fit` or a global seed setting function.

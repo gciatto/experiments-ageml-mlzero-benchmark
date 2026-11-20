@@ -1,0 +1,159 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/cv_contract.json"
+
+File Size: 8.07 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import pandas as pd
+import os
+import json
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/cv_contract.json"
+
+output_lines = []
+
+try:
+    # Attempt to read as JSON using pandas
+    df = pd.read_json(file_path)
+
+    if not df.empty:
+        output_lines.append("Column Names:")
+        columns = df.columns.tolist()
+        if len(columns) > 20:
+            output_lines.append(str(columns[:10] + ['...'] + columns[-10:]))
+        else:
+            output_lines.append(str(columns))
+
+        output_lines.append("\nFirst 2 Rows (first 3 columns, truncated to 50 chars per cell):")
+        # Select only the first 3 columns for row display to keep output concise
+        display_cols_for_rows = columns[:3]
+        df_to_display = df[display_cols_for_rows].head(2)
+        output_lines.append(df_to_display.to_string(index=False, max_colwidth=50, show_dimensions=False))
+
+    else:
+        # If pandas reads it but it's empty or not a simple DataFrame structure
+        output_lines.append(f"File '{os.path.basename(file_path)}' is empty or not a simple tabular JSON.")
+        raise ValueError("Not a simple tabular JSON.") # Force fallback to text reading
+
+except Exception as e:
+    # If pandas fails (e.g., not a simple JSON array of objects, or malformed)
+    # Try reading as a generic text file
+    output_lines = [f"Could not parse as tabular. First 768 chars as text:"]
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(768)
+            output_lines.append(content)
+    except Exception:
+        # Fallback for binary or unreadable files
+        output_lines = [f"File: {os.path.basename(file_path)}"]
+        output_lines.append(f"Size: {os.path.getsize(file_path)} bytes")
+        output_lines.append("Content type: Binary or unreadable.")
+
+final_output = "\n".join(output_lines)
+# Ensure total output is under 768 characters
+if len(final_output) > 768:
+    final_output = final_output[:765] + "..."
+
+print(final_output)
+
+## Execution Results
+### Standard Output (stdout)
+
+Could not parse as tabular. First 768 chars as text:
+{
+  "cv_folds": [
+    {
+      "train": [
+        4843,
+        4845,
+        4846,
+        4847,
+        4850,
+        4851,
+        4852,
+        4853,
+        4856,
+        4858,
+        4859,
+        4860,
+        4861,
+        4862,
+        4864,
+        4865,
+        4867,
+        4870,
+        4871,
+        4874,
+        4875,
+        4876,
+        4877,
+        4878,
+        4879,
+        4880,
+        4882,
+        4885,
+        4886,
+        4887,
+        4888,
+        4889,
+        4890,
+        4894,
+        4895,
+        4896,
+        4897,
+        4898,
+        4902,
+        4903,
+        4904,
+        4905,
+        4906,
+        4907,
+        4909,
+        4910,
+        4911,
+        4912,...
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

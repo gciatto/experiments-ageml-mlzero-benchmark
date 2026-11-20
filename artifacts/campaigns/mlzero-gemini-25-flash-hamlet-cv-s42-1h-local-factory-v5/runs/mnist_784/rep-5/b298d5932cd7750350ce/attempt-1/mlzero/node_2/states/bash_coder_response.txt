@@ -1,0 +1,42 @@
+```bash
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# Define paths
+CONDA_ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_2/conda_env"
+REQ_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_ML="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+# Ensure conda is initialized for the current shell session if not already.
+# This is crucial for 'conda activate' to work in a script.
+# Assumes 'conda' command is available in PATH.
+if command -v conda &> /dev/null; then
+    eval "$(conda shell hook)"
+else
+    echo "Error: 'conda' command not found. Please ensure Conda is installed and in your PATH." >&2
+    exit 1
+fi
+
+# 1. Create conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_DIR with Python 3.11..."
+conda create -p "$CONDA_ENV_DIR" python=3.11 -y
+
+# 2. Activate the environment
+echo "Activating conda environment $CONDA_ENV_DIR..."
+conda activate "$CONDA_ENV_DIR"
+
+# 3. Install uv
+echo "Installing uv..."
+pip install uv
+
+# 4. Install required packages from requirements files and additional dependencies using uv
+echo "Installing required packages using uv..."
+# Note: The 'machine learning' path has a space, so it must be quoted.
+uv pip install \
+    -r "$REQ_ML" \
+    --prerelease=allow \
+    -r "$REQ_COMMON" \
+    numpy pandas scikit-learn autogluon.tabular
+
+echo "Conda environment setup complete."
+```

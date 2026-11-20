@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `KeyError` indicates that `env.seed` is not a valid key within the `hyperparameters` dictionary for AutoGluon's `MultiModalPredictor` when applying overrides to a preset configuration. AutoGluon's internal configuration system, based on OmegaConf, enforces that override keys must exist in the base configuration, which `env.seed` does not.
+SUGGESTED_FIX: Remove `"env.seed": SEED` from the `hyperparameters` dictionary. Instead, pass the `SEED` value directly as the `seed` argument to the `MultiModalPredictor` constructor when initializing the predictor.

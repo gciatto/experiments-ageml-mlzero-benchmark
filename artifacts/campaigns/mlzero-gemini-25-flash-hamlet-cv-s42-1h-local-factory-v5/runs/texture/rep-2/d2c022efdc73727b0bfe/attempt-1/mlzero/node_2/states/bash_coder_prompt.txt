@@ -1,0 +1,145 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-2/d2c022efdc73727b0bfe/attempt-1/mlzero/node_2:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.multimodal if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import numpy as np
+import os
+import uuid
+from pathlib import Path
+import logging
+
+# AutoGluon MultiModal is the chosen library for this task.
+from autogluon.multimodal import MultiModalPredictor
+
+# Suppress AutoGluon logging verbosity to avoid excessive output during evaluation.
+# This can be adjusted if more detailed logs are needed for debugging.
+logging.getLogger("autogluon").setLevel(logging.WARNING)
+logging.getLogger("lightning").setLevel(logging.WARNING) # Suppress PyTorch Lightning logs
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to conform to the build_model contract.
+    This class encapsulates the fitting and prediction logic for a single model.
+    """
+    def __init__(self, random_state: int = 42):
+        """
+        Initializes the wrapper with a random state for reproducibility.
+
+        Args:
+            random_state: An integer seed for random number generators.
+        """
+        self.random_state = random_state
+        self.predictor = None
+        self.model_path = None
+        # The target column name is 'Class' as per the problem description.
+        self.label_column_name = 'Class'
+        
+        # Define a time limit for each fit call.
+        # The total shared deadline is 3256 seconds for 10 folds.
+        # To ensure all 10 fits finish, we allocate a conservative time limit per fold.
+        # 3256 seconds / 10 folds = ~325 seconds per fold.
+        # Setting it to 250 seconds per fit allows for overhead (data prep, prediction, evaluation).
+        self.fit_time_limit = 250 # seconds
+
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor using the provided training data.
+        All preprocessing and model training occur within this method.
+
+        Args:
+            X_train: Training features as a pandas DataFrame.
+            y_train: Training target as a pandas Series.
+        """
+        # Create a unique path for each model to ensure fresh artifact directories per fold.
+        # This prevents interference between different folds and ensures isolation.
+        # The path is created relative to the current working directory.
+        current_dir = Path(os.getcwd())
+        self.model_path = current_dir / f"ag_multimodal_model_{uuid.uuid4().hex}"
+        self.model_path.mkdir(parents=True, exist_ok=True)
+
+        # Combine X_train and y_train into a single DataFrame, which is the
+        # expected input format for MultiModalPredictor's fit method.
+        train_data = X_train.copy()
+        train_data[self.label_column_name] = y_train
+
+        # Initialize MultiModalPredictor.
+        # We explicitly set problem_type to 'classification' and provide the seed.
+        # The 'path' argument ensures artifacts are stored in the unique directory.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column_name,
+            path=str(self.model_path), # AutoGluon expects a string path
+            problem_type='classification',
+            seed=self.random_state,
+            # For purely tabular data, MultiModalPredictor will automatically
+            # detect the modality and use appropriate internal models (e.g., TabularPredictor).
+        )
+
+        # Fit the predictor with the specified time limit.
+        # AutoGluon handles feature engineering, model selection, and training.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=self.fit_time_limit,
+            # Presets can be used for different quality/speed trade-offs.
+            # 'best_quality' might yield better results but could exceed the time limit.
+            # By default, AutoGluon balances quality and speed.
+            # presets='best_quality'
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor.
+
+        Args:
+            X: Features for prediction as a pandas DataFrame.
+
+        Returns:
+            A 1-dimensional NumPy array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+
+        # MultiModalPredictor.predict returns a pandas Series for classification tasks.
+        # The contract requires a 1-dimensional NumPy array or Python list.
+        predictions = self.predictor.predict(X)
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to build a new, unfitted model wrapper.
+    This function is called by the harness to get a fresh model instance for each fold.
+
+    Args:
+        X_train: Training features (provided for contract compatibility, not used for initialization).
+        y_train: Training target (provided for contract compatibility, not used for initialization).
+
+    Returns:
+        An unfitted instance of AutoGluonMultiModalWrapper, ready for its .fit() method to be called.
+    """
+    # The X_train and y_train arguments are provided by the harness for context,
+    # but the model should be returned unfitted. The actual fitting will happen
+    # when the harness calls the .fit() method of the returned wrapper.
+    return AutoGluonMultiModalWrapper(random_state=42)
+### Previous errors
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor.fit()` method was invoked with an invalid keyword argument, 'seed'. The `fit` method of AutoGluon's TabularPredictor does not directly support a `seed` parameter for controlling randomness.
+SUGGESTED_FIX: Remove the `seed=42` argument from the `self.predictor.fit()` method call. Ensure that global random seeds for NumPy and Python's `random` module are set at the beginning of the script if overall reproducibility is required.
+
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor` constructor received an invalid keyword argument `random_state`. The installed beta version of AutoGluon (1.6.4b20260930) does not accept `random_state` directly in its constructor, as indicated by the error message's list of valid keyword arguments.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor call. To maintain reproducibility, pass the `random_state` value within the `learner_kwargs` dictionary, for example, by setting `learner_kwargs={'random_state': self.random_state}`.
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-2/d2c022efdc73727b0bfe/attempt-1/mlzero/node_2/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3235 seconds.

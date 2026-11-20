@@ -1,0 +1,156 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json"
+
+File Size: 0.85 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json"
+
+def analyze_file(file_path):
+    try:
+        # 1. Attempt to read as a tabular DataFrame using pandas
+        df = pd.read_json(file_path)
+
+        if isinstance(df, pd.DataFrame) and not df.empty:
+            # Display column names
+            columns = df.columns.tolist()
+            if len(columns) > 20:
+                print("Columns:", columns[:10] + ['...'] + columns[-10:])
+            else:
+                print("Columns:", columns)
+
+            # Show first 2-3 rows with truncated cell content (50 chars)
+            df_display = df.head(3).copy()
+            for col in df_display.columns:
+                df_display[col] = df_display[col].astype(str).apply(lambda x: (x[:50] + '...') if len(x) > 50 else x)
+
+            print("\nFirst 3 rows:")
+            # Do not show additional index column
+            print(df_display.to_string(index=False))
+            return
+
+    except (pd.errors.EmptyDataError, ValueError, TypeError, json.JSONDecodeError, pd.io.common.EmptyDataError) as e:
+        # pandas failed to read as tabular or JSON was malformed for pandas.
+        # Fall through to generic JSON/text handling.
+        pass
+    except Exception as e:
+        # Catch any other unexpected errors during pandas processing (e.g., file not found, permissions)
+        # Fall through to generic JSON/text handling, which will also handle file access errors.
+        pass
+
+    # 2. If not handled by pandas, try to read as generic JSON
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            json_str = json.dumps(data, indent=2)
+            print(f"JSON content (truncated to 768 chars):\n{json_str[:768]}")
+            return
+    except json.JSONDecodeError:
+        # Not valid JSON, fall through to plain text
+        pass
+    except Exception as e:
+        # File access error during JSON load (e.g., file not found, permissions)
+        # Fall through to plain text, which will also handle file access errors.
+        pass
+
+    # 3. If not handled as tabular or generic JSON, treat as plain text
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(f"Displaying first 768 characters as text:\n{content}")
+            return
+    except Exception as e:
+        # Final fallback: file is likely binary or inaccessible
+        print(f"Failed to read file: {e}")
+        if os.path.exists(file_path):
+            print(f"File is likely binary or inaccessible. Basic info: {os.path.basename(file_path)}, Size: {os.path.getsize(file_path)} bytes")
+        else:
+            print(f"File not found: {file_path}")
+
+analyze_file(file_path)
+
+## Execution Results
+### Standard Output (stdout)
+
+No standard output
+
+### Standard Error (stderr)
+
+Traceback (most recent call last):
+  File "<string>", line 10, in analyze_file
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 815, in read_json
+    return json_reader.read()
+           ^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1025, in read
+    obj = self._get_object_parser(self.data)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1051, in _get_object_parser
+    obj = FrameParser(json, **kwargs).parse()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1187, in parse
+    self._parse()
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1402, in _parse
+    self.obj = DataFrame(
+               ^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/frame.py", line 778, in __init__
+    mgr = dict_to_mgr(data, index, columns, dtype=dtype, copy=copy, typ=manager)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/internals/construction.py", line 503, in dict_to_mgr
+    return arrays_to_mgr(arrays, columns, index, dtype=dtype, typ=typ, consolidate=copy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/internals/construction.py", line 114, in arrays_to_mgr
+    index = _extract_index(arrays)
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/internals/construction.py", line 677, in _extract_index
+    raise ValueError("All arrays must be of the same length")
+ValueError: All arrays must be of the same length
+
+During handling of the above exception, another exception occurred:
+  File "<string>", line 68, in <module>
+  File "<string>", line 30, in analyze_file
+AttributeError: module 'pandas.io.common' has no attribute 'EmptyDataError'
+
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

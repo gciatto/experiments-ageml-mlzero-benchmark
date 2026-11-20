@@ -1,0 +1,206 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+This data science task is a **regression** problem.
+
+*   **Input Format**: Tabular data provided in `data.csv`. Features consist of all columns in `data.csv` except for the `SalePrice` column.
+*   **Prediction Output Format**: A 1-dimensional array or list of numerical values, where each value represents the predicted `SalePrice` for a corresponding input row. The length of the prediction must match the number of input rows.
+*   **Target Column**: `SalePrice`.
+*   **Metric**: Root Mean Squared Error (RMSE), where lower values are better.
+*   **Cross-validation**: Ten-fold cross-validation using pre-defined folds specified in `cv_contract.json`. There is no independent test set.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv
+Content:
+Columns (first 10 and last 10):
+['Id', 'MSSubClass', 'MSZoning', 'LotFrontage', 'LotArea', 'Street', 'Alley', 'LotShape', 'LandContour', 'Utilities', '...', 'PoolArea', 'PoolQC', 'Fence', 'MiscFeature', 'MiscVal', 'MoSold', 'YrSold', 'SaleType', 'SaleCondition', 'SalePrice']
+
+First row (truncated, first 7 columns):
+ Id  MSSubClass MSZoning  LotFrontage  LotArea Street Alley
+  1          60       RL         65.0     8450   Pave   NaN
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: ames_housing
+Target column: `SalePrice`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools r
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/cv_contract.json
+Content:
+{
+  "cv_folds": [
+    {
+      "train": [
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        2...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/evaluate_cv.py
+Content:
+--- Content of /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/evaluate_cv.py (first 768 characters) ---
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(pa...
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `ModuleNotFoundError` for `numpy` in `evaluate_cv.py` is a consequence of the `conda activate` command failing to properly activate the environment, as indicated by the preceding `CondaError`. This likely caused subsequent package installations via `pip` and `uv` to target an incorrect Python environment, leaving the intended environment at `"$CONDA_ENV_PATH"` without `numpy` when the evaluation script was executed.
+SUGGESTED_FIX: Ensure `conda` is fully initialized in the shell environment where the bash script runs before attempting to activate. A more robust approach is to replace `conda activate` and subsequent commands with `conda run --prefix "$CONDA_ENV_PATH" <command>` for each installation step, ensuring packages are installed into the correct environment.
+
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unrecognized keyword argument, `random_seed`. The installed version of AutoGluon does not accept `random_seed` as a direct parameter to its `fit` method, leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `self.predictor.fit()` call within the `AutoGluonModelWrapper.fit` method. If reproducibility is critical, consult AutoGluon's documentation for the correct way to set a random seed, potentially through `ag_args_fit` or a global seed setting function.
+
+Available Tutorials:
+1. Title: Condensed: ```python
+   Summary: This tutorial demonstrates AutoGluon MultiModal, a framework for multimodal machine learning that handles mixed data types. It covers implementing a pet adoption speed predictor using images and tabular data, showcasing automatic modality detection, model selection, and late-fusion techniques. Key functionalities include training a multimodal predictor with minimal code, evaluating model performance, making predictions, extracting embeddings for downstream tasks, and saving/loading models. The tutorial is valuable for developers implementing classification tasks with mixed data types (images and tabular data) who need automated machine learning capabilities without extensive manual configuration.
+2. Title: Condensed: ```python
+   Summary: This tutorial demonstrates AutoGluon MultiModal for multimodal machine learning, focusing on image-text classification with the PetFinder dataset. It covers implementation techniques for preparing multimodal data (handling image paths and text features), training a MultiModalPredictor with automatic modality detection and model selection, and making predictions. Key functionalities include automatic problem type inference, multimodal feature handling, time-constrained training, classification prediction, probability estimation, and performance evaluation using metrics like ROC-AUC. This knowledge helps with tasks requiring combined processing of images and tabular data for classification problems.
+3. Title: Condensed: ```
+   Summary: This tutorial covers AutoMM optimization parameters for fine-tuning multimodal models. It demonstrates how to configure learning rates, optimizers, training schedules, and validation strategies through hyperparameter settings. Key features include layer-wise learning rate decay, gradient handling, parameter-efficient fine-tuning (PEFT), GPU/batch size configuration, precision settings, and model-specific options for text (tokenization, augmentation), image (transforms, backbones), and object detection models. The tutorial also covers data processing strategies for handling missing values, label preprocessing, and advanced techniques like Mixup augmentation and knowledge distillation. These configurations help optimize model performance for various multimodal machine learning tasks.
+4. Title: Condensed: Multiple Label Columns with AutoMM
+   Summary: This tutorial explains how to handle multiple label columns in AutoGluon MultiModal using two approaches: (1) converting mutually exclusive labels into a single combined column, or (2) training separate models for non-mutually exclusive labels. It provides code examples for both methods, emphasizing the need to properly manage label columns during training and prediction. Key implementation notes include time allocation across multiple models, excluding other label columns as features, and maintaining consistent preprocessing between training and inference. The tutorial helps with multi-label classification tasks in AutoGluon's MultiModal framework.
+5. Title: Condensed: ```python
+   Summary: This tutorial demonstrates hyperparameter optimization (HPO) for multimodal models using AutoGluon's MultiModalPredictor. It covers implementing Ray Tune-based HPO for image classification tasks by defining search spaces for learning rates, optimizers, epochs, and model architectures. Key features include configuring search strategies (random/Bayesian), schedulers (FIFO/ASHA), and trial management. The tutorial shows how to compare regular training with HPO approaches, evaluate model performance, and efficiently tune hyperparameters to improve accuracy. This knowledge helps with implementing automated hyperparameter tuning for computer vision tasks, particularly when working with limited training data.
+6. Title: Condensed: Continuous training provides a method for machine learning models to refine their performance over time. It enables models to build upon previously acquired knowledge, thereby enhancing accuracy, facilitating knowledge transfer across tasks, and saving computational resources. In this tutorial, we will demonstrate three use cases of continuous training with AutoMM.
+   Summary: This tutorial demonstrates AutoMM's continuous training capabilities with three key use cases: (1) extending model training with additional data or epochs without restarting, (2) resuming training from the last checkpoint after interruptions, and (3) transferring knowledge from pre-trained models to new tasks. It covers implementation techniques for loading/saving models, continuing training with new data, and applying transfer learning across different tasks. The tutorial specifically shows how to reuse weights from text classification for regression tasks and supports transfer learning for HuggingFace text models, TIMM image models, MMDetection models, and fusion models, while warning about potential catastrophic forgetting.
+7. Title: Condensed: ```python
+   Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, semantic segmentation, similarity matching, NER, and feature extraction. It helps with implementing models that handle various data modalities (text, image, numerical, categorical) and specifies which problem types support training vs. zero-shot prediction. The tutorial details evaluation metrics for each problem type and provides implementation context for working with multimodal data. It's valuable for coding tasks involving multimodal machine learning, particularly when working with mixed data types and needing automated model training across different problem domains.
+8. Title: Condensed: ```python
+   Summary: This tutorial demonstrates image classification using AutoGluon MultiModal, covering implementation of a complete workflow from setup to deployment. It teaches how to: load image data (both file paths and bytearrays), train classification models with minimal code using MultiModalPredictor, evaluate model performance, make predictions on new images, extract feature embeddings for transfer learning, and save/load models. Key features include time-constrained training, handling multiple input formats, probability-based predictions, and feature extraction capabilities - all with AutoGluon's simplified API that abstracts away complex deep learning implementation details.
+9. Title: Condensed: [TensorRT](https://developer.nvidia.com/tensorrt), built on the NVIDIA CUDA® parallel programming model, enables us to optimize inference by leveraging libraries, development tools, and technologies in NVIDIA AI, autonomous machines, high-performance computing, and graphics. AutoGluon-MultiModal is now integrated with TensorRT via `predictor.optimize_for_inference()` interface. This tutorial demonstates how to leverage TensorRT in boosting inference speed, which would be helpful in increasing efficiency at deployment environment.
+   Summary: This tutorial demonstrates integrating TensorRT with AutoGluon-MultiModal to optimize inference speed. It covers: (1) implementing TensorRT optimization for multimodal models through the optimize_for_inference() method, (2) accelerating prediction tasks for multimodal classification with image and text data, and (3) key functionalities including model training with MultiModalPredictor, converting PyTorch models to TensorRT, benchmarking inference performance, and configuring execution providers. The tutorial shows how to verify prediction consistency while achieving significant speedups, with warnings about post-optimization limitations.
+10. Title: Condensed: ```
+   Summary: This tutorial demonstrates how to download and use the VOC dataset for object detection tasks with AutoGluon. It covers multiple download methods: using AutoGluon CLI commands to get the full VOC0712 dataset or individual VOC2007/2012 datasets, and using bash scripts. The tutorial explains the resulting dataset structure with folders like Annotations, ImageSets, and JPEGImages. It emphasizes that AutoGluon MultiModalPredictor recommends using COCO format instead of VOC format for better compatibility, though limited VOC format support exists for testing. The guide includes the necessary folder structure requirements when using VOC format and points to additional resources for examples and customization.
+11. Title: Condensed: Few Shot Text Classification
+   Summary: This tutorial demonstrates few-shot classification implementation using AutoGluon's MultiModalPredictor for both text and image data. It covers techniques for training classifiers with limited samples by setting problem_type="few_shot_classification" versus standard classification approaches. Key functionalities include: preparing text/image datasets, configuring few-shot learning parameters, evaluating model performance with accuracy and F1 metrics, and comparing few-shot versus traditional classification approaches. The tutorial shows how to implement models that perform significantly better on limited training data, which is valuable for scenarios with scarce labeled examples.
+12. Title: Condensed: ```python
+   Summary: This tutorial demonstrates object detection using AutoGluon MultiModal, focusing on fine-tuning YOLOX models on custom datasets in COCO format. It covers installation of required packages, dataset preparation, model configuration with two-stage learning rates, training with early stopping, evaluation using mAP metrics, and result visualization. Key functionalities include configuring GPU usage, batch size optimization, using quality presets for simplified workflows, and performance tuning options. The tutorial helps with implementing custom object detection systems, visualizing detection results, and optimizing model performance through hyperparameter adjustments.
+13. Title: Condensed: ```
+   Summary: This tutorial demonstrates how to prepare the Watercolor object detection dataset using AutoGluon. It covers two implementation methods: using AutoGluon CLI commands or a bash script, with options for specifying output paths. The tutorial explains that Watercolor uses VOC format but recommends converting to COCO format for use with AutoGluon MultiModalPredictor. It references additional resources for COCO format conversion and customization. This knowledge helps with dataset preparation tasks for object detection models, specifically working with the Watercolor dataset in AutoGluon's ecosystem.
+14. Title: Condensed: ```python
+   Summary: This tutorial demonstrates AutoGluon's MultiModalPredictor for text classification using different quality presets. It covers implementation techniques for sentiment analysis with three preset configurations: medium_quality (fast, smaller models), high_quality (balanced), and best_quality (performance-focused). The tutorial shows how to add hyperparameter optimization with _hpo suffixes, evaluate models using metrics like roc_auc, and view preset configurations. Key functionalities include automatic model selection, time-limited training, and hyperparameter tuning for text classification tasks with minimal code, making it useful for quickly implementing sentiment analysis or other text classification problems.
+15. Title: Condensed: ```python
+   Summary: This tutorial demonstrates using AutoGluon MultiModal for image-text similarity tasks. It covers extracting embeddings from images and text, performing cross-modal retrieval (finding images matching text queries and vice versa using semantic search), and predicting image-text matching with probability scores. Key functionalities include embedding extraction, semantic search for retrieval, and binary classification of image-text pairs. The implementation uses MultiModalPredictor with "image_text_similarity" problem type, making it valuable for building multimodal search systems, content recommendation, or image captioning validation.
+16. Title: Condensed: ```python
+   Summary: This tutorial demonstrates knowledge distillation in AutoGluon MultiModal, showing how to transfer knowledge from a larger teacher model to a smaller student model. It covers implementation techniques for loading pre-trained models, configuring distillation, and evaluating performance. The code helps with creating efficient, smaller models that maintain accuracy by learning from larger ones. Key features include: simple distillation activation via the teacher_predictor parameter, working with BERT models of different sizes (12-layer to 6-layer), dataset preparation for NLP tasks, and model evaluation. The implementation focuses on practical application with minimal configuration requirements.
+17. Title: Condensed: ```python
+   Summary: This tutorial demonstrates using AutoGluon MultiModal for sentiment analysis and sentence similarity tasks. It covers implementation techniques for training models with MultiModalPredictor, evaluating performance with multiple metrics, making predictions on text data, extracting embeddings for visualization, and saving/loading models. The tutorial helps with text classification, regression for semantic similarity, and embedding extraction tasks. Key features include automatic problem type detection, fine-tuning of deep learning models, integration with transformer models, customizable evaluation metrics, and visualization of embeddings using TSNE. The code provides a complete workflow from data loading to model deployment for NLP tasks.
+18. Title: Condensed: Create Dataset
+   Summary: This tutorial demonstrates implementing focal loss in AutoGluon for handling imbalanced image classification datasets. It covers techniques for calculating class weights, configuring focal loss parameters (alpha, gamma, reduction), and integrating them into MultiModalPredictor. The tutorial helps with training computer vision models on skewed data distributions by showing how to properly weight underrepresented classes. Key functionalities include creating imbalanced datasets, configuring focal loss hyperparameters, comparing models with and without focal loss, and using Swin Transformer architecture for image classification tasks.
+19. Title: Condensed: ```python
+   Summary: This tutorial demonstrates parameter-efficient multilingual model fine-tuning using AutoGluon's MultiModalPredictor. It covers implementing IA3+BitFit techniques that require only ~0.5% of parameters while maintaining cross-lingual performance across English, German, and Japanese sentiment analysis. The tutorial shows how to train large language models (like FLAN-T5-XL) on limited hardware using gradient checkpointing, and provides code for data preparation, model configuration, and evaluation. Key functionalities include PEFT implementation, multilingual transfer learning, memory optimization techniques, and hyperparameter configuration for efficient fine-tuning of transformer models.
+20. Title: Condensed: ```python
+   Summary: This tutorial demonstrates zero-shot image classification using CLIP via AutoGluon's MultiModalPredictor. It covers implementation of image classification without prior training by comparing images against arbitrary text descriptions. Key functionalities include initializing the predictor, performing predictions with image-text pairs, and understanding CLIP's capabilities and limitations (particularly typographic attacks). The code shows how to classify dog breeds and uncommon objects, making it useful for developers implementing flexible image classification systems without labeled training data for specific categories.
+21. Title: Condensed: To start, make sure `mmcv` and `mmdet` are installed.
+   Summary: This tutorial demonstrates implementing object detection with AutoGluon's MultiModalPredictor. It covers installation requirements, dataset preparation, model configuration with three quality presets (YOLOX-large, DINO-Resnet50, DINO-SwinL), training and evaluation workflows, model saving/loading, and inference techniques. Key functionalities include prediction in both CSV and COCO formats, visualization of detection results using OpenCV, and custom inference on new images through either COCO JSON format or direct image path lists. The tutorial provides practical code for implementing complete object detection pipelines with performance optimization options.
+22. Title: Condensed: ```
+   Summary: This tutorial demonstrates how to download and extract the COCO2017 dataset for object detection using either AutoGluon CLI commands or a bash script. It covers implementation techniques for dataset acquisition with customizable output paths, explains the resulting dataset structure, and emphasizes the importance of using COCO format (JSON) for object detection in AutoGluon MultiModalPredictor. The tutorial helps with dataset preparation tasks for computer vision projects and points to additional resources for format conversion and customization, making it valuable for developers implementing object detection systems.
+23. Title: Condensed: ```python
+   Summary: This tutorial demonstrates Chinese Named Entity Recognition (NER) using AutoGluon MultiModal, covering implementation of NER models specifically for Chinese text. It shows how to load Chinese NER datasets, train a model using a Chinese pretrained checkpoint (hfl/chinese-lert-small), evaluate performance, and visualize predictions. Key functionalities include customizing the model for Chinese language processing, handling entity types like brand, product, pattern, and specifications, and applying NER to e-commerce product descriptions. The workflow demonstrates the complete pipeline from data loading to visualization with minimal code.
+24. Title: Condensed: ```python
+   Summary: This tutorial demonstrates implementing multimodal named entity recognition using AutoGluon, showing how to process text and image data together for NER tasks. It covers dataset preparation with image path handling, model training with the MultiModalPredictor (specifying "ner" problem type and "text_ner" column type), evaluation using precision/recall/F1 metrics, entity prediction with detailed output parsing, and model persistence. Key features include automatic modality detection, late fusion of multimodal data, and support for continuous training. This implementation helps with building NER systems that leverage both textual and visual information to identify and classify named entities.
+25. Title: Condensed: Get a Document Dataset
+   Summary: This tutorial demonstrates document classification using AutoGluon MultiModal, showing how to implement a document classifier that recognizes text, layout, and visual features in documents. It covers loading document data, training a model using LayoutLM architecture, evaluating performance, and extracting embeddings. The tutorial shows how to leverage pre-trained document foundation models for classification tasks without requiring extensive feature engineering. Key functionalities include automatic feature recognition, support for various document models, and the ability to extract embeddings for downstream tasks. The implementation uses MultiModalPredictor to simplify the document classification workflow with minimal code.
+26. Title: Condensed: ```python
+   Summary: This tutorial demonstrates implementing image-text matching with AutoGluon MultiModal, covering techniques for bidirectional retrieval between images and text. It shows how to prepare datasets, initialize a MultiModalPredictor for image-text similarity tasks, perform zero-shot evaluation, finetune models, and evaluate performance using recall metrics. Key functionalities include extracting embeddings from both modalities, making match predictions with confidence scores, and performing semantic search (text-to-image and image-to-text). The tutorial provides a complete workflow for building cross-modal retrieval systems that can find relevant images given text queries and vice versa.
+27. Title: Condensed: ```
+   Summary: This tutorial explains the COCO dataset format for object detection, detailing the required directory structure and JSON schema with specific fields for images, categories, and annotations (including bounding boxes). It covers how to convert VOC format datasets to COCO using AutoGluon's CLI tool, with both custom and predefined dataset splits. The tutorial also mentions conversion options for other formats using tools like FiftyOne. This knowledge is essential for preparing object detection datasets, handling annotation formats, and implementing data conversion pipelines for training and evaluation of object detection models.
+28. Title: Condensed: ```python
+   Summary: This tutorial demonstrates implementing semantic segmentation using Meta's Segment Anything Model (SAM) with AutoGluon. It covers zero-shot inference and fine-tuning SAM for domain-specific tasks using LoRA (Low-Rank Adaptation). Key functionalities include data preparation for segmentation tasks, model initialization with pre-trained SAM checkpoints, efficient fine-tuning techniques, evaluation using IoU metrics, and visualization of segmentation masks. The tutorial helps with implementing image segmentation tasks that require minimal labeled data by leveraging transfer learning from foundation models, particularly useful for specialized domains like disease detection in plant leaves.
+29. Title: Condensed: ```python
+   Summary: This tutorial demonstrates implementing text similarity models with AutoGluon MultiModal, teaching how to leverage BERT-based sentence embeddings for semantic matching tasks. It covers loading text pair datasets, configuring and training a text similarity predictor with customizable parameters (query/response columns, match labels), evaluating model performance, making predictions on new sentence pairs, and extracting embeddings from individual sentences. Key functionalities include binary classification for semantic similarity, probability score generation, and embedding extraction—valuable for applications like duplicate detection, paraphrase identification, and semantic search implementations.
+30. Title: Condensed: ```python
+   Summary: This tutorial demonstrates image-to-image semantic matching using AutoGluon's MultiModalPredictor. It covers implementing similarity-based image matching with Swin Transformer embeddings and cosine similarity calculations. Key functionalities include: data preparation with image path handling, model training with the "image_similarity" problem type, evaluation using AUC metrics, prediction with probability outputs for custom thresholding, and feature extraction to obtain image embeddings. The tutorial helps with tasks like determining if two product images represent the same item, building image retrieval systems, and creating custom similarity thresholds for matching applications.
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

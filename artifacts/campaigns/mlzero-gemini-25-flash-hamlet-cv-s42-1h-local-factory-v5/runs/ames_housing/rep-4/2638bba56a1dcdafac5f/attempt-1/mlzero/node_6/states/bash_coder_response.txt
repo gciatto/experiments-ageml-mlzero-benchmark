@@ -1,0 +1,63 @@
+```bash
+#!/bin/bash
+set -e
+
+# --- Configuration ---
+# Define the target Conda environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-4/2638bba56a1dcdafac5f/attempt-1/mlzero/node_6/conda_env"
+
+# Define paths to the requirements files
+ML_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+# Define the base path for Conda installation.
+# This is crucial for initializing conda in a non-interactive script.
+# Based on previous errors, /opt/conda is a common assumption for the Conda root.
+CONDA_BASE_PATH="/opt/conda"
+
+# --- Conda Initialization ---
+echo "Attempting to initialize Conda from $CONDA_BASE_PATH..."
+if [ -f "$CONDA_BASE_PATH/etc/profile.d/conda.sh" ]; then
+    # Source the conda initialization script to make 'conda' command available
+    source "$CONDA_BASE_PATH/etc/profile.d/conda.sh"
+    echo "Conda initialized successfully."
+else
+    echo "ERROR: Conda initialization script not found at $CONDA_BASE_PATH/etc/profile.d/conda.sh" >&2
+    echo "Please ensure Conda is installed at $CONDA_BASE_PATH or update CONDA_BASE_PATH in the script." >&2
+    exit 1
+fi
+
+# --- Environment Creation ---
+# Ensure the parent directory for the conda environment exists
+mkdir -p "$(dirname "$ENV_PATH")"
+
+# Remove existing environment if it exists to ensure a clean installation
+if conda env list | grep -q "$ENV_PATH"; then
+    echo "Existing environment found at $ENV_PATH. Removing it first..."
+    conda env remove -p "$ENV_PATH" -y
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment at $ENV_PATH with Python 3.11..."
+conda create -p "$ENV_PATH" python=3.11 -y
+
+# Activate the newly created environment
+echo "Activating conda environment: $ENV_PATH"
+conda activate "$ENV_PATH"
+
+# --- Package Installation ---
+# Install uv using the environment's pip
+echo "Installing uv into the environment..."
+pip install uv
+
+# Install required packages from the specified requirements files using uv
+echo "Installing packages from requirements files using uv..."
+# The --prerelease=allow flag is applied as specified for the machine learning requirements.
+uv pip install -r "$ML_REQ_PATH" --prerelease=allow -r "$COMMON_REQ_PATH"
+
+# Install additional packages: numpy, pandas, scikit-learn, and autogluon.tabular
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular using uv..."
+uv pip install numpy pandas scikit-learn autogluon.tabular
+
+echo "Conda environment setup complete."
+```

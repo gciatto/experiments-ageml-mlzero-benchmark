@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ValueError` indicates that the `TabularPredictor` constructor received an invalid keyword argument, specifically `random_seed`. This parameter is not recognized by the `TabularPredictor`'s initialization method.
+SUGGESTED_FIX: Remove the `random_seed` parameter from the `TabularPredictor` constructor call. If reproducibility is critical, ensure `PYTHONHASHSEED` and `numpy.random.seed` are set globally before `TabularPredictor` is initialized, or consult AutoGluon documentation for its recommended method of setting seeds for internal learners.

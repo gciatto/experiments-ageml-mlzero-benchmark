@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid argument, `random_state`. This parameter is not accepted by the constructor and should instead be passed to the `fit()` method for reproducibility.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` initialization. The `seed` parameter is correctly passed to the `fit()` method for controlling randomness during training.

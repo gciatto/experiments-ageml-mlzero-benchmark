@@ -1,0 +1,114 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv"
+
+File Size: 5.31 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv"
+
+def analyze_file(file_path):
+    try:
+        # Attempt to read as a tabular file (CSV)
+        df = pd.read_csv(file_path)
+
+        # Display column names
+        columns = df.columns.tolist()
+        col_output = "Columns: "
+        if len(columns) > 20:
+            col_output += str(columns[:10] + ['...'] + columns[-10:])
+        else:
+            col_output += str(columns)
+        print(col_output)
+
+        # Show first 2 rows with truncated cell content
+        # Limit to first 3 columns to keep output concise and within character limit
+        print("\nFirst 2 rows (truncated to 50 chars per cell, max 3 columns):")
+        
+        head_df = df.head(2)
+        
+        # Select only the first 3 columns if there are more
+        if head_df.shape[1] > 3:
+            head_df = head_df.iloc[:, :3]
+
+        # Define a truncation function for cell content
+        def truncate_cell(content):
+            s = str(content)
+            return (s[:50] + '...') if len(s) > 50 else s
+
+        # Apply truncation to all cells in the selected head DataFrame
+        truncated_head_df = head_df.applymap(truncate_cell)
+        
+        # Print the DataFrame without the pandas index
+        print(truncated_head_df.to_string(index=False))
+
+    except Exception:
+        # If reading as CSV fails, try to read as a text file
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read(768) # Read up to 768 characters
+                print(content)
+        except Exception:
+            # If reading as text also fails, provide basic file info
+            print(f"File path: {file_path}")
+            print(f"File size: {os.path.getsize(file_path)} bytes")
+
+analyze_file(file_path)
+
+## Execution Results
+### Standard Output (stdout)
+
+Columns: ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'class']
+
+First 2 rows (truncated to 50 chars per cell, max 3 columns):
+age workclass   fnlwgt
+ 25   Private 226802.0
+ 38   Private  89814.0
+
+
+### Standard Error (stderr)
+
+<string>:36: FutureWarning: DataFrame.applymap has been deprecated. Use DataFrame.map instead.
+
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

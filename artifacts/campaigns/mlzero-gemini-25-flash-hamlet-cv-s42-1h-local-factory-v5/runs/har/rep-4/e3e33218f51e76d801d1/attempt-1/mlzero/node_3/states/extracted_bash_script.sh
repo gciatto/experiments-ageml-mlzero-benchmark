@@ -1,0 +1,75 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the base directory for the environment
+# The prompt specifies 'node_3' for the conda_env folder.
+BASE_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_3"
+CONDA_ENV_PATH="${BASE_DIR}/conda_env"
+
+# Define paths to requirement files
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+echo "Conda environment path: ${CONDA_ENV_PATH}"
+
+# Ensure conda is available in the PATH
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Anaconda/Miniconda is installed and in your PATH."
+    exit 1
+fi
+
+# Remove existing environment to ensure a clean and consistent installation
+# This addresses potential issues from previous failed attempts.
+if [ -d "${CONDA_ENV_PATH}" ]; then
+    if conda env list | grep -q "${CONDA_ENV_PATH}" ; then
+        echo "Removing existing conda environment at ${CONDA_ENV_PATH}..."
+        conda env remove --prefix "${CONDA_ENV_PATH}" --yes || { echo "Error: Failed to remove existing conda environment."; exit 1; }
+    else
+        echo "Warning: Directory ${CONDA_ENV_PATH} exists but is not recognized as a conda environment. Removing directory."
+        rm -rf "${CONDA_ENV_PATH}" || { echo "Error: Failed to remove directory ${CONDA_ENV_PATH}."; exit 1; }
+    fi
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment with Python 3.11 at ${CONDA_ENV_PATH}..."
+conda create --prefix "${CONDA_ENV_PATH}" python=3.11 --yes || { echo "Error: Conda environment creation failed."; exit 1; }
+
+# Verify environment creation by checking for the activate script
+# This addresses the previous error where 'bin/activate' was missing.
+if [ ! -f "${CONDA_ENV_PATH}/bin/activate" ]; then
+    echo "Error: Conda environment activation script not found at ${CONDA_ENV_PATH}/bin/activate. Conda environment creation might have failed or is incomplete."
+    exit 1
+fi
+
+# Activate the conda environment
+echo "Activating the conda environment..."
+# Source the conda.sh script to properly activate the environment in the current shell context.
+# This is crucial for subsequent pip commands to install into the correct environment.
+source "$(conda info --base)/etc/profile.d/conda.sh" || { echo "Error: Failed to source conda.sh. Ensure conda is properly installed and initialized."; exit 1; }
+
+conda activate "${CONDA_ENV_PATH}" || { echo "Error: Failed to activate conda environment at ${CONDA_ENV_PATH}."; exit 1; }
+
+# Verify activation by checking CONDA_PREFIX
+if [ "$CONDA_PREFIX" != "${CONDA_ENV_PATH}" ]; then
+    echo "Error: Conda environment activation failed. CONDA_PREFIX is '$CONDA_PREFIX', expected '${CONDA_ENV_PATH}'."
+    exit 1
+fi
+
+# Install uv into the activated environment using its python interpreter
+echo "Installing uv into the environment..."
+"${CONDA_ENV_PATH}/bin/python" -m pip install uv || { echo "Error: Failed to install uv."; exit 1; }
+
+# Install required packages using uv from the activated environment
+# This includes packages from the specified requirements files and explicitly requested libraries.
+# uv ensures exact package versions and minimal changes as per requirements.
+echo "Installing required packages using uv..."
+"${CONDA_ENV_PATH}/bin/uv" pip install \
+    -r "${AUTOGLUON_TABULAR_REQ_FILE}" \
+    --prerelease=allow \
+    -r "${COMMON_REQ_FILE}" \
+    numpy pandas scikit-learn || { echo "Error: Failed to install required packages with uv."; exit 1; }
+
+echo "--- Conda Environment Setup Complete ---"
+
+# The environment remains active for subsequent operations by the harness.

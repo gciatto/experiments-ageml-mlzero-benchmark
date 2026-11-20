@@ -1,0 +1,42 @@
+Selected Tutorials After Reranking:
+==================================================
+
+1. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/problem_types_and_metrics.md
+   Retrieval Score: 0.7673
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, sem...
+------------------------------
+
+2. Title: Condensed: ```
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/customization.md
+   Retrieval Score: 0.7587
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial covers AutoMM optimization parameters for fine-tuning multimodal models. It demonstrates how to configure learning rates, optimizers, training schedules, and v...
+------------------------------
+
+3. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/hyperparameter_optimization.md
+   Retrieval Score: 0.7598
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates hyperparameter optimization (HPO) for multimodal models using AutoGluon's MultiModalPredictor. It covers implementing Ray Tune-based HPO for...
+------------------------------
+
+4. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/presets.md
+   Retrieval Score: 0.7443
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon's MultiModalPredictor for text classification using different quality presets. It covers implementation techniques for sentiment a...
+------------------------------
+
+5. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/text_prediction/beginner_text.md
+   Retrieval Score: 0.7419
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates using AutoGluon MultiModal for sentiment analysis and sentence similarity tasks. It covers implementation techniques for training models wit...
+------------------------------

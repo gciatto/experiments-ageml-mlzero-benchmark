@@ -1,0 +1,300 @@
+Generate a SELF-CONTAINED Python factory MODULE using machine learning.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+The data science task is **regression**.
+
+**Input Format:**
+The input consists of tabular data, specifically a Pandas DataFrame (or similar structure) where each row represents an instance and columns represent features. The features are `cylinders`, `displacement`, `horsepower`, `weight`, `acceleration`, `model`, and `origin`. All these features are numerical.
+
+**Prediction Output Format:**
+The prediction output is a 1D array or list of numerical values (floats). Each value in the array represents the predicted regression target for a corresponding input instance. The length of the prediction array must match the number of input instances.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/data.csv
+Content:
+Columns: ['cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model', 'origin', 'class']
+
+First 3 rows:
+ cylinders  displacement  horsepower  weight  acceleration  model  origin  class
+         8         307.0       130.0  3504.0          12.0     70       1   18.0
+         8         350.0       165.0  3693.0          11.5     70       1   15.0
+         8         318.0       150.0  3436.0          11.0     70       1   18.0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: auto_mpg
+Target column: `class`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools remain
+al
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json
+Content:
+JSON Content (truncated):
+{
+  "cv_folds": [
+    {
+      "train": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+  ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+In the bash script, install all necessary packages.
+### Native debug/evolution context
+### Previous Code to Improve
+```python
+import pandas as pd
+import numpy as np
+import os
+import uuid
+from autogluon.tabular import TabularPredictor
+import logging
+
+# Module-level initialization:
+# Create a base directory for AutoGluon artifacts.
+# The harness will write model_factory.py in the node output folder,
+# so a relative path here will create a subfolder within that output folder.
+AUTOGLUON_ARTIFACTS_BASE_DIR = "autogluon_artifacts_for_folds"
+os.makedirs(AUTOGLUON_ARTIFACTS_BASE_DIR, exist_ok=True)
+
+class AutoGluonRegressionModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the factory contract.
+    """
+    def __init__(self, artifacts_base_dir: str):
+        """
+        Initializes the wrapper. The AutoGluon predictor itself is not
+        instantiated or fitted until the .fit() method is called.
+        
+        Args:
+            artifacts_base_dir: The base directory where AutoGluon will store
+                                its models and temporary files. A unique
+                                sub-directory will be created for each fit.
+        """
+        self.predictor = None
+        self.artifacts_base_dir = artifacts_base_dir
+        self.model_path = None # To store the specific path for this predictor instance
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+        All preprocessing and model training happens here, using only the provided X and y.
+        
+        Args:
+            X: Training features as a Pandas DataFrame.
+            y: Training target as a Pandas Series.
+        """
+        # AutoGluon expects features and target combined into a single DataFrame.
+        # The target column name is 'class' as per the problem description.
+        train_data = X.copy()
+        train_data['class'] = y
+
+        # Create a unique path for this fold's AutoGluon artifacts.
+        # This ensures fresh artifact directories per fold, preventing conflicts
+        # and allowing parallel or sequential runs without interference.
+        unique_id = str(uuid.uuid4())
+        self.model_path = os.path.join(self.artifacts_base_dir, f"autogluon_model_{unique_id}")
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # Initialize TabularPredictor for regression.
+        # The 'path' argument directs AutoGluon to store its artifacts in the
+        # unique directory created for this specific model instance.
+        # 'label' specifies the name of the target column.
+        # FIX 1: Removed `random_state` from TabularPredictor constructor as it's not a valid argument.
+        self.predictor = TabularPredictor(
+            label='class',
+            problem_type='regression',
+            path=self.model_path
+        )
+
+        # Fit the predictor.
+        # FIX 2: Changed `presets` from 'medium_quality_faster_inference' to 'medium_quality'
+        #        as the former is not a valid preset.
+        # FIX 3: Removed `random_state` from `predictor.fit()` as it's not a valid argument for this method.
+        #        Global random seeds are handled by the harness.
+        # ADJUSTMENT: Changed `time_limit` from 300 to 200 seconds per fit.
+        #             Given a total remaining time of 2274 seconds for 10 folds,
+        #             200 seconds per fold (2000 seconds total) allows for overhead.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=200, # seconds per fit
+            presets='medium_quality' # Changed to a valid preset
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor.
+        
+        Args:
+            X: Features for which to make predictions, as a Pandas DataFrame.
+            
+        Returns:
+            A 1D NumPy array of predicted numerical values (floats).
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's predict method expects a DataFrame.
+        predictions = self.predictor.predict(X)
+        
+        # Convert predictions to a 1D NumPy array of floats, as required.
+        return predictions.values.astype(float)
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonRegressionModelWrapper:
+    """
+    Factory function to create a new, unfitted AutoGluon regression model wrapper.
+    
+    This function is called by the harness for each cross-validation fold.
+    It must return a fresh, unfitted model object.
+    
+    Args:
+        X_train: Training features (provided for context, but not used for
+                 fitting within this function, as the model must be unfitted).
+        y_train: Training target (provided for context, but not used for
+                 fitting within this function).
+                 
+    Returns:
+        An unfitted instance of AutoGluonRegressionModelWrapper, which exposes
+        .fit(X, y) and .predict(X) methods.
+    """
+    # Return a new instance of our wrapper. This instance is initially unfitted.
+    # The actual fitting will occur when the harness calls its .fit() method.
+    return AutoGluonRegressionModelWrapper(artifacts_base_dir=AUTOGLUON_ARTIFACTS_BASE_DIR)
+```
+Please prioritize model architecture improvements and training optimization to enhance performance. Feature engineering may also be applied but with lower priority.
+
+### Previous errors
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid keyword argument `random_state`. This argument is not recognized by the `TabularPredictor` initialization method, leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor. If reproducibility is desired for the model training process, pass `random_state` as an argument to the `predictor.fit()` method instead.
+
+ERROR_SUMMARY: The AutoGluon TabularPredictor failed to fit because the specified `presets` value, 'medium_quality_faster_inference', is not a valid or recognized preset for the installed version of AutoGluon. The error message explicitly lists the supported presets, and the chosen one is absent.
+SUGGESTED_FIX: Modify the `presets` argument in the `predictor.fit` method call within the `AutoGluonRegressionModelWrapper` class. Replace 'medium_quality_faster_inference' with one of the valid presets listed in the error message, such as 'medium_quality' or 'good_quality'.
+
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was invoked with an unsupported keyword argument, `random_state`. AutoGluon's `TabularPredictor` does not expose a `random_state` parameter directly within its `fit` method signature.
+SUGGESTED_FIX: Remove the `random_state=SEED` argument from the `self.predictor.fit()` method call. Global random seeds for `random` and `numpy` are already set, which is the appropriate way to manage reproducibility for AutoGluon in this context.
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+# Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+# Intro to Use Machine Learning or Deep Learning algorithms
+
+You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-3/60dc7537d0a0cc3468d8/attempt-1/mlzero/node_9/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 2137 seconds.

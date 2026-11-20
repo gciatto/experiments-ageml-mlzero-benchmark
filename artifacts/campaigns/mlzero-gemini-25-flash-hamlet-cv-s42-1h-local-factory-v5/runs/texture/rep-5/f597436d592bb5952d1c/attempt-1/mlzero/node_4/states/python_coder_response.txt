@@ -1,0 +1,146 @@
+```python
+import pandas as pd
+import numpy as np
+import logging
+import os
+import uuid
+from autogluon.tabular import TabularPredictor
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+# Configure logging to avoid excessive output during cross-validation.
+# AutoGluon can be very verbose, so setting a higher level is crucial for cleaner logs.
+logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Seed for reproducibility across stochastic models.
+RANDOM_STATE = 42
+
+class AutoGluonMLZeroModel(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper model for the MLZero benchmark, encapsulating AutoGluon's TabularPredictor.
+    This class adheres to the scikit-learn estimator interface (fit/predict)
+    and manages AutoGluon's lifecycle and artifact handling.
+    """
+    def __init__(self, random_state: int = RANDOM_STATE, time_limit: int = 250):
+        """
+        Initializes the AutoGluonMLZeroModel.
+
+        Args:
+            random_state (int): Seed for reproducibility.
+            time_limit (int): Maximum time in seconds for AutoGluon to train per fold.
+                              This is a soft limit to help manage overall execution time.
+        """
+        self.random_state = random_state
+        self.time_limit = time_limit
+        self.predictor = None
+        self.model_path = None
+        self.classes_ = None  # Required by scikit-learn's ClassifierMixin for consistency
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor on the provided training data.
+        All preprocessing and model selection are handled internally by AutoGluon
+        and are fitted solely on the supplied training rows for this fold.
+
+        Args:
+            X (pd.DataFrame or np.ndarray): Training features.
+            y (pd.Series or np.ndarray): Training target labels.
+
+        Returns:
+            self: The fitted model instance.
+        """
+        # AutoGluon's TabularPredictor expects a single DataFrame containing
+        # both features and the target column.
+        target_column = 'Class'  # As specified in the problem description
+
+        # Ensure X is a DataFrame and y is a Series, aligning their indices.
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        if not isinstance(y, pd.Series):
+            # Ensure the target Series has the same index as X for correct concatenation
+            y = pd.Series(y, name=target_column, index=X.index)
+
+        train_data = pd.concat([X, y], axis=1)
+
+        # Store unique classes from the training data. This is required by
+        # scikit-learn's ClassifierMixin and can be useful for internal checks.
+        self.classes_ = np.unique(y)
+
+        # Create a unique path for AutoGluon artifacts for this specific fold.
+        # This addresses the requirement to "Use fresh artifact directories per fold".
+        # AutoGluon will create this directory if it doesn't exist.
+        # os.getcwd() is assumed to be the node output folder where model_factory.py resides.
+        unique_id = uuid.uuid4().hex
+        self.model_path = os.path.join(os.getcwd(), f"AutogluonModels/ag_model_{unique_id}")
+        
+        # Ensure the parent directory for AutoGluon models exists
+        os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
+
+        # Determine the problem type (binary or multiclass classification)
+        # based on the number of unique classes in the target variable.
+        num_classes = len(self.classes_)
+        problem_type = 'binary' if num_classes == 2 else 'multiclass'
+
+        # Initialize AutoGluon TabularPredictor.
+        # It will automatically handle feature type inference and preprocessing.
+        self.predictor = TabularPredictor(
+            label=target_column,
+            path=self.model_path,
+            eval_metric='balanced_accuracy',  # Optimize directly for the specified metric
+            problem_type=problem_type,
+        )
+
+        # Fit the predictor with the specified time limit and presets.
+        # The previous 'medium_quality_fast_inference' preset was invalid.
+        # 'medium_quality' is a valid and suitable alternative for balancing speed and performance.
+        self.predictor.fit(
+            train_data,
+            time_limit=self.time_limit,
+            presets='medium_quality', # FIX: Changed from 'medium_quality_fast_inference' to 'medium_quality'
+            seed=self.random_state,  # For reproducibility of AutoGluon's internal processes
+            # verbosity=0 # Uncomment for even less verbose AutoGluon output if needed
+        )
+        
+        # AutoGluon saves its models and intermediate artifacts to the specified `model_path`.
+        # The benchmark harness is expected to clean up the node output folder,
+        # including these artifacts, after each run.
+        
+        return self
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Predicts class labels for the input data using the fitted AutoGluon predictor.
+
+        Args:
+            X (pd.DataFrame or np.ndarray): Features to predict on.
+
+        Returns:
+            np.ndarray: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call fit(X, y) first.")
+
+        # Ensure X is a DataFrame for AutoGluon's prediction method.
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        # AutoGluon's predict method returns a pandas Series, convert to a NumPy array
+        # to adhere to common scikit-learn output conventions.
+        return self.predictor.predict(X).values
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMLZeroModel:
+    """
+    Factory function to create a new, unfitted AutoGluonMLZeroModel instance.
+    This function is called by the benchmark harness for each fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used for metadata inference, not fitting).
+        y_train (pd.Series): Training target labels (used for metadata inference, not fitting).
+
+    Returns:
+        AutoGluonMLZeroModel: An unfitted model instance, ready for training.
+    """
+    # The time_limit is set to ensure all ten folds can finish within the total deadline.
+    # With a total remaining time of 3087 seconds, 250 seconds per fold for AutoGluon
+    # (2500 seconds total for 10 fits) leaves ample time for overhead.
+    return AutoGluonMLZeroModel(random_state=RANDOM_STATE, time_limit=250)
+```

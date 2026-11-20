@@ -1,0 +1,133 @@
+import pandas as pd
+import numpy as np
+import os
+import time
+import logging
+import shutil
+from autogluon.tabular import TabularPredictor
+
+# Suppress AutoGluon's default logging verbosity for cleaner output during evaluation.
+# AutoGluon's TabularPredictor has a 'verbosity' parameter which is more direct.
+# If more global control is needed, uncomment the line below:
+# logging.getLogger('autogluon').setLevel(logging.WARNING)
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    `fit(X, y)` and `predict(X)` interface required by the evaluation harness.
+    """
+    def __init__(self, target_column, random_seed=42, time_limit=300):
+        """
+        Initializes the AutoGluon model wrapper.
+
+        Args:
+            target_column (str): The name of the target column for regression.
+            random_seed (int): Seed for reproducibility.
+            time_limit (int): Maximum time in seconds for AutoGluon to train.
+        """
+        self.target_column = target_column
+        self.random_seed = random_seed
+        self.time_limit = time_limit
+        self.predictor = None
+        self.model_path = None # Path where AutoGluon will store its artifacts
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        All preprocessing and model training are performed within this method
+        using only the provided training data (X, y). This ensures that
+        preprocessing steps are learned solely from the training fold data.
+
+        Args:
+            X (pd.DataFrame): Training features for the current fold.
+            y (pd.Series): Training target values for the current fold.
+        """
+        # Combine features and target into a single DataFrame as required by AutoGluon
+        train_data = X.copy()
+        train_data[self.target_column] = y
+
+        # Generate a unique path for this model instance's artifacts.
+        # This ensures "fresh artifact directories per fold" as each call to build_model
+        # creates a new wrapper instance, leading to a unique id(self).
+        # The current working directory is assumed to be the "node output folder"
+        # where artifacts can be written.
+        base_output_dir = "autogluon_models_artifacts"
+        # Using id(self) and a timestamp ensures a highly unique path for each model instance.
+        self.model_path = os.path.join(base_output_dir, f"ag_model_{id(self)}_{int(time.time())}")
+        
+        # Ensure the base directory exists, AutoGluon will create the full path.
+        os.makedirs(base_output_dir, exist_ok=True)
+
+        # Initialize TabularPredictor
+        self.predictor = TabularPredictor(
+            label=self.target_column,
+            path=self.model_path,
+            eval_metric='rmse', # Explicitly set RMSE as the evaluation metric for regression
+            verbosity=0 # Suppress AutoGluon's verbose output during training
+        )
+        
+        # Fit the model with specified time limit and quality preset.
+        # 'best_quality' preset aims for the highest accuracy but might take longer.
+        # The time_limit parameter will ensure it respects the deadline.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=self.time_limit,
+            presets='best_quality', 
+            random_seed=self.random_seed
+        )
+
+    def predict(self, X):
+        """
+        Generates predictions for the given input features.
+
+        Args:
+            X (pd.DataFrame): Features for which to generate predictions.
+
+        Returns:
+            np.ndarray: A 1-dimensional numpy array of predicted target values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon expects a DataFrame for prediction
+        predictions = self.predictor.predict(X)
+        
+        # Return predictions as a numpy array, as is common in ML libraries
+        return predictions.values
+
+# Module-level constants for configuration
+TARGET_COLUMN = 'SalePrice'
+RANDOM_SEED = 42
+# Conservative time limit for each fold's fit.
+# The total remaining time is 3385 seconds for 10 folds.
+# 300 seconds per fold leaves 385 seconds for overall overhead.
+FIT_TIME_LIMIT_SECONDS = 300 
+
+def build_model(X_train, y_train):
+    """
+    Factory function to create a new, unfitted AutoGluon model wrapper.
+
+    This function is called by the evaluation harness for each cross-validation fold.
+    It returns an object that exposes `fit(X,y)` and `predict(X)` methods.
+
+    Args:
+        X_train (pd.DataFrame): Training features for the current fold.
+                                This is primarily used for metadata inference (e.g., column names)
+                                and not for fitting the model at this stage.
+        y_train (pd.Series): Training target for the current fold.
+                             Used for metadata inference (e.g., target column name)
+                             and not for fitting the model at this stage.
+        
+    Returns:
+        AutoGluonModelWrapper: An unfitted model wrapper object with `fit(X,y)` and `predict(X)` methods.
+    """
+    # The X_train and y_train arguments here are available to configure the model
+    # based on the expected data structure. For AutoGluon, the target column name
+    # is the main configuration needed, which is provided by TARGET_COLUMN.
+    
+    return AutoGluonModelWrapper(
+        target_column=TARGET_COLUMN,
+        random_seed=RANDOM_SEED,
+        time_limit=FIT_TIME_LIMIT_SECONDS
+    )

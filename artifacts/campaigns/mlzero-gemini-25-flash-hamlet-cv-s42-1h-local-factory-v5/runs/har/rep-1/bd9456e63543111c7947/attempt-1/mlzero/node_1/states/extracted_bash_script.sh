@@ -1,0 +1,54 @@
+#!/bin/bash
+# Minimal BASH INSTALLATION script for the factory module
+
+# Propagate installation errors immediately
+set -e
+
+# --- Configuration Variables ---
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-1/bd9456e63543111c7947/attempt-1/mlzero/node_1/conda_env"
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+PYTHON_VERSION="3.11"
+
+# --- Ensure Conda is initialized and available ---
+# This step is crucial for non-interactive shells or environments
+# where conda might not be in PATH by default.
+# Find conda base path (assuming miniconda/anaconda is installed)
+CONDA_BASE=$(conda info --base 2>/dev/null)
+if [ -z "$CONDA_BASE" ]; then
+    echo "Error: Conda base environment not found. Please ensure Conda is installed and accessible."
+    exit 1
+fi
+source "$CONDA_BASE/etc/profile.d/conda.sh" || { echo "Error: Failed to source conda.sh. Ensure Conda is properly initialized."; exit 1; }
+
+# --- Create Conda environment ---
+echo "Creating conda environment at $CONDA_ENV_PATH with Python $PYTHON_VERSION..."
+conda create --prefix "$CONDA_ENV_PATH" python="$PYTHON_VERSION" --yes || { echo "Error: Failed to create conda environment."; exit 1; }
+echo "Conda environment created."
+
+# --- Activate the environment ---
+echo "Activating conda environment $CONDA_ENV_PATH..."
+conda activate "$CONDA_ENV_PATH" || { echo "Error: Failed to activate conda environment."; exit 1; }
+echo "Conda environment activated."
+
+# --- Install uv ---
+echo "Installing uv in the environment..."
+pip install uv || { echo "Error: Failed to install uv."; exit 1; }
+echo "uv installed."
+
+# --- Install required packages using uv ---
+echo "Installing packages from requirements files using uv..."
+# Install autogluon.multimodal requirements first, then common requirements,
+# allowing prerelease versions as specified.
+uv pip install -r "$MULTIMODAL_REQ_FILE" --prerelease=allow -r "$COMMON_REQ_FILE" || { echo "Error: Failed to install requirements using uv."; exit 1; }
+echo "Requirements from files installed."
+
+# --- Install additional specified packages (numpy, pandas, scikit-learn) ---
+echo "Installing numpy, pandas, scikit-learn..."
+uv pip install numpy pandas scikit-learn || { echo "Error: Failed to install numpy, pandas, scikit-learn."; exit 1; }
+echo "numpy, pandas, scikit-learn installed."
+
+echo "Conda environment setup complete for $CONDA_ENV_PATH."
+
+# Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+# or the factory module itself. This script only handles environment setup.

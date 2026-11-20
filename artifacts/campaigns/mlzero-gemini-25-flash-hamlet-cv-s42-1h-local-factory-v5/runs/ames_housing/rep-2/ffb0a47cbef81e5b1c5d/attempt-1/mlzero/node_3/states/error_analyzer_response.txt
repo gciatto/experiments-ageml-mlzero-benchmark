@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an invalid `seed` keyword argument. The `seed` parameter for reproducibility should be passed during the initialization of the `TabularPredictor` object, not to its `fit` method.
+SUGGESTED_FIX: Remove the `seed` argument from the `predictor.fit()` method call. Instead, pass the `random_seed` parameter directly to the `TabularPredictor` constructor when initializing the predictor object.

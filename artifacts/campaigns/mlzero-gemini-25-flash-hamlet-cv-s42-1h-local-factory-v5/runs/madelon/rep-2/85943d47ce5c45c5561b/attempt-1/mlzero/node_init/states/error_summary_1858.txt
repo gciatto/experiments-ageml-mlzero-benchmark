@@ -1,0 +1,1 @@
+Cell content in the first 3 rows is truncated to 8 characters, but the task required truncation to 50 characters. Additionally, the display of the first 3 rows truncates the number of columns shown (first 3 and last 3), which was not explicitly requested for the head display.

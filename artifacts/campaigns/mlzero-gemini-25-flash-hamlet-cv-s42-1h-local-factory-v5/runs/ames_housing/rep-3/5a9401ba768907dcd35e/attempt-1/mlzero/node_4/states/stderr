@@ -1,0 +1,8 @@
+WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
+usage: conda [-h] [-v] [--no-plugins] [-V] COMMAND ...
+conda: error: argument COMMAND: invalid choice: 'shell' (choose from 'activate', 'check', 'clean', 'commands', 'compare', 'config', 'create', 'deactivate', 'doctor', 'env', 'export', 'index', 'info', 'init', 'install', 'list', 'menuinst', 'notices', 'package', 'pypi', 'remove', 'rename', 'repoquery', 'run', 'search', 'self', 'uninstall', 'update', 'upgrade')
+CondaError: Run 'conda init' before 'conda activate'

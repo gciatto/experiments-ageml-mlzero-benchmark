@@ -1,0 +1,1 @@
+{"elapsed_s": 1888.1693878173828, "cgroup_cpu_s": 340.350082, "cgroup_peak_bytes": 5699661824, "rusage_children_cpu_s": 337.760309, "rusage_children_maxrss_bytes": 1663459328, "sampled_at": 1795116315.2546163, "final": true, "exit_code": 0}

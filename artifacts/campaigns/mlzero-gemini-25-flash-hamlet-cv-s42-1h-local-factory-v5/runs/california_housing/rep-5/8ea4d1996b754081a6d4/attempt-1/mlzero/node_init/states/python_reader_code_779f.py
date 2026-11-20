@@ -1,0 +1,41 @@
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/cv_contract.json"
+
+try:
+    # Attempt to read the JSON file as a pandas DataFrame
+    df = pd.read_json(file_path)
+
+    output_parts = []
+
+    # Display column names
+    columns = df.columns.tolist()
+    output_parts.append("Columns:")
+    if len(columns) > 20:
+        output_parts.append(str(columns[:10] + ['...'] + columns[-10:]))
+    else:
+        output_parts.append(str(columns))
+
+    # Display first 1-2 rows with truncated content, prioritizing brevity for 768 char limit
+    if not df.empty:
+        output_parts.append("\nFirst row(s) (truncated to 50 chars, showing 1 for brevity):")
+        # Showing 1 row to ensure output stays within the 768 character limit,
+        # as 2-3 rows of a wide table would easily exceed it.
+        output_parts.append(df.head(1).to_string(index=False, max_colwidth=50))
+        if len(df) > 1:
+            output_parts.append("...") # Indicate more rows
+
+    print("\n".join(output_parts))
+
+except (ValueError, pd.errors.EmptyDataError, json.JSONDecodeError) as e:
+    # If pandas fails to read it as a structured JSON, treat as generic text.
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(f"File content (first {len(content)} chars):\n{content}")
+    except Exception as text_read_error:
+        # Fallback for truly unreadable files (e.g., binary, permissions issues)
+        print(f"Could not process file: {file_path}. Error: {text_read_error}")
+        print(f"File size: {os.path.getsize(file_path)} bytes.")

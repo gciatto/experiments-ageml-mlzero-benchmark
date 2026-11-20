@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The AutoGluon `TabularPredictor` was called with a `presets` argument `'medium_quality_fast_inference'` which is not a valid preset name for the installed AutoGluon version. The error message explicitly lists the available presets, and the specified one is missing. This indicates an incorrect or deprecated preset name.
+SUGGESTED_FIX: Modify the `presets` argument in the `TabularPredictor.fit` call within the `AutoGluonMLZeroModel.fit` method. Replace `'medium_quality_fast_inference'` with a valid preset from the error message, such as `'medium_quality'`.

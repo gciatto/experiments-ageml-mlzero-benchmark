@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The bash script failed to locate the Conda base installation at the specified path `/opt/conda`. This prevented the script from initializing Conda and subsequently creating the required Python environment for the model dependencies.
+SUGGESTED_FIX: Verify the actual installation path of Conda in the execution environment. Adjust the `CONDA_BASE_PATH` variable in the bash script to point to the correct Conda root directory, or ensure Conda is installed at `/opt/conda`.

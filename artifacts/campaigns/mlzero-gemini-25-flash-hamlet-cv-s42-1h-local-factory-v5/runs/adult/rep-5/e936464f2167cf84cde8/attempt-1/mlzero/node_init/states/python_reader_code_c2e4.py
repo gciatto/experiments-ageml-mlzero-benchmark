@@ -1,0 +1,21 @@
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/evaluate_cv.py"
+
+try:
+    # Attempt to read as a text file
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read(768)
+        print(content)
+except FileNotFoundError:
+    print(f"Error: File not found at {file_path}")
+except Exception as e:
+    # Fallback for other reading errors, treat as binary or unreadable text
+    print(f"Could not read file as text: {e}. Attempting binary read for basic info.")
+    try:
+        with open(file_path, 'rb') as f:
+            header = f.read(256) # Read a small portion for binary info
+            print(f"File is likely binary or unreadable. First 256 bytes (hex): {header.hex()}")
+    except Exception as e_binary:
+        print(f"Could not even read as binary: {e_binary}")
+    print(f"File size: {os.path.getsize(file_path)} bytes")

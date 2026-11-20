@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor` constructor was called with an invalid keyword argument, `random_seed`. The current version of AutoGluon does not accept `random_seed` as a parameter during the initialization of the `TabularPredictor` object.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. To ensure reproducibility, pass the `random_seed` argument directly to the `fit()` method of the `TabularPredictor` instance, or set it globally using `autogluon.core.utils.utils.set_seed()`.

@@ -1,0 +1,46 @@
+```bash
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# Define environment path and requirement file paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-1/f5904a8064f3eac0500a/attempt-1/mlzero/node_6/conda_env"
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# 1. Ensure parent directories exist for the conda environment
+mkdir -p "$(dirname "$CONDA_ENV_PATH")"
+
+# 2. Create Conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y || { echo "Error: Failed to create conda environment."; exit 1; }
+
+# 3. Activate the environment
+echo "Activating conda environment..."
+# Robust activation for scripts: source conda.sh then activate
+source "$(conda info --base)/etc/profile.d/conda.sh" || { echo "Error: Could not source conda.sh. Is conda installed and in PATH?"; exit 1; }
+conda activate "$CONDA_ENV_PATH" || { echo "Error: Could not activate conda environment."; exit 1; }
+
+echo "Conda environment activated: $(which python)"
+echo "Python version: $(python --version)"
+
+# 4. Install uv
+echo "Installing uv..."
+pip install uv || { echo "Error: Failed to install uv."; exit 1; }
+
+# 5. Install core packages: numpy, pandas, scikit-learn
+echo "Installing numpy, pandas, scikit-learn using uv..."
+uv pip install numpy pandas scikit-learn || { echo "Error: Failed to install core packages."; exit 1; }
+
+# 6. Install AutoGluon (the selected ML library)
+echo "Installing autogluon.tabular using uv..."
+# Installing autogluon.tabular will pull in autogluon.common and other necessary components.
+uv pip install autogluon.tabular || { echo "Error: Failed to install autogluon.tabular."; exit 1; }
+
+# 7. Install required packages from the specified requirement files using uv
+echo "Installing packages from requirement files using uv..."
+uv pip install -r "$ML_REQ_FILE" --prerelease=allow -r "$COMMON_REQ_FILE" || { echo "Error: Failed to install packages from requirement files."; exit 1; }
+
+echo "--- Conda Environment Setup Complete ---"
+```

@@ -1,0 +1,28 @@
+import pandas as pd
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/data.csv"
+
+try:
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', 1000)
+    pd.set_option('display.max_colwidth', 50)
+
+    df = pd.read_csv(file_path)
+
+    columns = df.columns.tolist()
+    if len(columns) > 20:
+        print("Columns:", columns[:10] + ['...'] + columns[-10:])
+    else:
+        print("Columns:", columns)
+
+    print("\nFirst 3 rows:")
+    print(df.head(3).to_string(index=False))
+
+except Exception:
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(768)
+            print("File content (first 768 chars):\n", content)
+    except Exception as text_e:
+        print(f"Could not read file: {text_e}")

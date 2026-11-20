@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor` constructor received an invalid `random_state` argument. The `random_state` parameter for reproducibility must be passed through the `learner_kwargs` dictionary to the `TabularPredictor` constructor, not as a direct argument.
+SUGGESTED_FIX: In the `AutoGluonModelWrapper` class, modify the `TabularPredictor` initialization within the `fit` method. Remove `random_state=RANDOM_SEED` as a direct argument and instead pass `{'random_state': RANDOM_SEED}` as the value for the `learner_kwargs` parameter.

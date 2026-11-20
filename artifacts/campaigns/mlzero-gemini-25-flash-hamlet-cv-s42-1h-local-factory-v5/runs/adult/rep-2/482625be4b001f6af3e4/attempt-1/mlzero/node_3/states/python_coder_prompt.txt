@@ -1,0 +1,775 @@
+Generate a SELF-CONTAINED Python factory MODULE using autogluon.multimodal.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+This data science task is a **classification** problem.
+
+**Input Format:**
+Tabular data provided in a CSV file (`data.csv`). The input features (`X`) for the model are all columns from `data.csv` except for the `class` column.
+
+**Prediction Output Format:**
+The model's `predict(X)` method must return a 1D array of predicted class labels, corresponding to the input rows. These predictions are evaluated against the true `class` labels.
+
+**Task Details:**
+*   **Target Column:** `class`.
+*   **Metric:** `balanced_accuracy` (higher is better).
+*   **Evaluation:** Ten-fold cross-validation is used, with pre-defined train/validation splits specified in `cv_contract.json`. There is no independent test set.
+*   **Model Requirements:** A Python module must provide a `build_model(X_train, y_train)` function that returns a new, unfitted model object. This model must expose `fit(X,y)` and `predict(X)` methods. All preprocessing must be encapsulated within this model and fitted solely on the provided training data for each fold. Stochastic models must use `random_state/seed 42`.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv
+Content:
+Columns: ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'class']
+
+First 2 rows (truncated to 50 chars per cell, max 3 columns):
+age workclass   fnlwgt
+ 25   Private 226802.0
+ 38   Private  89814.0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: adult
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other 
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/cv_contract.json
+Content:
+Could not read as tabular data (All arrays must be of the same length). Reading as text file.
+{
+  "cv_folds": [
+    {
+      "train": [
+        4843,
+        4845,
+        4846,
+        4847,
+        4850,
+        4851,
+        4852,
+        4853,
+        4856,
+        4858,
+        4859,
+        4860,
+        4861,
+        4862,
+        4864,
+        4865,
+        4867,
+        4870,
+        4871,
+        4874,
+        4875,
+        4876,
+        4877,
+        4878,
+        4879,
+        4880,
+        4882,
+        4885,
+        4886,
+        4887,
+        4888,
+        4889,
+        4890,
+        4894,
+        4895,
+        4896,
+        4897,
+        4898,
+        4902,
+        4903,
+        4904,
+        4905,
+        4906,
+        4907,
+        4909,
+...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+Hyperparameter tuning is unnecessary because the presets is already configured.
+The usage of document prediction is different from image prediction.
+Check data path carefully when encounter ValueError: No model is available for this dataset.
+No need to specify model.names, and do not increase default per gpu batch size to avoid OOM errors.
+For semantic segmentation, use single GPU by setting CUDA_VISIBLE_DEVICES=0
+For semantic segmentation, the predicted mask should be saved as greyscale JPG image (squeeze then cv2.imwrite) in \"predicted_mask\" folder under output folder and save its absolute path in label column.
+AutoGluon MultiModal requires converting multiple label columns into either a single combined label for mutually exclusive cases or training separate predictors for each label in non-exclusive scenarios.
+### Native debug/evolution context
+### Previous Code to Improve
+```python
+import pandas as pd
+import numpy as np
+import random
+import uuid
+import shutil
+from pathlib import Path
+
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    build_model factory contract. It encapsulates the MultiModalPredictor
+    and provides `fit` and `predict` methods.
+    """
+    def __init__(self, label_column: str, problem_type: str, eval_metric: str, path: str):
+        """
+        Initializes the wrapper with task-specific parameters and a unique path
+        for model artifacts.
+
+        Args:
+            label_column: The name of the target column.
+            problem_type: The type of machine learning problem (e.g., 'classification').
+            eval_metric: The metric to optimize during training.
+            path: A unique directory path where AutoGluon will store model artifacts.
+        """
+        self.label_column = label_column
+        self.problem_type = problem_type
+        self.eval_metric = eval_metric
+        self.path = path  # Store as string, as MultiModalPredictor expects string
+        self.predictor = None
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+        All preprocessing is handled internally by MultiModalPredictor and fitted
+        solely on the provided training data (X, y).
+
+        Args:
+            X: Training features.
+            y: Training target labels.
+        """
+        # Set seeds for reproducibility for stochastic processes within AutoGluon.
+        # This ensures consistent results across runs for models that use randomness.
+        np.random.seed(42)
+        random.seed(42)
+
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor.fit.
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Initialize MultiModalPredictor.
+        # The 'path' argument ensures artifacts are stored in a unique directory per fold,
+        # fulfilling the "fresh artifact directories per fold" requirement.
+        # 'verbosity=0' can be uncommented to reduce console output during fitting.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            problem_type=self.problem_type,
+            eval_metric=self.eval_metric,
+            path=self.path,
+            # verbosity=0 # Uncomment to reduce output during training
+        )
+
+        # Fit the predictor with a time limit and a suitable preset.
+        # 'medium_quality' preset balances performance and training time, suitable for benchmarks.
+        # 'time_limit' is set conservatively (90 seconds) to ensure all 10 folds complete
+        # within the shared deadline, allowing for data loading, preprocessing, and other overheads.
+        self.predictor.fit(
+            train_data=train_data,
+            presets="medium_quality",  # A valid preset for MultiModalPredictor
+            time_limit=90,  # Time limit in seconds for each fold's fit operation
+            # num_gpus=1 # Uncomment if you want to explicitly limit GPU usage to 1
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor.
+
+        Args:
+            X: Features for which to make predictions.
+
+        Returns:
+            A 1D NumPy array of predicted class labels, corresponding to the input rows.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # MultiModalPredictor.predict typically returns a pandas Series for classification labels.
+        predictions = self.predictor.predict(X)
+
+        # Convert the predictions to a 1D NumPy array as required by the contract.
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMultiModalWrapper:
+    """
+    Factory function to create a new, unfitted AutoGluon MultiModal model wrapper.
+    This function is called once per cross-validation fold by the evaluation harness.
+
+    Args:
+        X_train: Training features (used for context, not for fitting here).
+        y_train: Training target labels (used for context, not for fitting here).
+
+    Returns:
+        A new, unfitted instance of AutoGluonMultiModalWrapper.
+    """
+    # Generate a unique path for each model instance (i.e., for each fold).
+    # This ensures that each fold's model artifacts are stored separately,
+    # preventing interference and ensuring "fresh artifact directories per fold".
+    unique_model_path = f"./autogluon_multimodal_model_artifacts_{uuid.uuid4().hex}"
+
+    # Define task-specific parameters as per the problem description.
+    label_column = 'class'
+    problem_type = 'classification'
+    eval_metric = 'balanced_accuracy'  # The metric specified for evaluation
+
+    # Return a new, unfitted instance of our wrapper.
+    # The actual fitting will happen when the harness calls model.fit(X, y).
+    return AutoGluonMultiModalWrapper(
+        label_column=label_column,
+        problem_type=problem_type,
+        eval_metric=eval_metric,
+        path=unique_model_path
+    )
+```
+Please prioritize model architecture improvements and training optimization to enhance performance. Feature engineering may also be applied but with lower priority.
+
+### Previous errors
+ERROR_SUMMARY: The `random_state` argument was incorrectly passed directly to the `autogluon.tabular.TabularPredictor.fit()` method, which does not accept this parameter as a top-level keyword argument. This resulted in a `ValueError` because `random_state` is not a recognized configuration for the `fit` function in the AutoGluon API.
+SUGGESTED_FIX: Remove the `random_state` argument from the `self.predictor.fit()` call. To ensure reproducibility as required by the task, explicitly set the global random seeds for `numpy` and `random` modules (e.g., `np.random.seed(42)` and `random.seed(42)`) at the beginning of the `fit` method within your `AutoGluonTabularModel` class.
+
+ERROR_SUMMARY: The AutoGluon `TabularPredictor.fit()` method failed because the specified `presets='medium_quality_fast_inference'` is not a valid preset for the installed AutoGluon version (1.6.3). The error message explicitly lists the available presets, none of which match the requested one.
+SUGGESTED_FIX: Modify the `presets` argument in the `predictor.fit()` call within the `AutoGluonTabularModel.fit` method. Replace `'medium_quality_fast_inference'` with one of the valid presets listed in the error message, such as `'medium_quality'` or `'high_quality'`.
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon's MultiModalPredictor for text classification using different quality presets. It covers implementation techniques for sentiment analysis with three preset configurations: medium_quality (fast, smaller models), high_quality (balanced), and best_quality (performance-focused). The tutorial shows how to add hyperparameter optimization with _hpo suffixes, evaluate models using metrics like roc_auc, and view preset configurations. Key functionalities include automatic model selection, time-limited training, and hyperparameter tuning for text classification tasks with minimal code, making it useful for quickly implementing sentiment analysis or other text classification problems.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoMM Presets Tutorial
+
+## Setup
+```python
+!pip install autogluon.multimodal
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+## Dataset
+Using Stanford Sentiment Treebank (SST) for binary classification of movie reviews.
+
+```python
+from autogluon.core.utils.loaders import load_pd
+
+train_data = load_pd.load('https://autogluon-text.s3-accelerate.amazonaws.com/glue/sst/train.parquet')
+test_data = load_pd.load('https://autogluon-text.s3-accelerate.amazonaws.com/glue/sst/dev.parquet')
+subsample_size = 1000  # subsample for faster demo
+train_data = train_data.sample(n=subsample_size, random_state=0)
+```
+
+## Quality Presets
+
+### Medium Quality
+Optimized for fast training and inference with smaller models.
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+
+predictor = MultiModalPredictor(label='label', eval_metric='acc', presets="medium_quality")
+predictor.fit(train_data=train_data, time_limit=20)  # seconds
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+### High Quality
+Balances prediction quality and speed using larger models.
+
+```python
+predictor = MultiModalPredictor(label='label', eval_metric='acc', presets="high_quality")
+predictor.fit(train_data=train_data, time_limit=20)
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+### Best Quality
+Prioritizes performance over training/inference cost. Requires more time and GPU memory.
+
+```python
+predictor = MultiModalPredictor(label='label', eval_metric='acc', presets="best_quality")
+predictor.fit(train_data=train_data, time_limit=180)
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+## HPO Presets
+Add `_hpo` suffix to enable hyperparameter optimization:
+- `medium_quality_hpo`
+- `high_quality_hpo`
+- `best_quality_hpo`
+
+## Viewing Preset Configurations
+```python
+import json
+from autogluon.multimodal.utils.presets import get_presets
+
+# View high_quality preset details
+hyperparameters, hyperparameter_tune_kwargs = get_presets(problem_type="default", presets="high_quality")
+print(f"hyperparameters: {json.dumps(hyperparameters, sort_keys=True, indent=4)}")
+
+# View high_quality_hpo preset details
+hyperparameters, hyperparameter_tune_kwargs = get_presets(problem_type="default", presets="high_quality_hpo")
+```
+
+HPO presets tune parameters like model backbone, batch size, learning rate, max epoch, and optimizer type.
+
+## Additional Resources
+- More examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- Customization: Refer to "Customize AutoMM" documentation
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, semantic segmentation, similarity matching, NER, and feature extraction. It helps with implementing models that handle various data modalities (text, image, numerical, categorical) and specifies which problem types support training vs. zero-shot prediction. The tutorial details evaluation metrics for each problem type and provides implementation context for working with multimodal data. It's valuable for coding tasks involving multimodal machine learning, particularly when working with mixed data types and needing automated model training across different problem domains.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Problem Types
+
+## Installation and Setup
+
+```python
+!pip install autogluon.multimodal
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+## Problem Types Overview
+
+### Classification
+
+AutoGluon supports two types of classification:
+
+**Binary Classification (2 classes)**
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: accuracy, balanced_accuracy, f1, mcc, roc_auc (default)
+- Supports training and zero-shot prediction
+
+**Multiclass Classification (3+ classes)**
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: accuracy (default), balanced_accuracy, f1, log_loss
+- Supports training and zero-shot prediction
+
+### Regression
+
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: mse, rmse (default), r2, mae, mape
+- Supports training and zero-shot prediction
+
+### Object Detection
+
+- Supported modalities: image
+- Evaluation metrics: map (default)
+- Supports training but not zero-shot prediction
+
+### Semantic Segmentation
+
+- Supported modalities: image
+- Evaluation metrics: overall_accuracy, mean_accuracy, mean_iou (default), weighted_iou
+- Supports training but not zero-shot prediction
+
+### Similarity Matching Problems
+
+**Text Similarity**
+- Input requirements: text
+- Supports zero-shot prediction
+
+**Image Similarity**
+- Input requirements: image
+- Supports zero-shot prediction
+
+**Image-Text Similarity**
+- Input requirements: image, text
+- Supports zero-shot prediction
+
+### Named Entity Recognition (NER)
+
+- Supported modalities: text
+- Evaluation metrics: overall_f1 (default)
+- Supports training but not zero-shot prediction
+
+### Feature Extraction
+
+- Supported modalities: image, numerical, text, categorical, tabular
+- Supports training and zero-shot prediction
+
+### Few-shot Classification
+
+- Supported modalities: image, text
+- Evaluation metrics: accuracy (default)
+- Supports training and zero-shot prediction
+
+## Additional Resources
+- For more examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- For customization: [Customize AutoMM](../advanced_topics/customization.ipynb)
+- For similarity matching: [Matching Tutorials](../semantic_matching/index.md)
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates hyperparameter optimization (HPO) for multimodal models using AutoGluon's MultiModalPredictor. It covers implementing Ray Tune-based HPO for image classification tasks by defining search spaces for learning rates, optimizers, epochs, and model architectures. Key features include configuring search strategies (random/Bayesian), schedulers (FIFO/ASHA), and trial management. The tutorial shows how to compare regular training with HPO approaches, evaluate model performance, and efficiently tune hyperparameters to improve accuracy. This knowledge helps with implementing automated hyperparameter tuning for computer vision tasks, particularly when working with limited training data.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Hyperparameter Optimization Tutorial
+
+## Setup and Data Preparation
+
+```python
+!pip install autogluon.multimodal
+
+import warnings
+warnings.filterwarnings('ignore')
+from datetime import datetime
+from autogluon.multimodal.utils.misc import shopee_dataset
+
+# Load and prepare dataset
+download_dir = './ag_automm_tutorial_hpo'
+train_data, test_data = shopee_dataset(download_dir)
+train_data = train_data.sample(frac=0.5)  # 400 data points total
+```
+
+The dataset contains image paths in the `image` column and class labels in the `label` column.
+
+## Basic Model Training
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+
+predictor_regular = MultiModalPredictor(label="label")
+start_time = datetime.now()
+predictor_regular.fit(
+    train_data=train_data,
+    hyperparameters={"model.timm_image.checkpoint_name": "ghostnet_100"}
+)
+end_time = datetime.now()
+elapsed_seconds = (end_time - start_time).total_seconds()
+print("Total fitting time: ", f"{int(elapsed_seconds//60)}m{int(elapsed_seconds%60)}s")
+
+# Evaluate model
+scores = predictor_regular.evaluate(test_data, metrics=["accuracy"])
+print('Top-1 test acc: %.3f' % scores["accuracy"])
+```
+
+## Hyperparameter Optimization (HPO)
+
+AutoGluon uses Ray Tune for HPO with the following key configuration options:
+
+1. **Search Space Definition**:
+   ```python
+   hyperparameters = {
+       "optim.lr": tune.uniform(0.00005, 0.005),
+       "optim.optim_type": tune.choice(["adamw", "sgd"]),
+       "optim.max_epochs": tune.choice(["10", "20"]),
+       "model.timm_image.checkpoint_name": tune.choice(["swin_base_patch4_window7_224", "convnext_base_in22ft1k"])
+   }
+   ```
+
+2. **HPO Configuration**:
+   - `"searcher"`: Search strategy (`"random"` or `"bayes"`)
+   - `"scheduler"`: Job scheduling method (`"FIFO"` or `"ASHA"`)
+   - `"num_trials"`: Number of HPO trials to run
+   - `"num_to_keep"`: Number of checkpoints to keep per trial (must be ≥ 1)
+
+### Example HPO Implementation
+
+```python
+from ray import tune
+
+predictor_hpo = MultiModalPredictor(label="label")
+
+hyperparameters = {
+    "optim.lr": tune.uniform(0.00005, 0.001),
+    "model.timm_image.checkpoint_name": tune.choice([
+        "ghostnet_100",
+        "mobilenetv3_large_100"
+    ])
+}
+
+hyperparameter_tune_kwargs = {
+    "searcher": "bayes",
+    "scheduler": "ASHA",
+    "num_trials": 2,
+    "num_to_keep": 3,
+}
+
+start_time_hpo = datetime.now()
+predictor_hpo.fit(
+    train_data=train_data,
+    hyperparameters=hyperparameters,
+    hyperparameter_tune_kwargs=hyperparameter_tune_kwargs,
+)
+end_time_hpo = datetime.now()
+elapsed_seconds_hpo = (end_time_hpo - start_time_hpo).total_seconds()
+print("Total fitting time: ", f"{int(elapsed_seconds_hpo//60)}m{int(elapsed_seconds_hpo%60)}s")
+
+# Evaluate HPO model
+scores_hpo = predictor_hpo.evaluate(test_data, metrics=["accuracy"])
+print('Top-1 test acc: %.3f' % scores_hpo["accuracy"])
+```
+
+During training, you'll see the best trial information in the logs:
+```
+Current best trial: 47aef96a with val_accuracy=0.862500011920929 and parameters={'optim.lr': 0.0007195214018085505, 'model.timm_image.checkpoint_name': 'ghostnet_100'}
+```
+
+Even with just 2 trials, HPO can improve performance by finding better hyperparameter combinations compared to default settings.
+
+## Additional Resources
+- More examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- For customization: See [Customize AutoMM](customization.ipynb)
+
+
+### Condensed: Continuous training provides a method for machine learning models to refine their performance over time. It enables models to build upon previously acquired knowledge, thereby enhancing accuracy, facilitating knowledge transfer across tasks, and saving computational resources. In this tutorial, we will demonstrate three use cases of continuous training with AutoMM.
+# Condensed: Continuous training provides a method for machine learning models to refine their performance over time. It enables models to build upon previously acquired knowledge, thereby enhancing accuracy, facilitating knowledge transfer across tasks, and saving computational resources. In this tutorial, we will demonstrate three use cases of continuous training with AutoMM.
+
+Summary: This tutorial demonstrates AutoMM's continuous training capabilities with three key use cases: (1) extending model training with additional data or epochs without restarting, (2) resuming training from the last checkpoint after interruptions, and (3) transferring knowledge from pre-trained models to new tasks. It covers implementation techniques for loading/saving models, continuing training with new data, and applying transfer learning across different tasks. The tutorial specifically shows how to reuse weights from text classification for regression tasks and supports transfer learning for HuggingFace text models, TIMM image models, MMDetection models, and fusion models, while warning about potential catastrophic forgetting.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# Continuous Training with AutoMM
+
+## Use Case 1: Expanding Training with Additional Data or Training Time
+
+AutoMM allows extending model training without starting from scratch, either by adding more epochs or incorporating new data of the same problem type.
+
+```python
+# Load data
+from autogluon.core.utils.loaders import load_pd
+
+train_data = load_pd.load("https://autogluon-text.s3-accelerate.amazonaws.com/glue/sst/train.parquet")
+test_data = load_pd.load("https://autogluon-text.s3-accelerate.amazonaws.com/glue/sst/dev.parquet")
+subsample_size = 1000  # subsample for faster demo
+train_data_1 = train_data.sample(n=subsample_size, random_state=0)
+
+# Initial training
+from autogluon.multimodal import MultiModalPredictor
+import uuid
+
+model_path = f"./tmp/{uuid.uuid4().hex}-automm_sst"
+predictor = MultiModalPredictor(label="label", eval_metric="acc", path=model_path)
+predictor.fit(train_data_1, time_limit=60)
+
+# Evaluate
+test_score = predictor.evaluate(test_data)
+print(test_score)
+
+# Continue training with new data
+predictor_2 = MultiModalPredictor.load(model_path)
+train_data_2 = train_data.drop(train_data_1.index).sample(n=subsample_size, random_state=0)
+predictor_2.fit(train_data_2, time_limit=60)
+
+test_score_2 = predictor_2.evaluate(test_data)
+print(test_score_2)
+```
+
+## Use Case 2: Resuming Training from the Last Checkpoint
+
+If training collapses, resume from the last checkpoint:
+
+```python
+predictor_resume = MultiModalPredictor.load(path=model_path, resume=True)
+predictor.fit(train_data, time_limit=60)
+```
+
+## Use Case 3: Applying Pre-Trained Models to New Tasks
+
+Transfer knowledge from a trained model to a related but different task:
+
+```python
+# Dump model weights
+dump_model_path = f"./tmp/{uuid.uuid4().hex}-automm_sst"
+predictor.dump_model(save_path=dump_model_path)
+
+# Load regression dataset
+sts_train_data = load_pd.load("https://autogluon-text.s3-accelerate.amazonaws.com/glue/sts/train.parquet")[
+    ["sentence1", "sentence2", "score"]
+]
+sts_test_data = load_pd.load("https://autogluon-text.s3-accelerate.amazonaws.com/glue/sts/dev.parquet")[
+    ["sentence1", "sentence2", "score"]
+]
+
+# Train on new task using previous model weights
+sts_model_path = f"./tmp/{uuid.uuid4().hex}-automm_sts"
+predictor_sts = MultiModalPredictor(label="score", path=sts_model_path)
+predictor_sts.fit(
+    sts_train_data, 
+    hyperparameters={"model.hf_text.checkpoint_name": f"{dump_model_path}/hf_text"}, 
+    time_limit=30
+)
+
+# Evaluate
+test_score = predictor_sts.evaluate(sts_test_data, metrics=["rmse", "pearsonr", "spearmanr"])
+print("RMSE = {:.2f}".format(test_score["rmse"]))
+print("PEARSONR = {:.4f}".format(test_score["pearsonr"]))
+print("SPEARMANR = {:.4f}".format(test_score["spearmanr"]))
+```
+
+### Supported Model Types for Transfer Learning
+
+- HuggingFace text models: `{"model.hf_text.checkpoint_name": hf_text_model_path}`
+- TIMM image models: `{"model.timm_image.checkpoint_name": timm_image_model_path}`
+- MMDetection models: `{"model.mmdet_image.checkpoint_name": mmdet_image_model_path}`
+- Any fusion models comprising the above models
+
+**Note:** Be aware of potential catastrophic forgetting when applying pre-trained models to new tasks.
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates knowledge distillation in AutoGluon MultiModal, showing how to transfer knowledge from a larger teacher model to a smaller student model. It covers implementation techniques for loading pre-trained models, configuring distillation, and evaluating performance. The code helps with creating efficient, smaller models that maintain accuracy by learning from larger ones. Key features include: simple distillation activation via the teacher_predictor parameter, working with BERT models of different sizes (12-layer to 6-layer), dataset preparation for NLP tasks, and model evaluation. The implementation focuses on practical application with minimal configuration requirements.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+1. # Knowledge Distill. Distillation.md
+
+# Knowledge Distillombinator: Distillabg.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillabg.md/1. Distillation.md/1. Distillnternationlation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# KnowledgeIllation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# Knowledge Distillation.md
+
+# KnowledgeIllation.md
+
+# Knowledge Distillation in AutoGluon MultiModal
+
+## Setup and Data Preparation
+```python
+# Install required packages
+!pip install autogluon.multimodal
+
+# Load and prepare dataset
+import datasets
+from datasets import load_dataset
+from sklearn.model_selection import train_test_split
+
+dataset = load_dataset("glue", "qnli")
+train_valid_df = dataset["train"].to_pandas()[["question", "sentence", "label"]].sample(1000, random_state=123)
+train_df, valid_df = train_test_split(train_valid_df, test_size=0.2, random_state=123)
+test_df = dataset["validation"].to_pandas()[["question", "sentence", "label"]].sample(1000, random_state=123)
+```
+
+## Loading the Teacher Model
+```python
+# Download pre-trained teacher model
+!wget --quiet https://automl-mm-bench.s3.amazonaws.com/unit-tests/distillation_sample_teacher.zip -O distillation_sample_teacher.zip
+!unzip -q -o distillation_sample_teacher.zip -d .
+
+# Load the teacher model
+from autogluon.multimodal import MultiModalPredictor
+teacher_predictor = MultiModalPredictor.load("ag_distillation_sample_teacher/")
+```
+
+## Distilling Knowledge to Student Model
+```python
+# Create and train student model with knowledge distillation
+student_predictor = MultiModalPredictor(label="label")
+student_predictor.fit(
+    train_df,
+    tuning_data=valid_df,
+    teacher_predictor=teacher_predictor,
+    hyperparameters={
+        "model.hf_text.checkpoint_name": "google/bert_uncased_L-6_H-768_A-12",
+        "optim.max_epochs": 2,
+    }
+)
+
+# Evaluate the student model
+print(student_predictor.evaluate(data=test_df))
+```
+
+## Key Implementation Details
+- The teacher model uses the full BERT model (`google/bert_uncased_L-12_H-768_A-12`)
+- The student model uses a smaller BERT model (`google/bert_uncased_L-6_H-768_A-12`) with half the layers
+- Knowledge distillation is activated by simply passing the `teacher_predictor` parameter to the fit method
+- The student model learns by matching predictions/feature maps from the teacher
+
+## Additional Resources
+For more advanced distillation techniques and customization options, refer to:
+- [AutoMM Distillation Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm/distillation)
+- [Multilingual distillation example](https://github.com/autogluon/autogluon/tree/master/examples/automm/distillation/automm_distillation_pawsx.py)
+- [Customize AutoMM](customization.ipynb)
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-2/482625be4b001f6af3e4/attempt-1/mlzero/node_3/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 613 seconds.

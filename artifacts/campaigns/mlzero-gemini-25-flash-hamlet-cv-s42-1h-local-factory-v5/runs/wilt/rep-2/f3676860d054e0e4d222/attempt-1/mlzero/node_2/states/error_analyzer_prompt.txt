@@ -1,0 +1,345 @@
+
+Analyze the error and provide your response in this exact format:
+
+ERROR_SUMMARY: [Brief technical description of the root cause in 1-3 sentences]
+SUGGESTED_FIX: [Specific debugging directions in 1-3 sentences without code]
+
+### Error Message
+stderr: WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
+bash: line 28: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/f3676860d054e0e4d222/attempt-1/mlzero/node_2/conda_env/bin/activate: No such file or directory
+
+
+Error summary: MATCHED_CV_REJECTED: Trusted CV evaluator exited 1: Traceback (most recent call last):
+  File "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/evaluate_cv.py", line 18, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+
+
+### Task Description
+The data science task is **classification**.
+
+**Input Format:** Tabular data (e.g., Pandas DataFrame) with five numerical features: 'GLCM_Pan', 'Mean_G', 'Mean_R', 'Mean_NIR', and 'SD_Plan'.
+
+**Prediction Output Format:** Predicted class labels for the target column 'class'.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/data.csv
+Content:
+Columns: ['GLCM_Pan', 'Mean_G', 'Mean_R', 'Mean_NIR', 'SD_Plan', 'class']
+
+First 3 rows:
+  GLCM_Pan     Mean_G     Mean_R   Mean_NIR   SD_Plan
+120.362774 205.500000 119.395349 416.581395 20.676318
+124.739583 202.800000 115.333333 354.333333 16.707151
+134.691964 199.285714 116.857143 477.857143 22.496712
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: wilt
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other t
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json
+Content:
+Could not parse as tabular data (ValueError: All arrays must be of the same length). Reading as text.
+{
+  "cv_folds": [
+    {
+      "train": [
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        531,
+        532,
+        533,
+        534,
+      ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instructions
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Python Code:
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+from autogluon.tabular import TabularPredictor
+
+# Seed for reproducibility across AutoGluon runs
+SEED = 42
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon TabularPredictor to conform to the
+    fit/predict interface required by the harness.
+    """
+    def __init__(self, time_limit: int = None):
+        """
+        Initializes the wrapper. The AutoGluon predictor itself is
+        initialized and fitted only when the .fit() method is called.
+
+        Args:
+            time_limit (int, optional): Maximum time in seconds for AutoGluon's
+                                        fit process. Defaults to None (no limit).
+        """
+        self.predictor: TabularPredictor = None
+        self.time_limit = time_limit
+        self._temp_path: str = None # Path for AutoGluon artifacts
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor using the provided training data.
+        All preprocessing and model training happens within this method,
+        using only the training rows for the current fold.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Create a temporary directory for AutoGluon artifacts for this fold.
+        # This ensures fresh artifact directories per fold as required by the contract.
+        # AutoGluon will store models and intermediate files here.
+        self._temp_path = tempfile.mkdtemp()
+
+        # Ensure y is a pandas Series with the correct name 'class' for AutoGluon.
+        # If y is a numpy array, convert it to a Series.
+        if not isinstance(y, pd.Series):
+            y_series = pd.Series(y, name='class', index=X.index)
+        else:
+            y_series = y.copy() # Avoid modifying original Series in place
+            y_series.name = 'class' # Ensure target column name is 'class'
+
+        # Combine features and target into a single DataFrame for AutoGluon.
+        train_data = pd.concat([X, y_series], axis=1)
+
+        # Initialize TabularPredictor.
+        # The 'label' argument specifies the name of the target column.
+        # The 'path' argument specifies where AutoGluon should store its artifacts.
+        self.predictor = TabularPredictor(
+            label='class',
+            path=self._temp_path,
+            # Note: random_seed is passed to .fit() method, not constructor,
+            # as per previous error analysis.
+        )
+
+        # Fit the predictor.
+        # 'presets='fast_inference'' is chosen to balance performance and speed,
+        # which is crucial given the shared deadline for all ten folds.
+        # 'time_limit' ensures that each fit operation respects the overall time budget.
+        # 'random_seed' ensures reproducibility of the training process.
+        self.predictor.fit(
+            train_data,
+            presets='fast_inference',
+            time_limit=self.time_limit,
+            random_seed=SEED,
+            # Other AutoGluon options (e.g., specific hyperparameters) could be
+            # added here if further tuning is desired.
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+
+        predictions = self.predictor.predict(X)
+        return predictions
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created by AutoGluon when the
+        wrapper object is garbage collected. This helps prevent accumulation
+        of temporary files across multiple folds/runs.
+        """
+        if self._temp_path and os.path.exists(self._temp_path):
+            try:
+                shutil.rmtree(self._temp_path)
+            except OSError as e:
+                # In a production environment, this might be logged.
+                # For a benchmark, simply ignoring or a passive print is often sufficient.
+                # print(f"Warning: Could not remove AutoGluon temp directory {self._temp_path}: {e}")
+                pass
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonModelWrapper:
+    """
+    Factory function to build a new, unfitted model wrapper.
+    This function is called by the harness for each fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used here for context, not fitting).
+        y_train (pd.Series): Training target labels (used here for context, not fitting).
+
+    Returns:
+        AutoGluonModelWrapper: An unfitted model wrapper instance ready to be fitted.
+    """
+    # The total time for all ten fits is 2229 seconds.
+    # To ensure all fits finish within the deadline, we allocate a time limit
+    # for each individual AutoGluon fit operation.
+    # 200 seconds per fold * 10 folds = 2000 seconds, leaving a buffer of 229 seconds
+    # for data loading, Python startup, and other overheads.
+    per_fold_time_limit = 200
+    return AutoGluonModelWrapper(time_limit=per_fold_time_limit)
+
+### Previous Bash Script to Execute the Python Code:
+#!/bin/bash
+# This script sets up a minimal Conda environment for the factory module.
+# It creates a new Conda environment, installs uv, and then installs
+# all necessary Python packages using uv.
+
+# Exit immediately if a command exits with a non-zero status.
+# Treat unset variables as an error.
+# Exit if any command in a pipeline fails.
+set -euo pipefail
+
+# Define the full path for the Conda environment
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/f3676860d054e0e4d222/attempt-1/mlzero/node_2/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda environment setup ---"
+
+# 1. Create the Conda environment with Python 3.11
+echo "Creating Conda environment at '$ENV_PATH' with Python 3.11..."
+# The -y flag automatically answers yes to prompts.
+conda create -p "$ENV_PATH" python=3.11 -y
+
+# 2. Activate the newly created environment
+echo "Activating the environment..."
+# Use 'source' to activate the environment in the current shell context.
+source "$ENV_PATH/bin/activate"
+
+# 3. Install uv into the activated environment
+echo "Installing 'uv' into the environment..."
+pip install uv
+
+# 4. Install required packages from the specified requirements files using uv
+echo "Installing packages from '$ML_REQS_FILE' and '$COMMON_REQS_FILE' using uv..."
+# --prerelease=allow is specified in the prompt.
+uv pip install -r "$ML_REQS_FILE" --prerelease=allow -r "$COMMON_REQS_FILE"
+
+# 5. Install additional packages: numpy, pandas, and scikit-learn
+# These are explicitly requested in the prompt. The factory module also uses autogluon.tabular,
+# which is expected to be covered by the requirements files.
+echo "Installing additional packages: numpy, pandas, scikit-learn using uv..."
+uv pip install numpy pandas scikit-learn
+
+echo "--- Conda environment setup complete ---"
+
+# Deactivate the environment to return to the base shell state.
+# This is good practice for scripts, though not strictly necessary if the script exits immediately.
+conda deactivate
+
+### Relevant Tutorials
+### Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+# Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+# Intro to Use Machine Learning or Deep Learning algorithms
+
+You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+

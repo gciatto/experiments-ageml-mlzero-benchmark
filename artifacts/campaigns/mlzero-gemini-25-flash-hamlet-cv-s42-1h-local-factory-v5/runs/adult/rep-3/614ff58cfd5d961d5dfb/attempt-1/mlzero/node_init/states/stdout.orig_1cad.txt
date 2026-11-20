@@ -1,0 +1,6 @@
+Columns: age, workclass, fnlwgt, education, education-num, marital-status, occupation, relationship, race, sex, capital-gain, capital-loss, hours-per-week, native-country, class
+
+First 2 rows:
+ age workclass   fnlwgt education  education-num     marital-status        occupation relationship  race  sex  capital-gain  capital-loss  hours-per-week native-country class
+  25   Private 226802.0      11th              7      Never-married Machine-op-inspct    Own-child Black Male           0.0           0.0              40  United-States <=50K
+  38   Private  89814.0   HS-grad              9 Married-civ-spouse   Farming-fishing      Husband White Male           0.0           0.0              50  United-States <=50K

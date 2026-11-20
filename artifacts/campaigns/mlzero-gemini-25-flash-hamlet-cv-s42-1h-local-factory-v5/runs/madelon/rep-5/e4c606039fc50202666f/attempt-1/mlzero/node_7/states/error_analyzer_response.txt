@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor received an invalid argument, `random_seed`. The specific version of AutoGluon being used (1.6.4b20260930) does not support `random_seed` as a direct parameter to its constructor, as indicated by the `ValueError` and the list of valid keyword arguments.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. Instead, set the random seed globally for AutoGluon by calling `autogluon.core.utils.utils.set_seed()` or `autogluon.core.set_seed()` at the beginning of the `fit` method.

@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The bash script failed because it attempted to reference the `CONDA_SHLVL` environment variable while `set -u` was active and `CONDA_SHLVL` was not set. This caused the script to terminate due to an "unbound variable" error.
+SUGGESTED_FIX: Modify line 22 in the bash script from `if [ -z "$CONDA_SHLVL" ]; then` to `if [ -z "${CONDA_SHLVL:-}" ]; then`. This change safely checks if the variable is unset or empty without triggering an unbound variable error when `set -u` is enabled.

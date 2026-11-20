@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The AutoGluon `fit` method failed because the specified `time_limit` was too short, causing all model training attempts to expire before completion. The error message explicitly indicates negative time remaining, confirming that the process ran out of allocated time.
+SUGGESTED_FIX: Increase the `TIME_LIMIT_PER_FIT` variable in the Python code to a value greater than 25 seconds. Consider allocating at least 30 seconds per fold for AutoGluon's training to ensure models have sufficient time to fit within the overall benchmark time constraints.

@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor received an unexpected `random_state` keyword argument, leading to a `TypeError`. The `random_state` parameter is not a valid argument for the `MultiModalPredictor`'s initialization method in the AutoGluon version being used.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor call. To ensure reproducibility, pass the `random_state` value as a hyperparameter, specifically `env.seed`, within the `hyperparameters` dictionary to the `predictor.fit()` method.

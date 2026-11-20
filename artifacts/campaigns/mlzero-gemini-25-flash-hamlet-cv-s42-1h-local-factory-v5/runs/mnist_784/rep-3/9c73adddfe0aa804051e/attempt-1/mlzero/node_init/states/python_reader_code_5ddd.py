@@ -1,0 +1,28 @@
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/evaluate_cv.py"
+
+def analyze_file(file_path):
+    if not os.path.exists(file_path):
+        print(f"Error: File not found at {file_path}")
+        return
+
+    try:
+        # Treat as a text file based on .py extension
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768) # Read up to 768 characters
+            print(content)
+            if len(content) == 768:
+                print("...") # Indicate truncation
+    except UnicodeDecodeError:
+        # Fallback for binary or non-utf-8 text files
+        try:
+            with open(file_path, 'rb') as f:
+                content = f.read(768)
+                print(f"Binary file detected. First 768 bytes:\n{content}")
+        except Exception as e:
+            print(f"Could not read file as binary either: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+analyze_file(file_path)

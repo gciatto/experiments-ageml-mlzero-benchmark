@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `ModuleNotFoundError` indicates that the `autogluon.common.utils.init_utils` module could not be found, despite `autogluon-common` being listed as installed. This suggests an issue with the `autogluon-common` package's installation or its internal structure for the specific beta version (`1.6.4b20260930`), possibly due to complex dependency resolution from multiple requirement files.
+
+SUGGESTED_FIX: Simplify the AutoGluon installation by directly installing `autogluon.tabular` instead of relying on separate requirement files. This allows AutoGluon to manage its own dependencies and ensures all sub-packages are installed correctly and are compatible. If the issue persists, consider installing a stable version of AutoGluon.

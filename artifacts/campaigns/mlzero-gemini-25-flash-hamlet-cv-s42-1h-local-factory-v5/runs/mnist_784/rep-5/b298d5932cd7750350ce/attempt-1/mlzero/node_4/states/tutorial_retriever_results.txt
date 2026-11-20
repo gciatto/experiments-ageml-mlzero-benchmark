@@ -1,0 +1,99 @@
+Search Query: autogluon tabular classification MNIST pandas dataframe
+==================================================
+Retrieved 13 Tutorial Results:
+
+1. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-essentials.md
+   Score: 0.8116
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial covers AutoGluon's TabularPredictor for automated machine learning on tabular data. It demonstrates implementation of quick model training with minimal c...
+------------------------------
+2. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-indepth.md
+   Score: 0.7860
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon TabularPredictor for machine learning tasks, covering hyperparameter tuning with search spaces for neural networks and gradient bo...
+------------------------------
+3. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-foundational-models.md
+   Score: 0.7714
+   Title: Condensed: Installation
+   Content Preview: # Condensed: Installation
+
+Summary: This tutorial demonstrates implementing foundation models for tabular data using AutoGluon. It covers three key models: Mitra (for small datasets with zero-shot and...
+------------------------------
+4. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-multilabel.md
+   Score: 0.7675
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon's MultilabelPredictor implementation for predicting multiple target columns simultaneously. It covers creating a custom class that...
+------------------------------
+5. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-feature-engineering.md
+   Score: 0.7552
+   Title: Condensed: ```
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial explains AutoGluon's automatic feature engineering capabilities for tabular data. It covers type-specific processing: numerical columns remain unchanged, categ...
+------------------------------
+6. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-kaggle.md
+   Score: 0.7498
+   Title: Condensed: ```
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial demonstrates how to use AutoGluon for fraud detection in the IEEE Fraud detection competition. AutoGluon's TabularPredictor can be used to train a model for bi...
+------------------------------
+7. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-deployment.md
+   Score: 0.7473
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: AutoGluon Tabular predictor deployment tutorial provides a guide to AutoGluon TabularPredictor deployment
+
+AI: Summary: AutoGluon TabularPredictor deployment guide
+
+Su...
+------------------------------
+8. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-custom-model.md
+   Score: 0.7402
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates how to implement custom models in AutoGluon by extending the AbstractModel class, specifically creating a custom RandomForest implementation...
+------------------------------
+9. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-multimodal.md
+   Score: 0.7026
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates using AutoGluon Multimodal for multimodal classification on the PetFinder dataset. It covers: (1) implementing multimodal machine learning w...
+------------------------------
+10. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-custom-model-advanced.md
+   Score: 0.6914
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates how to prevent AutoGluon from dropping specific features during preprocessing. It covers three key techniques: (1) creating custom models wi...
+------------------------------
+11. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-custom-metric.md
+   Score: 0.6674
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates how to create and use custom evaluation metrics in AutoGluon, focusing on what makes them better for model optimization. It covers the imple...
+------------------------------
+12. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-gpu.md
+   Score: 0.6540
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial explains GPU acceleration in AutoGluon, covering basic GPU allocation with `num_gpus` parameter, model-specific GPU assignment using hyperparameters dict...
+------------------------------
+13. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-quick-start.md
+   Score: 0.5872
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: "Summary: "Tabular: "Tabular: "Tabular Hypersc 'Hypersc 'Hypertuning 1.Hat 'Hypertuning 'Hypertuning 'Hyperturf: "Hypertuning 'Hyperparred 'Hyperparcel: "Hypertuner: "...
+------------------------------

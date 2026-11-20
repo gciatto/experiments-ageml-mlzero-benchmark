@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: The Conda environment failed to activate, preventing the Python script from executing. The error message "CondaError: Run 'conda init' before 'conda activate'" indicates that the shell environment was not properly initialized for Conda commands. Additionally, an invalid 'shell' command was attempted with conda.
+VALIDATION_SCORE: None

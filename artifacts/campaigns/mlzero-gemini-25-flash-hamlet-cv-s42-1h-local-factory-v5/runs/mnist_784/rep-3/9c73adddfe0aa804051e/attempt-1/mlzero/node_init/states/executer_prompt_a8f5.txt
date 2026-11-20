@@ -1,0 +1,170 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/cv_contract.json"
+
+File Size: 11.62 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/cv_contract.json"
+
+output_buffer = []
+max_output_chars = 768
+
+def add_to_buffer(text):
+    global output_buffer
+    current_length = sum(len(s) for s in output_buffer)
+    if current_length >= max_output_chars:
+        return # Already at or over limit, do nothing
+
+    remaining_chars = max_output_chars - current_length
+    if len(text) > remaining_chars:
+        # Truncate text and add '...' if there's space for '...'
+        if remaining_chars > 3:
+            output_buffer.append(text[:remaining_chars - 3] + "...")
+        else: # Not enough space even for "..."
+            output_buffer.append(text[:remaining_chars]) # Just take what fits
+    else:
+        output_buffer.append(text)
+
+try:
+    # Attempt to read as JSON using pandas
+    try:
+        df = pd.read_json(file_path)
+
+        # Check if it's a DataFrame and not just a Series or scalar
+        if isinstance(df, pd.DataFrame) and not df.empty:
+            add_to_buffer("Columns: ")
+            cols = df.columns.tolist()
+            if len(cols) > 20:
+                add_to_buffer(f"{cols[:10]} ... {cols[-10:]}\n")
+            else:
+                add_to_buffer(f"{cols}\n")
+
+            add_to_buffer("First row (truncated):\n")
+            # Truncate cell content for the first row and convert to dictionary
+            first_row_dict = df.iloc[0].apply(lambda x: (str(x)[:50] + '...') if len(str(x)) > 50 else str(x)).to_dict()
+            add_to_buffer(str(first_row_dict) + "\n")
+
+        else: # Not a DataFrame or empty, try generic json load
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            add_to_buffer("JSON content (truncated):\n")
+            json_str = json.dumps(data, indent=2)
+            add_to_buffer(json_str) # add_to_buffer will truncate if needed
+
+    except (ValueError, TypeError, pd.errors.EmptyDataError) as e:
+        # If pandas fails to parse as tabular, try reading as a generic text file
+        add_to_buffer(f"Could not parse as tabular JSON (Error: {e}). Reading as text.\n")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            # Read a bit more than max_output_chars to ensure '...' can be added if truncated
+            content_full = f.read(max_output_chars + 100)
+            add_to_buffer(content_full)
+
+except FileNotFoundError:
+    add_to_buffer(f"File not found: {file_path}\n")
+except Exception as e:
+    add_to_buffer(f"An unexpected error occurred: {e}\n")
+
+print("".join(output_buffer))
+
+## Execution Results
+### Standard Output (stdout)
+
+Could not parse as tabular JSON (Error: All arrays must be of the same length). Reading as text.
+{
+  "cv_folds": [
+    {
+      "train": [
+        6653,
+        6656,
+        6669,
+        6672,
+        6674,
+        6689,
+        6714,
+        6716,
+        6724,
+        6729,
+        6733,
+        6753,
+        6759,
+        6761,
+        6770,
+        6777,
+        6778,
+        6794,
+        6796,
+        6797,
+        6798,
+        6799,
+        6800,
+        6804,
+        6807,
+        6810,
+        6812,
+        6817,
+        6818,
+        6824,
+        6828,
+        6833,
+        6835,
+        6837,
+        6843,
+        6845,
+        6854,
+        6862,
+        6865,
+        6866,
+        6869,
+        6871,
+        6874,
+        6876,
+        687...
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

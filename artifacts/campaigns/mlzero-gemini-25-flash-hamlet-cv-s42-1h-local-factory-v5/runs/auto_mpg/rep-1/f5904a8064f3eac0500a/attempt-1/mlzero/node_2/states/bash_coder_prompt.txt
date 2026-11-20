@@ -1,0 +1,184 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-1/f5904a8064f3eac0500a/attempt-1/mlzero/node_2:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.multimodal if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import logging
+import shutil
+
+# Attempt to import set_seed from autogluon.core.utils.utils as per the last suggested fix.
+# This handles potential API changes in AutoGluon versions.
+try:
+    from autogluon.core.utils.utils import set_seed
+except ImportError:
+    # Fallback if the above fails, though the error history suggests autogluon.core is correct.
+    # This fallback might not be needed if the environment is consistent.
+    from autogluon.common.utils.utils import set_seed
+
+from autogluon.multimodal import MultiModalPredictor
+
+# Module-level constants
+SEED = 42
+# The total remaining time for all ten fits and overhead is 2710 seconds.
+# To ensure all ten fits finish within this deadline, we set a conservative
+# time limit per fold. 200 seconds per fold allows for 2000 seconds of training
+# and 710 seconds for overhead (data loading, model initialization, etc.).
+TIME_LIMIT_PER_FOLD = 200
+
+# Configure logging to provide informative messages during execution.
+# The harness is expected to capture stdout/stderr.
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+
+class AutoGluonMMWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the MLZero benchmark.
+    """
+
+    def __init__(self, output_dir_base):
+        """
+        Initializes the wrapper.
+
+        Args:
+            output_dir_base (str): The base directory where model artifacts for
+                                   this wrapper instance will be stored.
+        """
+        self.predictor = None
+        self.output_dir_base = output_dir_base
+        self.is_fitted = False
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon MultiModalPredictor model using the provided training data.
+
+        All learned preprocessing is performed within this method, using only
+        the training rows for the current fold.
+
+        Args:
+            X (pd.DataFrame): Training features for the current fold.
+            y (pd.Series): Training target for the current fold.
+        """
+        # Set the random seed for reproducibility for this specific training run.
+        set_seed(SEED)
+
+        # Create a unique output directory for this specific fold's training artifacts.
+        # This ensures "fresh artifact directories per fold" as required.
+        # The base directory is unique per `build_model` call, and this subdirectory
+        # is unique per `fit` call within that.
+        fold_output_dir = os.path.join(self.output_dir_base, f"fold_model_{uuid.uuid4().hex}")
+        os.makedirs(fold_output_dir, exist_ok=True)
+        logger.info(f"Training AutoGluon MultiModal model for a fold in: {fold_output_dir}")
+
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor.
+        # The target column name is 'class' as per the problem description.
+        train_data = X.copy()
+        train_data['class'] = y
+
+        # Initialize MultiModalPredictor.
+        # The task is regression, and the target column is 'class'.
+        # All input features are numerical, so MultiModalPredictor will treat them as tabular.
+        self.predictor = MultiModalPredictor(
+            label='class',
+            path=fold_output_dir,
+            problem_type='regression',
+            # Using default presets for a balance of speed and quality,
+            # relying primarily on the `time_limit` for constraint.
+        )
+
+        # Fit the predictor with the specified time limit.
+        # This helps ensure all ten fits finish within the shared deadline.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=TIME_LIMIT_PER_FOLD,
+            # Verbosity can be adjusted if more or less detailed logs are desired.
+            # verbosity=2 # 0: silent, 1: warning, 2: info, 3: debug
+        )
+        self.is_fitted = True
+        logger.info(f"AutoGluon MultiModal model fitted for a fold. Model saved to: {self.predictor.path}")
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Predicted continuous numerical values.
+        """
+        if not self.is_fitted or self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call fit(X, y) first.")
+
+        # AutoGluon MultiModalPredictor expects a DataFrame for prediction.
+        predictions = self.predictor.predict(X)
+
+        # Return predictions as a NumPy array, as expected by scikit-learn-like interfaces.
+        return predictions.values
+
+    def __del__(self):
+        """
+        Clean up the temporary model directory when the wrapper object is deleted.
+        This is a best-effort cleanup and might not always execute,
+        but it's good practice for temporary artifacts.
+        """
+        if hasattr(self, 'output_dir_base') and os.path.exists(self.output_dir_base):
+            try:
+                shutil.rmtree(self.output_dir_base)
+                logger.info(f"Cleaned up model artifacts directory: {self.output_dir_base}")
+            except OSError as e:
+                logger.warning(f"Error cleaning up model artifacts directory {self.output_dir_base}: {e}")
+
+
+def build_model(X_train, y_train):
+    """
+    Factory function to create a new, unfitted model wrapper for AutoGluon MultiModal.
+
+    This function is called by the harness to obtain a fresh model instance.
+    It does not perform any fitting; fitting occurs within the wrapper's `fit` method.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used for fitting here).
+        y_train (pd.Series): Training target (provided for context, not used for fitting here).
+
+    Returns:
+        AutoGluonMMWrapper: A fresh unfitted model wrapper with `fit` and `predict` methods.
+    """
+    # Create a unique base directory for all models created by this specific
+    # factory instance. This ensures isolation between different calls to build_model
+    # if the harness were to call it multiple times for different candidates.
+    # Within this base, each fold's `fit` will create its own subdirectory.
+    # The harness is expected to run this in a suitable output directory.
+    # We create a subdirectory relative to the current working directory.
+    base_model_output_dir = f"automm_factory_models_{uuid.uuid4().hex}"
+    os.makedirs(base_model_output_dir, exist_ok=True)
+    logger.info(f"Created base directory for AutoGluon MultiModal models: {base_model_output_dir}")
+
+    return AutoGluonMMWrapper(output_dir_base=base_model_output_dir)
+### Previous errors
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function can no longer be imported from `autogluon.core.utils.utils`. This is due to an API change in the installed AutoGluon version `1.6.4b20260930`, where this utility function has likely been relocated or deprecated.
+SUGGESTED_FIX: Update the import statement for `set_seed` in your Python code. Check the AutoGluon documentation or recent changelogs for version 1.6.4b to find the new correct import path for `set_seed`, which is commonly moved to `autogluon.common.utils.utils`.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function cannot be found in `autogluon.common.utils.utils`. This is because the `set_seed` function has been moved or is located in a different module within the installed AutoGluon version (1.6.3), likely `autogluon.core.utils.utils`.
+SUGGESTED_FIX: Modify the import statement for `set_seed` in your Python code. Change `from autogluon.common.utils.utils import set_seed` to `from autogluon.core.utils.utils import set_seed` to match the correct module path for the installed AutoGluon version.
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-1/f5904a8064f3eac0500a/attempt-1/mlzero/node_2/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 2681 seconds.

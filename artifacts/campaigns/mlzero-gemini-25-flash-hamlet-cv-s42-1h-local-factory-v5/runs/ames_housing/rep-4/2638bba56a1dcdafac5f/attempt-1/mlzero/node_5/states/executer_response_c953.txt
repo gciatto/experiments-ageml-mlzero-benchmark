@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: The AutoGluon installation failed because `conda.sh` was not found at the expected path `/opt/conda/etc/profile.d/conda.sh`. This indicates an issue with the Conda environment setup, preventing AutoGluon from being properly installed and the Python code from executing successfully.
+VALIDATION_SCORE: None

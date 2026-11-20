@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor.fit()` method was called with an unrecognized keyword argument, 'seed'. AutoGluon's `fit` method does not directly accept a `seed` parameter for reproducibility.
+SUGGESTED_FIX: Remove the `seed` argument from the `predictor.fit()` method call. Global random seeds for NumPy and Python's `random` module should be set at the module level for overall reproducibility.

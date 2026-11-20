@@ -1,0 +1,45 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define paths for the conda environment and requirements files
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-1/9083f22fdcbb98fc1c37/attempt-1/mlzero/node_1/conda_env"
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluonMultiModalWrapper dependencies..."
+echo "Target conda environment path: $CONDA_ENV_PATH"
+
+# 1. Create parent directories for the conda environment if they don't exist
+mkdir -p "$(dirname "$CONDA_ENV_PATH")"
+
+# 2. Remove existing environment if it exists to ensure a clean installation
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Existing conda environment found at $CONDA_ENV_PATH. Removing it for a fresh installation."
+    rm -rf "$CONDA_ENV_PATH"
+fi
+
+# 3. Create a new conda environment with Python 3.11
+echo "Creating conda environment with Python 3.11..."
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+# 4. Install uv into the newly created environment
+echo "Installing uv into the environment..."
+conda run -p "$CONDA_ENV_PATH" pip install uv
+
+# 5. Install core packages: numpy, pandas, scikit-learn using uv
+echo "Installing numpy, pandas, scikit-learn into the environment using uv..."
+conda run -p "$CONDA_ENV_PATH" uv pip install numpy pandas scikit-learn
+
+# 6. Install required packages from the specified requirements files using uv
+# The --prerelease=allow flag is included as per instructions.
+# uv's default behavior ensures only exact packages and their dependencies are installed,
+# and it avoids upgrading/reinstalling if requirements are already met.
+echo "Installing packages from requirements files using uv..."
+conda run -p "$CONDA_ENV_PATH" uv pip install \
+    -r "$MULTIMODAL_REQ_FILE" \
+    -r "$COMMON_REQ_FILE" \
+    --prerelease=allow
+
+echo "Installation complete. The conda environment is prepared at $CONDA_ENV_PATH."
+```

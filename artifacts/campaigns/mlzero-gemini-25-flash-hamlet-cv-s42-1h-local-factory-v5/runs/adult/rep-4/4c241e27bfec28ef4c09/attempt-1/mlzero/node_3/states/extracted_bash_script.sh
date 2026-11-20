@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+# Define environment and file paths
+# The target conda environment path for node_3
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-4/4c241e27bfec28ef4c09/attempt-1/mlzero/node_3/conda_env"
+# Path to AutoGluon Tabular specific requirements
+REQ_FILE_AG_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+# Path to common requirements
+REQ_FILE_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+# 1. Create the conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+# Ensure the parent directory for the conda environment exists
+mkdir -p "$(dirname "$CONDA_ENV_PATH")"
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+# 2. Activate the environment
+echo "Activating conda environment..."
+# Using 'source activate' for broader compatibility in shell scripts
+source activate "$CONDA_ENV_PATH"
+
+# 3. Install uv using the environment's pip
+echo "Installing uv into the environment..."
+pip install uv
+
+# 4. Install required packages from the specified requirements files using uv.
+# This command ensures only the exact packages and their dependencies are installed.
+# It also allows prerelease versions as specified.
+# numpy, pandas, and scikit-learn are expected to be installed as dependencies
+# of autogluon.tabular or other packages listed in these requirements files.
+echo "Installing required packages from requirements files using uv..."
+uv pip install -r "$REQ_FILE_AG_TABULAR" --prerelease=allow -r "$REQ_FILE_COMMON"
+
+echo "Conda environment setup complete for node_3."

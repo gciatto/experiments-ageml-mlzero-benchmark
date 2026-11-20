@@ -1,0 +1,67 @@
+```python
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json"
+
+output_buffer = []
+max_output_chars = 768
+
+def add_to_buffer(text):
+    global output_buffer
+    output_buffer.append(text)
+
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    try:
+        data = json.loads(content)
+        
+        # Check if it's a list of dictionaries suitable for DataFrame
+        if isinstance(data, list) and all(isinstance(item, dict) for item in data):
+            df = pd.DataFrame(data)
+            
+            # Column names
+            cols = df.columns.tolist()
+            if len(cols) > 20:
+                col_display = cols[:10] + ['...'] + cols[-10:]
+            else:
+                col_display = cols
+            add_to_buffer(f"Columns: {', '.join(map(str, col_display))}\n")
+            
+            # First 2-3 rows with truncated cell content
+            df_display = df.head(3).copy()
+            for col in df_display.columns:
+                # Ensure content is string before truncating
+                df_display[col] = df_display[col].astype(str).apply(lambda x: (x[:47] + '...') if len(x) > 50 else x)
+            
+            # Use to_string to avoid index and control output
+            df_string = df_display.to_string(index=False)
+            add_to_buffer(df_string)
+
+        else:
+            # Not a list of dicts, or a single dict, or other JSON structure
+            # Pretty print the JSON, which will be truncated by the final print statement
+            json_str = json.dumps(data, indent=2)
+            add_to_buffer("JSON Content (truncated):\n")
+            add_to_buffer(json_str)
+
+    except json.JSONDecodeError:
+        # Not a valid JSON, treat as text file
+        add_to_buffer("File content (first 768 chars):\n")
+        add_to_buffer(content) # Will be truncated by the final print statement
+
+except Exception as e:
+    # General error during file reading or initial processing
+    add_to_buffer(f"Could not read file: {e}\n")
+    add_to_buffer(f"File path: {file_path}\n")
+    try:
+        add_to_buffer(f"File size: {os.path.getsize(file_path)} bytes\n")
+    except OSError:
+        add_to_buffer("File size: N/A (could not get size)\n")
+
+final_output = "".join(output_buffer)
+print(final_output[:max_output_chars])
+```

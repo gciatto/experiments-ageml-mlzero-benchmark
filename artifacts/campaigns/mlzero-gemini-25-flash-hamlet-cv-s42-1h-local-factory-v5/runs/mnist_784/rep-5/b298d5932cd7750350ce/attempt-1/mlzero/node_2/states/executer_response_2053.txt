@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: The execution failed during the `conda` environment setup. The `conda` command received an invalid argument ('shell') and reported a `CondaError` stating "Run 'conda init' before 'conda activate'". This indicates that the Python script itself likely did not execute or failed to load its dependencies due to the environment not being properly activated.
+VALIDATION_SCORE: None

@@ -1,0 +1,18 @@
+Best Run Summary
+================
+Linked to: node_7
+Reason: best validation score (0.9927)
+Tool used: autogluon.multimodal
+Symlink created at: best_run
+
+Validation Score Summary:
+Node 7 (autogluon.multimodal): 0.9927272727272726 (BEST)
+Node 8 (autogluon.multimodal): 0.9841818181818184
+
+Best score: 0.9927 from node 7 using autogluon.multimodal
+
+Tool Usage Summary:
+==================
+Available tools: autogluon.tabular, machine learning, autogluon.multimodal
+Tools used: autogluon.multimodal, machine learning, autogluon.tabular
+Tools not used: 

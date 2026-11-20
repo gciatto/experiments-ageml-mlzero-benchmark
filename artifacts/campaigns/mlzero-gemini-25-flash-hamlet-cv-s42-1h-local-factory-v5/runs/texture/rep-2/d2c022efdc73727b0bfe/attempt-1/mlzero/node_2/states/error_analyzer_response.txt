@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `autogluon.multimodal.MultiModalPredictor` constructor was called with an unsupported `seed` keyword argument. The `MultiModalPredictor` class does not accept `seed` directly during initialization, leading to a `TypeError`.
+SUGGESTED_FIX: Remove the `seed` argument from the `MultiModalPredictor` constructor call. For reproducibility, set the random seed globally using `numpy.random.seed()` and `random.seed()` at the beginning of the `fit` method, or pass it as a hyperparameter to the `fit` method if AutoGluon MultiModal supports it.

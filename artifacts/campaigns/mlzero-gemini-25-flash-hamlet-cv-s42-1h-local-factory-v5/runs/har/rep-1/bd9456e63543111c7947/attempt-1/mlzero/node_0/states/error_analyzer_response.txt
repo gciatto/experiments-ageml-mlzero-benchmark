@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor received an invalid keyword argument, `random_state`. This parameter is not supported directly in the `TabularPredictor` initialization, leading to a `ValueError`.
+SUGGESTED_FIX: Review the `TabularPredictor` constructor call and remove the `random_state` argument. Consult the AutoGluon documentation for the correct way to set a random seed for reproducibility, which is typically handled via the `fit` method or global seed settings.

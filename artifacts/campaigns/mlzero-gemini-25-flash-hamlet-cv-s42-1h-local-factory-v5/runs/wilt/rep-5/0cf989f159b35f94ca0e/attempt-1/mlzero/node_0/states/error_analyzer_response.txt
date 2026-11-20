@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ValueError` indicates that 'random_seed' is not a valid keyword argument for the `TabularPredictor.fit()` method. The random seed for AutoGluon's internal processes should be specified during the initialization of the `TabularPredictor` object.
+SUGGESTED_FIX: Remove the `random_seed` parameter from the `self.predictor.fit()` method call. Instead, pass the `random_seed` argument directly to the `TabularPredictor` constructor when `self.predictor` is instantiated.

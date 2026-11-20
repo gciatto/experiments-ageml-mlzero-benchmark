@@ -1,0 +1,154 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+This is a **classification** task.
+
+**Input Format:**
+The model receives tabular data. For training, the `build_model` function is provided with `X_train` and `y_train`. `X_train` is a Pandas DataFrame containing numerical features: `GLCM_Pan`, `Mean_G`, `Mean_R`, `Mean_NIR`, and `SD_Plan`. `y_train` is a Pandas Series containing the corresponding target `class` labels. For prediction, the `predict` method receives `X`, a Pandas DataFrame of these numerical features.
+
+**Prediction Output Format:**
+The `predict(X)` method must return a 1D array of predicted class labels. The length of this array must be equal to the number of rows in the input `X`.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/data.csv
+Content:
+Columns: ['GLCM_Pan', 'Mean_G', 'Mean_R', 'Mean_NIR', 'SD_Plan', 'class']
+  GLCM_Pan     Mean_G     Mean_R   Mean_NIR   SD_Plan class
+120.362774      205.5 119.395349 416.581395 20.676318     2
+124.739583      202.8 115.333333 354.333333 16.707151     2
+134.691964 199.285714 116.857143 477.857143 22.496712     2
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: wilt
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other t
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json
+Content:
+Could not parse as tabular data (ValueError: All arrays must be of the same length). Reading as text.
+{
+  "cv_folds": [
+    {
+      "train": [
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        531,
+        532,
+        533,
+        534,
+      ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function, previously available in `autogluon.core.utils.utils`, has been removed or moved in the installed AutoGluon version (1.6.4b20260930). This is a breaking API change in the library.
+SUGGESTED_FIX: Remove the import statement `from autogluon.core.utils.utils import set_seed` and the subsequent call to `set_seed(GLOBAL_SEED)`. AutoGluon typically manages reproducibility internally when using `presets` like 'best_quality'.
+
+ERROR_SUMMARY: The bash script failed to activate the newly created Conda environment because it incorrectly attempted to source an `activate` script directly within the environment's `bin` directory. This prevented subsequent package installations from being directed into the intended environment, leading to a `ModuleNotFoundError` for `numpy` during script execution.
+SUGGESTED_FIX: Replace the line `source "$CONDA_ENV_PATH/bin/activate"` with `conda activate "$CONDA_ENV_PATH"` to correctly activate the Conda environment. Ensure that the `conda` command is available and initialized in the shell where the script is executed.
+
+ERROR_SUMMARY: The `conda activate` command failed because the shell environment did not have Conda initialized. This prevented `numpy` and other required packages from being correctly installed into the designated Conda environment, leading to a `ModuleNotFoundError` when the evaluation script attempted to import `numpy`.
+SUGGESTED_FIX: Ensure Conda is properly initialized in the bash script's execution environment before attempting to activate any Conda environment. This can typically be achieved by sourcing the `conda.sh` script at the beginning of the bash script, for example, `source "$(conda info --base)/etc/profile.d/conda.sh"`.
+
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor` constructor was called with an invalid keyword argument `random_seed`. This parameter is not accepted by the `TabularPredictor` initialization method, as indicated by the `ValueError`.
+SUGGESTED_FIX: Remove the `random_seed=self.seed` argument from the `TabularPredictor` constructor call. AutoGluon typically manages internal randomness through global seed settings or its `fit` method's parameters, not directly in the constructor.
+
+Available Tutorials:
+1. Title: Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+   Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

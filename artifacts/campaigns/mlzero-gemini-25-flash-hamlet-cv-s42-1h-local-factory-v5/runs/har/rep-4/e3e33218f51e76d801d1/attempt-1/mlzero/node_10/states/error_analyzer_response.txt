@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The error occurs because "env.seed" is not a recognized hyperparameter for setting the random seed in AutoGluon MultiModalPredictor's `fit` method, leading to a KeyError. The `MultiModalPredictor` expects the `random_state` to be passed directly to its constructor.
+SUGGESTED_FIX: Pass the `random_state` parameter directly to the `MultiModalPredictor` constructor when initializing the predictor. Remove the `hyperparameters={"env.seed": self.random_state}` argument from the `predictor.fit()` method call.

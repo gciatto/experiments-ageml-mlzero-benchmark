@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The bash script failed because the Conda initialization script `conda.sh` was not found at the path specified by `CONDA_BASE_PATH`. This indicates that the `CONDA_BASE_PATH` variable is incorrectly set or a complete Conda installation is not present at that location.
+SUGGESTED_FIX: Verify the exact installation path of Conda within the execution environment. Adjust the `CONDA_BASE_PATH` variable in the bash script to correctly point to the root directory of the Conda installation where `etc/profile.d/conda.sh` resides.

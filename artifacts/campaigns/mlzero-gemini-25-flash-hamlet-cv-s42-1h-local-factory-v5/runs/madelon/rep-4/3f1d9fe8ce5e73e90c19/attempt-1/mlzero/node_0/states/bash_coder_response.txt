@@ -1,0 +1,48 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define the full path for the conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-4/3f1d9fe8ce5e73e90c19/attempt-1/mlzero/node_0/conda_env"
+
+# Define paths to requirement files
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_AUTOGLUON_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting conda environment setup at: $CONDA_ENV_PATH"
+
+# Remove existing environment if it exists to ensure a clean setup
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Conda environment already exists at $CONDA_ENV_PATH. Removing..."
+    conda env remove --prefix "$CONDA_ENV_PATH" -y || true # '|| true' prevents script from failing if env doesn't exist
+fi
+
+# 1. Create the conda environment with Python 3.11
+echo "Creating conda environment with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 -y
+
+# 2. Activate the environment
+# Source conda.sh to make 'conda activate' available in non-interactive scripts
+CONDA_BASE=$(conda info --base)
+source "$CONDA_BASE/etc/profile.d/conda.sh"
+
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH"
+
+# Verify activation
+if [[ "$CONDA_PREFIX" != "$CONDA_ENV_PATH" ]]; then
+    echo "Error: Failed to activate conda environment. CONDA_PREFIX is $CONDA_PREFIX, expected $CONDA_ENV_PATH"
+    exit 1
+fi
+echo "Conda environment activated successfully."
+
+# 3. Install uv
+echo "Installing uv into the environment..."
+pip install uv
+
+# 4. Install required packages using uv
+echo "Installing required packages from $REQUIREMENTS_AUTOGLUON_TABULAR and $REQUIREMENTS_COMMON using uv..."
+uv pip install -r "$REQUIREMENTS_AUTOGLUON_TABULAR" --prerelease=allow -r "$REQUIREMENTS_COMMON"
+
+echo "Conda environment setup complete."
+```

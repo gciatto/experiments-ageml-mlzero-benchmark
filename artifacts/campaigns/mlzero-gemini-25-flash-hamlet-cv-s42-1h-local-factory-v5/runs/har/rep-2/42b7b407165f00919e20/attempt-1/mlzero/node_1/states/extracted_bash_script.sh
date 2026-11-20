@@ -1,0 +1,49 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the target conda environment directory
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-2/42b7b407165f00919e20/attempt-1/mlzero/node_1/conda_env"
+
+# Define paths to the requirements files
+REQ_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_MULTIMODAL="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for factory module..."
+echo "Target environment directory: $ENV_DIR"
+
+# Ensure the parent directory for the conda environment exists
+mkdir -p "$(dirname "$ENV_DIR")"
+
+# Remove existing environment if it exists to ensure a clean installation
+if [ -d "$ENV_DIR" ]; then
+    echo "Removing existing conda environment at $ENV_DIR..."
+    conda env remove -p "$ENV_DIR" -y || true # '|| true' prevents script from failing if env doesn't exist or removal has minor issues
+fi
+
+# Create a new conda environment with Python 3.11
+echo "Creating new conda environment with Python 3.11 at $ENV_DIR..."
+conda create -p "$ENV_DIR" python=3.11 -y
+
+# Initialize conda for the current shell session if not already done
+# This ensures 'conda activate' and other conda commands are available
+source "$(conda info --base)/etc/profile.d/conda.sh"
+
+# Activate the newly created conda environment
+echo "Activating conda environment: $ENV_DIR"
+conda activate "$ENV_DIR"
+
+# Install uv (a fast pip replacement)
+echo "Installing uv in the activated environment..."
+pip install uv
+
+# Install core libraries: numpy, pandas, scikit-learn
+echo "Installing numpy, pandas, scikit-learn using uv..."
+uv pip install numpy pandas scikit-learn
+
+# Install required packages from the specified requirements files using uv
+# --prerelease=allow is included as per the prompt's specific instruction
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$REQ_MULTIMODAL" --prerelease=allow -r "$REQ_COMMON"
+
+echo "Conda environment setup complete at $ENV_DIR."
+echo "All required packages have been installed."

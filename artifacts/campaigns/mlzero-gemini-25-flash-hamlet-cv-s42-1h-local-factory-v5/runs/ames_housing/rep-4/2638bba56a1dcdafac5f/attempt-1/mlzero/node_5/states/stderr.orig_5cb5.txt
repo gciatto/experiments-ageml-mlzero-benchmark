@@ -1,0 +1,1 @@
+Error: conda.sh not found at /opt/conda/etc/profile.d/conda.sh. Please ensure Conda is installed at /opt/conda.

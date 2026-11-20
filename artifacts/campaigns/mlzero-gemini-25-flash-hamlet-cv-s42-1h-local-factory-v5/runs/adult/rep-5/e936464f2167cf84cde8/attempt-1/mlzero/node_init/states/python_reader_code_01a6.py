@@ -1,0 +1,52 @@
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv"
+
+def analyze_file(file_path):
+    try:
+        # Attempt to read as a tabular file (CSV)
+        df = pd.read_csv(file_path)
+
+        # Display column names
+        columns = df.columns.tolist()
+        col_output = "Columns: "
+        if len(columns) > 20:
+            col_output += str(columns[:10] + ['...'] + columns[-10:])
+        else:
+            col_output += str(columns)
+        print(col_output)
+
+        # Show first 2 rows with truncated cell content
+        # Limit to first 3 columns to keep output concise and within character limit
+        print("\nFirst 2 rows (truncated to 50 chars per cell, max 3 columns):")
+        
+        head_df = df.head(2)
+        
+        # Select only the first 3 columns if there are more
+        if head_df.shape[1] > 3:
+            head_df = head_df.iloc[:, :3]
+
+        # Define a truncation function for cell content
+        def truncate_cell(content):
+            s = str(content)
+            return (s[:50] + '...') if len(s) > 50 else s
+
+        # Apply truncation to all cells in the selected head DataFrame
+        truncated_head_df = head_df.applymap(truncate_cell)
+        
+        # Print the DataFrame without the pandas index
+        print(truncated_head_df.to_string(index=False))
+
+    except Exception:
+        # If reading as CSV fails, try to read as a text file
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read(768) # Read up to 768 characters
+                print(content)
+        except Exception:
+            # If reading as text also fails, provide basic file info
+            print(f"File path: {file_path}")
+            print(f"File size: {os.path.getsize(file_path)} bytes")
+
+analyze_file(file_path)

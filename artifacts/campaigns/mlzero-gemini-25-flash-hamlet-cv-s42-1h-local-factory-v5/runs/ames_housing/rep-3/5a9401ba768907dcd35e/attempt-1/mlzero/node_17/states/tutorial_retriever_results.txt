@@ -1,0 +1,210 @@
+Search Query: autogluon multimodal tabular regression RMSE cross validation python
+==================================================
+Retrieved 30 Tutorial Results:
+
+1. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/multimodal_prediction/multimodal-quick-start.md
+   Score: 0.7541
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal for multimodal machine learning, focusing on image-text classification with the PetFinder dataset. It covers implementa...
+------------------------------
+2. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/multimodal_prediction/beginner_multimodal.md
+   Score: 0.7376
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal, a framework for multimodal machine learning that handles mixed data types. It covers implementing a pet adoption speed...
+------------------------------
+3. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/multiple_label_columns.md
+   Score: 0.7316
+   Title: Condensed: Multiple Label Columns with AutoMM
+   Content Preview: # Condensed: Multiple Label Columns with AutoMM
+
+Summary: This tutorial explains how to handle multiple label columns in AutoGluon MultiModal using two approaches: (1) converting mutually exclusive la...
+------------------------------
+4. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/customization.md
+   Score: 0.7209
+   Title: Condensed: ```
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial covers AutoMM optimization parameters for fine-tuning multimodal models. It demonstrates how to configure learning rates, optimizers, training schedules, and v...
+------------------------------
+5. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/problem_types_and_metrics.md
+   Score: 0.7194
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, sem...
+------------------------------
+6. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/tensorrt.md
+   Score: 0.7171
+   Title: Condensed: [TensorRT](https://developer.nvidia.com/tensorrt), built on the NVIDIA CUDA® parallel programming model, enables us to optimize inference by leveraging libraries, development tools, and technologies in NVIDIA AI, autonomous machines, high-performance computing, and graphics. AutoGluon-MultiModal is now integrated with TensorRT via `predictor.optimize_for_inference()` interface. This tutorial demonstates how to leverage TensorRT in boosting inference speed, which would be helpful in increasing efficiency at deployment environment.
+   Content Preview: # Condensed: [TensorRT](https://developer.nvidia.com/tensorrt), built on the NVIDIA CUDA® parallel programming model, enables us to optimize inference by leveraging libraries, development tools, and t...
+------------------------------
+7. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/hyperparameter_optimization.md
+   Score: 0.7146
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates hyperparameter optimization (HPO) for multimodal models using AutoGluon's MultiModalPredictor. It covers implementing Ray Tune-based HPO for...
+------------------------------
+8. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/image_prediction/beginner_image_cls.md
+   Score: 0.7097
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates image classification using AutoGluon MultiModal, covering implementation of a complete workflow from setup to deployment. It teaches how to:...
+------------------------------
+9. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/semantic_matching/zero_shot_img_txt_matching.md
+   Score: 0.7028
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates using AutoGluon MultiModal for image-text similarity tasks. It covers extracting embeddings from images and text, performing cross-modal ret...
+------------------------------
+10. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/few_shot_learning.md
+   Score: 0.6883
+   Title: Condensed: Few Shot Text Classification
+   Content Preview: # Condensed: Few Shot Text Classification
+
+Summary: This tutorial demonstrates few-shot classification implementation using AutoGluon's MultiModalPredictor for both text and image data. It covers tech...
+------------------------------
+11. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/object_detection/data_preparation/prepare_voc.md
+   Score: 0.6882
+   Title: Condensed: ```
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial demonstrates how to download and use the VOC dataset for object detection tasks with AutoGluon. It covers multiple download methods: using AutoGluon CLI comman...
+------------------------------
+12. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/text_prediction/beginner_text.md
+   Score: 0.6816
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates using AutoGluon MultiModal for sentiment analysis and sentence similarity tasks. It covers implementation techniques for training models wit...
+------------------------------
+13. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/object_detection/advanced/finetune_coco.md
+   Score: 0.6792
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates object detection using AutoGluon MultiModal, focusing on fine-tuning YOLOX models on custom datasets in COCO format. It covers installation ...
+------------------------------
+14. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/semantic_matching/image_text_matching.md
+   Score: 0.6792
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates implementing image-text matching with AutoGluon MultiModal, covering techniques for bidirectional retrieval between images and text. It show...
+------------------------------
+15. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/object_detection/data_preparation/prepare_watercolor.md
+   Score: 0.6718
+   Title: Condensed: ```
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial demonstrates how to prepare the Watercolor object detection dataset using AutoGluon. It covers two implementation methods: using AutoGluon CLI commands or a ba...
+------------------------------
+16. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/object_detection/quick_start/quick_start_coco.md
+   Score: 0.6696
+   Title: Condensed: To start, make sure `mmcv` and `mmdet` are installed.
+   Content Preview: # Condensed: To start, make sure `mmcv` and `mmdet` are installed.
+
+Summary: This tutorial demonstrates implementing object detection with AutoGluon's MultiModalPredictor. It covers installation requi...
+------------------------------
+17. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/presets.md
+   Score: 0.6674
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon's MultiModalPredictor for text classification using different quality presets. It covers implementation techniques for sentiment a...
+------------------------------
+18. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/model_distillation.md
+   Score: 0.6667
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates knowledge distillation in AutoGluon MultiModal, showing how to transfer knowledge from a larger teacher model to a smaller student model. It...
+------------------------------
+19. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/multimodal_prediction/multimodal_ner.md
+   Score: 0.6614
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates implementing multimodal named entity recognition using AutoGluon, showing how to process text and image data together for NER tasks. It cove...
+------------------------------
+20. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/document_prediction/document_classification.md
+   Score: 0.6597
+   Title: Condensed: Get a Document Dataset
+   Content Preview: # Condensed: Get a Document Dataset
+
+Summary: This tutorial demonstrates document classification using AutoGluon MultiModal, showing how to implement a document classifier that recognizes text, layout...
+------------------------------
+21. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/continuous_training.md
+   Score: 0.6590
+   Title: Condensed: Continuous training provides a method for machine learning models to refine their performance over time. It enables models to build upon previously acquired knowledge, thereby enhancing accuracy, facilitating knowledge transfer across tasks, and saving computational resources. In this tutorial, we will demonstrate three use cases of continuous training with AutoMM.
+   Content Preview: # Condensed: Continuous training provides a method for machine learning models to refine their performance over time. It enables models to build upon previously acquired knowledge, thereby enhancing a...
+------------------------------
+22. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/focal_loss.md
+   Score: 0.6550
+   Title: Condensed: Create Dataset
+   Content Preview: # Condensed: Create Dataset
+
+Summary: This tutorial demonstrates implementing focal loss in AutoGluon for handling imbalanced image classification datasets. It covers techniques for calculating class ...
+------------------------------
+23. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/image_prediction/clip_zeroshot.md
+   Score: 0.6541
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates zero-shot image classification using CLIP via AutoGluon's MultiModalPredictor. It covers implementation of image classification without prio...
+------------------------------
+24. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/object_detection/data_preparation/prepare_coco17.md
+   Score: 0.6493
+   Title: Condensed: ```
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial demonstrates how to download and extract the COCO2017 dataset for object detection using either AutoGluon CLI commands or a bash script. It covers implementati...
+------------------------------
+25. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/efficient_finetuning_basic.md
+   Score: 0.6432
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates parameter-efficient multilingual model fine-tuning using AutoGluon's MultiModalPredictor. It covers implementing IA3+BitFit techniques that ...
+------------------------------
+26. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/text_prediction/chinese_ner.md
+   Score: 0.6397
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates Chinese Named Entity Recognition (NER) using AutoGluon MultiModal, covering implementation of NER models specifically for Chinese text. It s...
+------------------------------
+27. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/semantic_matching/image2image_matching.md
+   Score: 0.6387
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates image-to-image semantic matching using AutoGluon's MultiModalPredictor. It covers implementing similarity-based image matching with Swin Tra...
+------------------------------
+28. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/semantic_matching/text2text_matching.md
+   Score: 0.6214
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates implementing text similarity models with AutoGluon MultiModal, teaching how to leverage BERT-based sentence embeddings for semantic matching...
+------------------------------
+29. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/semantic_matching/text_semantic_search.md
+   Score: 0.6094
+   Title: Condensed: ```python
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates implementing semantic search using AutoGluon's MultiModal (AutoMM) framework. It covers: (1) embedding extraction and semantic similarity co...
+------------------------------
+30. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/object_detection/data_preparation/convert_data_to_coco_format.md
+   Score: 0.6079
+   Title: Condensed: ```
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial explains the COCO dataset format for object detection, detailing the required directory structure and JSON schema with specific fields for images, categories, ...
+------------------------------

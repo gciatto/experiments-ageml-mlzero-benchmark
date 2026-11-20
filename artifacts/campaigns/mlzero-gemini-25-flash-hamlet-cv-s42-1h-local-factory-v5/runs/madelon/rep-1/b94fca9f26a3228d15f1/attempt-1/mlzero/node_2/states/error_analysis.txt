@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit` method was called with an invalid keyword argument, `random_state`. This argument is not supported by AutoGluon's `TabularPredictor.fit` method in the installed version (1.6.3), leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_state=42` argument from the `self.predictor.fit()` method call. If reproducibility is desired, investigate alternative ways to set a seed for AutoGluon, such as passing a `seed` argument to the `TabularPredictor` constructor or using `ag_args_fit` if applicable for specific models.

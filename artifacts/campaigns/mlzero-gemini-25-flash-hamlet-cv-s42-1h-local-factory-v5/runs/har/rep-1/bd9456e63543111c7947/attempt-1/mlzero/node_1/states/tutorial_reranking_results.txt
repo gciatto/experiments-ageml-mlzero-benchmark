@@ -1,0 +1,40 @@
+Selected Tutorials After Reranking:
+==================================================
+
+1. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/multimodal_prediction/beginner_multimodal.md
+   Retrieval Score: 0.8091
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal, a framework for multimodal machine learning that handles mixed data types. It covers implementing a pet adoption speed...
+------------------------------
+
+2. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/problem_types_and_metrics.md
+   Retrieval Score: 0.7718
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, sem...
+------------------------------
+
+3. Title: Condensed: ```
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/customization.md
+   Retrieval Score: 0.7881
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial covers AutoMM optimization parameters for fine-tuning multimodal models. It demonstrates how to configure learning rates, optimizers, training schedules, and v...
+------------------------------
+
+4. Title: Condensed: Create Dataset
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/focal_loss.md
+   Retrieval Score: 0.7342
+   Content Preview: # Condensed: Create Dataset
+
+Summary: This tutorial demonstrates implementing focal loss in AutoGluon for handling imbalanced image classification datasets. It covers techniques for calculating class ...
+------------------------------
+
+5. Title: Condensed: Continuous training provides a method for machine learning models to refine their performance over time. It enables models to build upon previously acquired knowledge, thereby enhancing accuracy, facilitating knowledge transfer across tasks, and saving computational resources. In this tutorial, we will demonstrate three use cases of continuous training with AutoMM.
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/continuous_training.md
+   Retrieval Score: 0.7311
+   Content Preview: # Condensed: Continuous training provides a method for machine learning models to refine their performance over time. It enables models to build upon previously acquired knowledge, thereby enhancing a...
+------------------------------

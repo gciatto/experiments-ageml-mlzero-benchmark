@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ValueError` indicates that the `random_seed` argument was passed to the `autogluon.tabular.TabularPredictor` constructor, but this argument is not supported by the installed AutoGluon version (1.6.3) for its `__init__` method. The `random_seed` parameter is intended for the `fit` method of `TabularPredictor` in this version.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. If reproducibility is desired, pass `random_seed=RANDOM_SEED` to the `predictor.fit()` method instead.

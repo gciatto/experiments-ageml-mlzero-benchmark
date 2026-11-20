@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unrecognized keyword argument, 'seed'. This argument is not directly supported by the `fit` method in the AutoGluon version 1.6.4b20260930 being used.
+SUGGESTED_FIX: Remove the `seed` parameter from the `predictor.fit()` method call. If reproducibility is required, consult the AutoGluon documentation for the correct way to set seeds, typically through `ag_args_fit` or by setting environment variables.

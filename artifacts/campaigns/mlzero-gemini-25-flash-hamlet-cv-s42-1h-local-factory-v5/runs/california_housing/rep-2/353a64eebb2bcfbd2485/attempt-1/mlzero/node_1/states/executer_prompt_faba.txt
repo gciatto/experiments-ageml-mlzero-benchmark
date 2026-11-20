@@ -1,0 +1,412 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+This is a **regression** task.
+
+**Input Format:** Tabular data from `data.csv`. Features include numerical columns (`longitude`, `latitude`, `housing_median_age`, `total_rooms`, `total_bedrooms`, `population`, `households`, `median_income`) and one categorical column (`ocean_proximity`).
+
+**Prediction Output Format:** Numerical prediction for the `median_house_value`.
+
+**Additional Details:**
+The task involves predicting the `median_house_value` using a ten-fold cross-validation benchmark. The evaluation metric is Root Mean Squared Error (RMSE), where lower is better. There is no independent test set. The dataset must not be shuffled, split, filtered, reordered, or sampled, and row IDs must not be added as features. Models must be provided as a Python factory module (`model_factory.py`) with a `build_model(X_train, y_train)` function that returns a new, unfitted model exposing `fit(X,y)` and `predict(X)` methods. All preprocessing must be contained within this model and fitted only on the training data for each fold. Stochastic models should use `random_state/seed 42`.
+
+### Data Structure
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/data.csv
+Content:
+Cols: ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income', 'ocean_proximity', 'median_house_value']
+
+Head (2 rows):
+  longitude  latitude  housing_median_age  total_rooms  total_bedrooms  population  households  median_income ocean_proximity  median_house_value
+   -122.23     37.88                  41        880.0           129.0       322.0       126.0         8.3252        NEAR BAY            452600.0
+   -122.22     37.86                  21       7099.0          1106.0      2401.0      1138.0         8.3014        NEAR BAY            358500.0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: california_housing
+Target column: `median_house_value`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon an
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/cv_contract.json
+Content:
+JSON dictionary detected.
+Top-level keys: ['cv_folds', 'dataset_id', 'dataset_version', 'evaluation_protocol', 'partitions', 'protocol_version', 'row_identity', 'source_row_count', 'source_sha256', 'split_hashes', 'split_identity', 'split_seed', 'splitter', 'stratification', 'target_column', 'task']
+First few key-value pairs:
+  'cv_folds': [{'train': [2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2078...
+  'dataset_id': california_housing
+  'dataset_version': 45e44ec0cb85a0de4a0a9174a92b3fecac9415bf0173247a541680eccb50c699
+  ...
+
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### Python Code
+import pandas as pd
+import autogluon.tabular as agt
+from autogluon.core.utils.utils import set_random_seed
+import tempfile
+import shutil
+import os
+import logging
+
+# Set up basic logging to suppress excessive AutoGluon output if needed.
+# AutoGluon can be quite verbose. Setting its logger level to WARNING or ERROR
+# can reduce output during evaluation, which is often desirable in benchmarks.
+# logging.basicConfig(level=logging.WARNING)
+# logging.getLogger('autogluon').setLevel(logging.WARNING)
+
+# Set a global seed for reproducibility across AutoGluon's internal models.
+# This addresses the previous error regarding `random_state` in TabularPredictor constructor
+# and ensures consistent results for stochastic algorithms within AutoGluon.
+set_random_seed(42)
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    `fit(X, y)` and `predict(X)` interface required by the benchmark.
+    """
+    def __init__(self, label_column_name: str):
+        """
+        Initializes the wrapper.
+
+        Args:
+            label_column_name (str): The name of the target column.
+        """
+        self.predictor = None
+        self.temp_path = None
+        self.label_column_name = label_column_name
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+
+        All preprocessing and model training are performed within this method,
+        using only the data from the current training fold.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target variable.
+        """
+        # Ensure y is a pandas Series with a name, as AutoGluon expects this.
+        # If y is a numpy array or a Series without a name, assign the inferred name.
+        if not isinstance(y, pd.Series):
+            y = pd.Series(y, name=self.label_column_name, index=X.index)
+        elif y.name is None:
+            y.name = self.label_column_name
+
+        # Combine X and y into a single DataFrame as required by AutoGluon's fit method.
+        train_data = X.copy()
+        train_data[self.label_column_name] = y
+
+        # Create a temporary directory for AutoGluon artifacts for this specific fold.
+        # This ensures "fresh artifact directories per fold" as required by the contract,
+        # preventing interference between different folds' models.
+        self.temp_path = tempfile.mkdtemp(prefix="autogluon_model_")
+        
+        # Initialize TabularPredictor.
+        # 'problem_type' is set to 'regression' as per the task description.
+        # 'path' points to the temporary directory for storing model artifacts.
+        # 'verbosity=0' can be uncommented to suppress AutoGluon's extensive logging during fit.
+        self.predictor = agt.TabularPredictor(
+            label=self.label_column_name,
+            problem_type='regression',
+            path=self.temp_path,
+            # verbosity=0 # Uncomment to suppress AutoGluon output during fit
+        )
+
+        # Fit the predictor.
+        # 'time_limit' is crucial to ensure all ten fits complete within the shared deadline.
+        # With a total of 3180 seconds for 10 folds, 250 seconds per fold (2500s total)
+        # leaves a comfortable buffer for data loading, evaluation, and other overhead.
+        # 'presets' are chosen for a good balance of speed and accuracy.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=250, # seconds per fold
+            presets='medium_quality_faster_inference',
+            # Specific hyperparameters for individual models within AutoGluon can be set here, e.g.:
+            # hyperparameters={'GBM': {'random_state': 42}, 'RF': {'random_state': 42}}
+            # However, the global set_random_seed(42) often suffices for overall reproducibility.
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Generates predictions for the given input features using the fitted model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            pd.Series: Predicted target values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        predictions = self.predictor.predict(X)
+        return predictions
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts.
+        This method is called when the object is garbage collected, ensuring
+        that temporary files are removed.
+        """
+        if self.temp_path and os.path.exists(self.temp_path):
+            try:
+                shutil.rmtree(self.temp_path)
+                # print(f"Cleaned up temporary directory: {self.temp_path}") # For debugging
+            except OSError as e:
+                # print(f"Error removing temporary directory {self.temp_path}: {e}") # For debugging
+                pass # Ignore errors during cleanup to avoid crashing if directory is in use or already gone.
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to build and return a new, unfitted model wrapper.
+
+    This function is called by the evaluation harness for each cross-validation fold.
+    It must return a fresh instance of a model that exposes `fit(X,y)` and `predict(X)` methods.
+    The `X_train` and `y_train` arguments are provided to infer metadata (like the target column name)
+    but should not be used for fitting the model at this stage.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used here to infer the target column name).
+        y_train (pd.Series): Training target (used here to infer the target column name).
+
+    Returns:
+        AutoGluonModelWrapper: An unfitted model wrapper with fit/predict methods.
+    """
+    # Infer the label column name from y_train.
+    # If y_train is a Series without a name, use the known target column name as a fallback.
+    label_column_name = y_train.name if y_train.name else 'median_house_value'
+    
+    return AutoGluonModelWrapper(label_column_name=label_column_name)
+
+## Execution Results
+### Standard Output (stdout)
+
+Starting minimal BASH INSTALLATION script...
+Conda environment path: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env
+Python version: 3.11
+Creating conda environment with Python 3.11 at /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env...
+Channels:
+ - conda-forge
+Platform: linux-64
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+## Package Plan ##
+  environment location: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env
+  added / updated specs:
+    - python=3.11
+The following NEW packages will be INSTALLED:
+  _openmp_mutex      conda-forge/linux-64::_openmp_mutex-4.5-20_gnu 
+  bzip2              conda-forge/linux-64::bzip2-1.0.8-hda65f42_10 
+  ca-certificates    conda-forge/noarch::ca-certificates-2026.10.23-hbd8a1cb_0 
+  ld_impl_linux-64   conda-forge/linux-64::ld_impl_linux-64-2.46.1-default_hbd61a6d_103 
+  libexpat           conda-forge/linux-64::libexpat-2.9.0-hd2095e1_0 
+  libffi             conda-forge/linux-64::libffi-3.7.0-h81df57d_1 
+  libgcc             conda-forge/linux-64::libgcc-16.2.0-ha9f2e26_7 
+  libgomp            conda-forge/linux-64::libgomp-16.2.0-he0feb66_7 
+  liblzma            conda-forge/linux-64::liblzma-5.8.3-hb03c661_1 
+  libnsl             conda-forge/linux-64::libnsl-2.0.1-hb9d3cd8_1 
+  libpython          conda-forge/linux-64::libpython-3.11.18-ha57cdbe_0_cpython 
+  libsqlite          conda-forge/linux-64::libsqlite-3.54.1-h0737f62_101 
+  libuuid            conda-forge/linux-64::libuuid-2.42.4-hcfc3c73_1 
+  libxcrypt          conda-forge/linux-64::libxcrypt-4.4.38-h280c20c_0 
+  libzlib            conda-forge/linux-64::libzlib-1.3.2-h25fd6f3_3 
+  ncurses            conda-forge/linux-64::ncurses-6.6-hdb14827_1 
+  openssl            conda-forge/linux-64::openssl-3.6.5-h781a0a9_0 
+  packaging          conda-forge/noarch::packaging-26.3-pyhc364b38_0 
+  pip                conda-forge/noarch::pip-26.2.2-pyh8b19718_2 
+  python             conda-forge/linux-64::python-3.11.18-h5f976f7_0_cpython 
+  readline           conda-forge/linux-64::readline-8.3-hd6e31c0_1 
+  setuptools         conda-forge/noarch::setuptools-84.2.1-pyhe730653_0 
+  tk                 conda-forge/linux-64::tk-8.6.13-noxft_h1df4ec4_4 
+  tzdata             conda-forge/noarch::tzdata-2026e-h5d301ff_0 
+  wheel              conda-forge/noarch::wheel-0.48.0-pyhd8ed1ab_0 
+  zstd               conda-forge/linux-64::zstd-1.5.7-hb78ec9c_7 
+Downloading and Extracting Packages: ...working... done
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+#
+# To activate this environment, use
+#     $ conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env
+# To deactivate an active environment, use
+#     $ conda deactivate
+Activating conda environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env
+Conda environment activated successfully. Python interpreter: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env/bin/python
+Installing uv into the activated environment...
+Collecting uv
+  Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.6 MB)
+Installing collected packages: uv
+Successfully installed uv-0.13.9
+Installing required packages (numpy, pandas, scikit-learn, autogluon.tabular, and from requirements files) using uv pip install...
+Installation complete for the conda environment at /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env.
+To use this environment, activate it with: conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env
+
+
+### Standard Error (stderr)
+
+WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+warning: Requirements file `.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt` does not contain any dependencies
+Using Python 3.11.18 environment at: artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1/conda_env
+Resolved 94 packages in 22ms
+Installed 92 packages in 189ms
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.3
+ + aiosignal==1.4.0
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + attrs==26.1.0
+ + autogluon-common==1.6.4b20260930
+ + autogluon-core==1.6.4b20260930
+ + autogluon-features==1.6.4b20260930
+ + autogluon-tabular==1.6.4b20260930
+ + boto3==1.43.106
+ + botocore==1.43.106
+ + certifi==2026.7.22
+ + chardet==7.6.0
+ + charset-normalizer==3.5.2
+ + click==8.5.0
+ + cloudpickle==3.1.2
+ + contourpy==1.3.3
+ + cuda-bindings==13.4.3
+ + cuda-pathfinder==1.8.2
+ + cuda-toolkit==13.0.3.0
+ + cycler==0.12.1
+ + datasets==5.0.1
+ + dill==0.4.1
+ + filelock==4.0.7
+ + fonttools==4.66.1
+ + frozenlist==1.8.0
+ + fsspec==2026.6.0
+ + h11==0.16.0
+ + hf-xet==1.7.0.dev1
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + huggingface-hub==1.33.0
+ + idna==3.20
+ + jinja2==3.1.6
+ + jmespath==1.1.0
+ + joblib==1.6.0
+ + kiwisolver==1.5.1
+ + markupsafe==3.0.3
+ + matplotlib==3.11.2
+ + mpmath==1.3.0
+ + multidict==6.9.1
+ + multiprocess==0.70.19
+ + narwhals==2.26.0
+ + networkx==3.6.1
+ + numpy==2.4.6
+ + nvidia-cublas==13.1.1.3
+ + nvidia-cuda-cupti==13.0.85
+ + nvidia-cuda-nvrtc==13.0.88
+ + nvidia-cuda-runtime==13.0.96
+ + nvidia-cudnn-cu13==9.24.0.43
+ + nvidia-cufft==12.0.0.61
+ + nvidia-cufile==1.15.1.6
+ + nvidia-curand==10.4.0.35
+ + nvidia-cusolver==12.0.4.66
+ + nvidia-cusparse==12.6.3.3
+ + nvidia-cusparselt-cu13==0.8.1
+ + nvidia-nccl-cu13==2.30.7
+ + nvidia-nvjitlink==13.4.92
+ + nvidia-nvshmem-cu13==3.4.5
+ + nvidia-nvtx==13.0.85
+ + opencv-python==5.0.0.93
+ + pandas==2.3.3
+ + pillow==12.3.0
+ + propcache==0.5.4
+ + psutil==7.2.2
+ + pyarrow==24.0.0
+ + pydantic==2.14.0b2
+ + pydantic-core==2.49.0
+ + pyparsing==3.3.3
+ + python-calamine==0.8.2
+ + python-dateutil==2.9.0.post0
+ + pytz==2026.4
+ + pyyaml==6.0.3
+ + requests==2.34.2
+ + s3transfer==0.19.2
+ + scikit-learn==1.9.1
+ + scipy==1.17.1
+ + six==1.17.0
+ + sympy==1.14.0
+ + threadpoolctl==3.7.0
+ + torch==2.14.1
+ + torchaudio==2.11.0
+ + torchvision==0.29.1
+ + tqdm==4.70.1
+ + triton==3.8.0
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + tzdata==2026.4
+ + urllib3==2.8.0
+ + xxhash==4.0.1
+ + yarl==1.25.1
+
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

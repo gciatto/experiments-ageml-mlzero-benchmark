@@ -1,0 +1,177 @@
+
+You are an expert at generating search queries to find relevant machine learning tutorials. Given the context below, generate a concise and effective search query that will help find the most relevant tutorials for this task.
+
+### Task Description
+This data science task is a **regression** problem.
+
+*   **Problem Type**: Regression.
+*   **Input Format**: Tabular data provided as a pandas DataFrame (`X_train`) containing features (all columns from `data.csv` except `SalePrice`) and a pandas Series (`y_train`) containing the target `SalePrice`. The `predict` method receives a pandas DataFrame (`X`) of features.
+*   **Prediction Output Format**: A 1D array (e.g., NumPy array or list) of numerical values, where each value is the predicted `SalePrice` for the corresponding input row.
+*   **Target Column**: `SalePrice`.
+*   **Metric**: Root Mean Squared Error (RMSE), where lower is better.
+*   **Cross-validation**: Ten-fold cross-validation using predefined train/validation splits specified in `cv_contract.json`. There is no independent test set.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv
+Content:
+Columns (first 10 and last 10):
+['Id', 'MSSubClass', 'MSZoning', 'LotFrontage', 'LotArea', 'Street', 'Alley', 'LotShape', 'LandContour', 'Utilities', '...', 'PoolArea', 'PoolQC', 'Fence', 'MiscFeature', 'MiscVal', 'MoSold', 'YrSold', 'SaleType', 'SaleCondition', 'SalePrice']
+
+First row (truncated, first 7 columns):
+ Id  MSSubClass MSZoning  LotFrontage  LotArea Street Alley
+  1          60       RL         65.0     8450   Pave   NaN
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: ames_housing
+Target column: `SalePrice`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools r
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/cv_contract.json
+Content:
+{
+  "cv_folds": [
+    {
+      "train": [
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        2...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor` constructor was called with an invalid keyword argument, `random_seed`. The current version of AutoGluon does not accept `random_seed` as a parameter during the initialization of the `TabularPredictor` object.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. To ensure reproducibility, pass the `random_seed` argument directly to the `fit()` method of the `TabularPredictor` instance, or set it globally using `autogluon.core.utils.utils.set_seed()`.
+
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unexpected `seed` keyword argument. In the installed version of AutoGluon MultiModal, the seed for reproducibility should be configured as a hyperparameter within the `fit` method, specifically using the `env.seed` key.
+SUGGESTED_FIX: Remove the `seed=GLOBAL_SEED` argument from the `MultiModalPredictor` constructor. Instead, pass `GLOBAL_SEED` within the `hyperparameters` dictionary to the `predictor.fit()` method, using the key `"env.seed"`.
+
+ERROR_SUMMARY: The bash script failed because it attempted to reference the `CONDA_SHLVL` environment variable while `set -u` was active and `CONDA_SHLVL` was not set. This caused the script to terminate due to an "unbound variable" error.
+SUGGESTED_FIX: Modify line 22 in the bash script from `if [ -z "$CONDA_SHLVL" ]; then` to `if [ -z "${CONDA_SHLVL:-}" ]; then`. This change safely checks if the variable is unset or empty without triggering an unbound variable error when `set -u` is enabled.
+
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an invalid `seed` keyword argument. The `seed` parameter for reproducibility should be passed during the initialization of the `TabularPredictor` object, not to its `fit` method.
+SUGGESTED_FIX: Remove the `seed` argument from the `predictor.fit()` method call. Instead, pass the `random_seed` parameter directly to the `TabularPredictor` constructor when initializing the predictor object.
+
+ERROR_SUMMARY: The `KeyError` indicates that the `env.seed` key is not a valid hyperparameter for `AutoGluon.MultiModalPredictor.fit`. AutoGluon's internal configuration, managed by OmegaConf, does not recognize this specific key for overriding, leading to the error when attempting to apply the provided `hyperparameters`.
+SUGGESTED_FIX: Remove the `hyperparameters={"env.seed": GLOBAL_SEED}` argument from the `predictor.fit` method call. If global reproducibility is desired, ensure `random.seed()`, `numpy.random.seed()`, and `torch.manual_seed()` are set at the beginning of the script.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function is no longer located at `autogluon.core.utils.utils` in the installed AutoGluon beta version (1.6.4b). This is due to an API change where the function has likely been moved or renamed.
+SUGGESTED_FIX: Update the import statement for `set_seed` to its correct location, which is typically `autogluon.common.utils.utils.set_seed` in recent AutoGluon versions. Verify the exact path in the AutoGluon documentation for version 1.6.4b if the common path doesn't resolve the issue.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function cannot be found in `autogluon.common.utils.utils`. This is likely due to a change in the AutoGluon library structure, where the `set_seed` utility has been moved to a different module in the installed `1.6.4b` version.
+SUGGESTED_FIX: Update the import statement for `set_seed`. Check the AutoGluon documentation or source code for version `1.6.4b` to find the correct module path for `set_seed`, which is commonly `autogluon.core.utils.utils.set_seed`.
+
+ERROR_SUMMARY: The `TabularPredictor` constructor was called without the required `label` argument, which specifies the name of the target column. This argument is mandatory for initializing AutoGluon's predictor.
+SUGGESTED_FIX: Modify the `AutoGluonModelWrapper.__init__` method to pass the `TARGET_COLUMN` variable as the `label` argument to the `TabularPredictor` constructor. Ensure the `label` argument is present during the predictor's instantiation.
+
+ERROR_SUMMARY: The `TabularPredictor` constructor received an invalid keyword argument, `random_seed`. This argument is not recognized by the `TabularPredictor`'s initialization method.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor. For reproducibility, pass the `seed` argument with your desired value directly to the `predictor.fit()` method instead.
+
+### Selected Tool/Library
+autogluon.tabular
+
+
+Based on the above context, generate a search query that will help find tutorials most relevant to this task. The query should:
+1. Include key technical terms and concepts
+2. Focus on the main task/problem to solve
+3. Be concise but specific
+
+IMPORTANT: Respond ONLY with the search query text. Do not include explanations, quotes, or any other formatting.

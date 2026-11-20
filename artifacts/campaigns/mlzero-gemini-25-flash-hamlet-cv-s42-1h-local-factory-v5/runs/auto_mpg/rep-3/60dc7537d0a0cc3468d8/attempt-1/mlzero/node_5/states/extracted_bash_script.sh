@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the full path for the conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-3/60dc7537d0a0cc3468d8/attempt-1/mlzero/node_5/conda_env"
+
+# Define paths to the requirements files
+REQ_FILE_MULTIMODAL="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+REQ_FILE_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluon MultiModal."
+echo "Conda environment will be created at: $CONDA_ENV_PATH"
+
+# 1. Create a new conda environment with Python 3.11
+echo "Creating conda environment with Python 3.11..."
+# Use --force to ensure a clean environment if it partially exists from a previous failed attempt
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 -y --force || { echo "Failed to create conda environment." >&2; exit 1; }
+
+# 2. Activate the newly created environment
+echo "Activating conda environment..."
+# Initialize conda for the current shell if not already done (important for non-interactive scripts)
+# This assumes 'conda' command is available in the PATH.
+source "$(conda info --base)/etc/profile.d/conda.sh" || { echo "Failed to source conda.sh. Ensure conda is installed and in PATH." >&2; exit 1; }
+conda activate "$CONDA_ENV_PATH" || { echo "Failed to activate conda environment." >&2; exit 1; }
+
+# 3. Install uv (a fast pip alternative)
+echo "Installing uv..."
+pip install uv || { echo "Failed to install uv." >&2; exit 1; }
+
+# 4. Install required packages using uv
+# This includes numpy, pandas, scikit-learn as explicitly requested,
+# and all packages from the specified requirements files.
+# uv will handle dependency resolution and avoid unnecessary upgrades.
+echo "Installing numpy, pandas, scikit-learn, and packages from requirements files using uv..."
+uv pip install numpy pandas scikit-learn \
+    -r "$REQ_FILE_MULTIMODAL" --prerelease=allow \
+    -r "$REQ_FILE_COMMON" || { echo "Failed to install packages with uv." >&2; exit 1; }
+
+echo "Conda environment setup complete at $CONDA_ENV_PATH."
+echo "To activate this environment manually, run: conda activate $CONDA_ENV_PATH"

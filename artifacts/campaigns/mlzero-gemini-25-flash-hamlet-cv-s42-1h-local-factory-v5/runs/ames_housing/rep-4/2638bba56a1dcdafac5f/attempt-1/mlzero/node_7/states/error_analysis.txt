@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The Conda initialization script `conda.sh` was not found at the specified path `/opt/conda/etc/profile.d/conda.sh`. This prevents the shell from properly initializing Conda, which is a prerequisite for creating and activating conda environments.
+SUGGESTED_FIX: Verify that Conda is correctly installed in the environment and that the `conda.sh` script exists at `/opt/conda/etc/profile.d/conda.sh`. If the script is located elsewhere, update the `CONDA_BASE_PATH` variable in the bash script to point to the correct Conda installation directory.

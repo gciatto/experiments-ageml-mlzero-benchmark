@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "<string>", line 10, in analyze_file
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 815, in read_json
+    return json_reader.read()
+           ^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1025, in read
+    obj = self._get_object_parser(self.data)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1051, in _get_object_parser
+    obj = FrameParser(json, **kwargs).parse()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1187, in parse
+    self._parse()
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/io/json/_json.py", line 1402, in _parse
+    self.obj = DataFrame(
+               ^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/frame.py", line 778, in __init__
+    mgr = dict_to_mgr(data, index, columns, dtype=dtype, copy=copy, typ=manager)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/internals/construction.py", line 503, in dict_to_mgr
+    return arrays_to_mgr(arrays, columns, index, dtype=dtype, typ=typ, consolidate=copy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/internals/construction.py", line 114, in arrays_to_mgr
+    index = _extract_index(arrays)
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/lib/python3.11/site-packages/pandas/core/internals/construction.py", line 677, in _extract_index
+    raise ValueError("All arrays must be of the same length")
+ValueError: All arrays must be of the same length
+
+During handling of the above exception, another exception occurred:
+  File "<string>", line 68, in <module>
+  File "<string>", line 30, in analyze_file
+AttributeError: module 'pandas.io.common' has no attribute 'EmptyDataError'

@@ -1,0 +1,507 @@
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates image classification using AutoGluon MultiModal, covering implementation of a complete workflow from setup to deployment. It teaches how to: load image data (both file paths and bytearrays), train classification models with minimal code using MultiModalPredictor, evaluate model performance, make predictions on new images, extract feature embeddings for transfer learning, and save/load models. Key features include time-constrained training, handling multiple input formats, probability-based predictions, and feature extraction capabilities - all with AutoGluon's simplified API that abstracts away complex deep learning implementation details.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# Image Classification with AutoGluon MultiModal
+
+## Setup and Data Loading
+
+```python
+!pip install autogluon.multimodal
+
+import warnings
+warnings.filterwarnings('ignore')
+import pandas as pd
+
+from autogluon.multimodal.utils.misc import shopee_dataset
+download_dir = './ag_automm_tutorial_imgcls'
+train_data_path, test_data_path = shopee_dataset(download_dir)
+```
+
+AutoGluon supports both image paths and bytearrays:
+
+```python
+# Load dataset with bytearrays
+train_data_byte, test_data_byte = shopee_dataset(download_dir, is_bytearray=True)
+```
+
+## Training a Model
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+import uuid
+model_path = f"./tmp/{uuid.uuid4().hex}-automm_shopee"
+predictor = MultiModalPredictor(label="label", path=model_path)
+predictor.fit(
+    train_data=train_data_path,
+    time_limit=30, # seconds
+)
+```
+
+Key parameters:
+- `label`: Column name containing target variable
+- `path`: Directory for saving models and outputs
+- `time_limit`: Training time in seconds
+
+## Evaluation
+
+```python
+# Evaluate with image paths
+scores = predictor.evaluate(test_data_path, metrics=["accuracy"])
+print('Top-1 test acc: %.3f' % scores["accuracy"])
+
+# Evaluate with bytearrays
+scores = predictor.evaluate(test_data_byte, metrics=["accuracy"])
+print('Top-1 test acc: %.3f' % scores["accuracy"])
+```
+
+## Prediction
+
+```python
+# Predict label for a single image
+image_path = test_data_path.iloc[0]['image']
+predictions = predictor.predict({'image': [image_path]})
+
+# Get class probabilities
+proba = predictor.predict_proba({'image': [image_path]})
+
+# Works with bytearrays too
+image_byte = test_data_byte.iloc[0]['image']
+predictions = predictor.predict({'image': [image_byte]})
+proba = predictor.predict_proba({'image': [image_byte]})
+```
+
+## Feature Extraction
+
+```python
+# Extract embeddings from images
+feature = predictor.extract_embedding({'image': [image_path]})
+print(feature[0].shape)  # N-dimensional feature vector (typically 512-2048)
+
+# Works with bytearrays too
+feature = predictor.extract_embedding({'image': [image_byte]})
+```
+
+## Save and Load
+
+```python
+# Model is automatically saved during fit()
+loaded_predictor = MultiModalPredictor.load(model_path)
+load_proba = loaded_predictor.predict_proba({'image': [image_path]})
+```
+
+⚠️ **Warning**: `MultiModalPredictor.load()` uses `pickle` module which can be insecure. Only load models from trusted sources.
+
+For customization options, refer to the "Customize AutoMM" documentation.
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal for multimodal machine learning, focusing on image-text classification with the PetFinder dataset. It covers implementation techniques for preparing multimodal data (handling image paths and text features), training a MultiModalPredictor with automatic modality detection and model selection, and making predictions. Key functionalities include automatic problem type inference, multimodal feature handling, time-constrained training, classification prediction, probability estimation, and performance evaluation using metrics like ROC-AUC. This knowledge helps with tasks requiring combined processing of images and tabular data for classification problems.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Quickstart Tutorial
+
+## Setup
+
+```python
+!python -m pip install --upgrade pip
+!python -m pip install autogluon
+
+import os
+import warnings
+import numpy as np
+
+warnings.filterwarnings('ignore')
+np.random.seed(123)
+```
+
+## Data Preparation
+
+Download and prepare the PetFinder dataset (simplified version with binary adoption speed):
+
+```python
+from autogluon.core.utils.loaders import load_zip
+import pandas as pd
+
+# Download dataset
+download_dir = './ag_multimodal_tutorial'
+zip_file = 'https://automl-mm-bench.s3.amazonaws.com/petfinder_for_tutorial.zip'
+load_zip.unzip(zip_file, unzip_dir=download_dir)
+
+# Load data
+dataset_path = f'{download_dir}/petfinder_for_tutorial'
+train_data = pd.read_csv(f'{dataset_path}/train.csv', index_col=0)
+test_data = pd.read_csv(f'{dataset_path}/test.csv', index_col=0)
+label_col = 'AdoptionSpeed'
+
+# Process image paths (take only first image per record)
+image_col = 'Images'
+train_data[image_col] = train_data[image_col].apply(lambda ele: ele.split(';')[0])
+test_data[image_col] = test_data[image_col].apply(lambda ele: ele.split(';')[0])
+
+# Expand image paths to absolute paths
+def path_expander(path, base_folder):
+    path_l = path.split(';')
+    return ';'.join([os.path.abspath(os.path.join(base_folder, path)) for path in path_l])
+
+train_data[image_col] = train_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+test_data[image_col] = test_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+```
+
+## Training
+
+Train the MultiModalPredictor with a time limit:
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+
+predictor = MultiModalPredictor(label=label_col).fit(
+    train_data=train_data,
+    time_limit=120  # 2 minutes time limit for quick demo
+)
+```
+
+Key features:
+- Automatically infers problem type (classification/regression)
+- Detects feature modalities
+- Selects appropriate models
+- Adds late-fusion model (MLP or transformer) for multiple backbones
+
+## Prediction
+
+Make predictions on test data:
+
+```python
+# Class predictions
+predictions = predictor.predict(test_data.drop(columns=label_col))
+
+# Probability predictions
+probs = predictor.predict_proba(test_data.drop(columns=label_col))
+```
+
+## Evaluation
+
+Evaluate model performance:
+
+```python
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+This tutorial demonstrates basic functionality - see in-depth tutorials for advanced features like embedding extraction, distillation, model fine-tuning, and semantic matching.
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, semantic segmentation, similarity matching, NER, and feature extraction. It helps with implementing models that handle various data modalities (text, image, numerical, categorical) and specifies which problem types support training vs. zero-shot prediction. The tutorial details evaluation metrics for each problem type and provides implementation context for working with multimodal data. It's valuable for coding tasks involving multimodal machine learning, particularly when working with mixed data types and needing automated model training across different problem domains.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Problem Types
+
+## Installation and Setup
+
+```python
+!pip install autogluon.multimodal
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+## Problem Types Overview
+
+### Classification
+
+AutoGluon supports two types of classification:
+
+**Binary Classification (2 classes)**
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: accuracy, balanced_accuracy, f1, mcc, roc_auc (default)
+- Supports training and zero-shot prediction
+
+**Multiclass Classification (3+ classes)**
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: accuracy (default), balanced_accuracy, f1, log_loss
+- Supports training and zero-shot prediction
+
+### Regression
+
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: mse, rmse (default), r2, mae, mape
+- Supports training and zero-shot prediction
+
+### Object Detection
+
+- Supported modalities: image
+- Evaluation metrics: map (default)
+- Supports training but not zero-shot prediction
+
+### Semantic Segmentation
+
+- Supported modalities: image
+- Evaluation metrics: overall_accuracy, mean_accuracy, mean_iou (default), weighted_iou
+- Supports training but not zero-shot prediction
+
+### Similarity Matching Problems
+
+**Text Similarity**
+- Input requirements: text
+- Supports zero-shot prediction
+
+**Image Similarity**
+- Input requirements: image
+- Supports zero-shot prediction
+
+**Image-Text Similarity**
+- Input requirements: image, text
+- Supports zero-shot prediction
+
+### Named Entity Recognition (NER)
+
+- Supported modalities: text
+- Evaluation metrics: overall_f1 (default)
+- Supports training but not zero-shot prediction
+
+### Feature Extraction
+
+- Supported modalities: image, numerical, text, categorical, tabular
+- Supports training and zero-shot prediction
+
+### Few-shot Classification
+
+- Supported modalities: image, text
+- Evaluation metrics: accuracy (default)
+- Supports training and zero-shot prediction
+
+## Additional Resources
+- For more examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- For customization: [Customize AutoMM](../advanced_topics/customization.ipynb)
+- For similarity matching: [Matching Tutorials](../semantic_matching/index.md)
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates hyperparameter optimization (HPO) for multimodal models using AutoGluon's MultiModalPredictor. It covers implementing Ray Tune-based HPO for image classification tasks by defining search spaces for learning rates, optimizers, epochs, and model architectures. Key features include configuring search strategies (random/Bayesian), schedulers (FIFO/ASHA), and trial management. The tutorial shows how to compare regular training with HPO approaches, evaluate model performance, and efficiently tune hyperparameters to improve accuracy. This knowledge helps with implementing automated hyperparameter tuning for computer vision tasks, particularly when working with limited training data.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Hyperparameter Optimization Tutorial
+
+## Setup and Data Preparation
+
+```python
+!pip install autogluon.multimodal
+
+import warnings
+warnings.filterwarnings('ignore')
+from datetime import datetime
+from autogluon.multimodal.utils.misc import shopee_dataset
+
+# Load and prepare dataset
+download_dir = './ag_automm_tutorial_hpo'
+train_data, test_data = shopee_dataset(download_dir)
+train_data = train_data.sample(frac=0.5)  # 400 data points total
+```
+
+The dataset contains image paths in the `image` column and class labels in the `label` column.
+
+## Basic Model Training
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+
+predictor_regular = MultiModalPredictor(label="label")
+start_time = datetime.now()
+predictor_regular.fit(
+    train_data=train_data,
+    hyperparameters={"model.timm_image.checkpoint_name": "ghostnet_100"}
+)
+end_time = datetime.now()
+elapsed_seconds = (end_time - start_time).total_seconds()
+print("Total fitting time: ", f"{int(elapsed_seconds//60)}m{int(elapsed_seconds%60)}s")
+
+# Evaluate model
+scores = predictor_regular.evaluate(test_data, metrics=["accuracy"])
+print('Top-1 test acc: %.3f' % scores["accuracy"])
+```
+
+## Hyperparameter Optimization (HPO)
+
+AutoGluon uses Ray Tune for HPO with the following key configuration options:
+
+1. **Search Space Definition**:
+   ```python
+   hyperparameters = {
+       "optim.lr": tune.uniform(0.00005, 0.005),
+       "optim.optim_type": tune.choice(["adamw", "sgd"]),
+       "optim.max_epochs": tune.choice(["10", "20"]),
+       "model.timm_image.checkpoint_name": tune.choice(["swin_base_patch4_window7_224", "convnext_base_in22ft1k"])
+   }
+   ```
+
+2. **HPO Configuration**:
+   - `"searcher"`: Search strategy (`"random"` or `"bayes"`)
+   - `"scheduler"`: Job scheduling method (`"FIFO"` or `"ASHA"`)
+   - `"num_trials"`: Number of HPO trials to run
+   - `"num_to_keep"`: Number of checkpoints to keep per trial (must be ≥ 1)
+
+### Example HPO Implementation
+
+```python
+from ray import tune
+
+predictor_hpo = MultiModalPredictor(label="label")
+
+hyperparameters = {
+    "optim.lr": tune.uniform(0.00005, 0.001),
+    "model.timm_image.checkpoint_name": tune.choice([
+        "ghostnet_100",
+        "mobilenetv3_large_100"
+    ])
+}
+
+hyperparameter_tune_kwargs = {
+    "searcher": "bayes",
+    "scheduler": "ASHA",
+    "num_trials": 2,
+    "num_to_keep": 3,
+}
+
+start_time_hpo = datetime.now()
+predictor_hpo.fit(
+    train_data=train_data,
+    hyperparameters=hyperparameters,
+    hyperparameter_tune_kwargs=hyperparameter_tune_kwargs,
+)
+end_time_hpo = datetime.now()
+elapsed_seconds_hpo = (end_time_hpo - start_time_hpo).total_seconds()
+print("Total fitting time: ", f"{int(elapsed_seconds_hpo//60)}m{int(elapsed_seconds_hpo%60)}s")
+
+# Evaluate HPO model
+scores_hpo = predictor_hpo.evaluate(test_data, metrics=["accuracy"])
+print('Top-1 test acc: %.3f' % scores_hpo["accuracy"])
+```
+
+During training, you'll see the best trial information in the logs:
+```
+Current best trial: 47aef96a with val_accuracy=0.862500011920929 and parameters={'optim.lr': 0.0007195214018085505, 'model.timm_image.checkpoint_name': 'ghostnet_100'}
+```
+
+Even with just 2 trials, HPO can improve performance by finding better hyperparameter combinations compared to default settings.
+
+## Additional Resources
+- More examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- For customization: See [Customize AutoMM](customization.ipynb)
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal, a framework for multimodal machine learning that handles mixed data types. It covers implementing a pet adoption speed predictor using images and tabular data, showcasing automatic modality detection, model selection, and late-fusion techniques. Key functionalities include training a multimodal predictor with minimal code, evaluating model performance, making predictions, extracting embeddings for downstream tasks, and saving/loading models. The tutorial is valuable for developers implementing classification tasks with mixed data types (images and tabular data) who need automated machine learning capabilities without extensive manual configuration.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Tutorial
+
+## Setup
+
+```python
+!pip install autogluon.multimodal
+
+import os
+import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
+np.random.seed(123)
+```
+
+## Dataset Preparation
+
+Using a simplified version of PetFinder dataset to predict animal adoption rates (0=slow, 1=fast).
+
+```python
+# Download dataset
+download_dir = './ag_automm_tutorial'
+zip_file = 'https://automl-mm-bench.s3.amazonaws.com/petfinder_for_tutorial.zip'
+from autogluon.core.utils.loaders import load_zip
+load_zip.unzip(zip_file, unzip_dir=download_dir)
+
+# Load data
+import pandas as pd
+dataset_path = download_dir + '/petfinder_for_tutorial'
+train_data = pd.read_csv(f'{dataset_path}/train.csv', index_col=0)
+test_data = pd.read_csv(f'{dataset_path}/test.csv', index_col=0)
+label_col = 'AdoptionSpeed'
+
+# Process image paths
+image_col = 'Images'
+train_data[image_col] = train_data[image_col].apply(lambda ele: ele.split(';')[0])  # Use first image only
+test_data[image_col] = test_data[image_col].apply(lambda ele: ele.split(';')[0])
+
+def path_expander(path, base_folder):
+    path_l = path.split(';')
+    return ';'.join([os.path.abspath(os.path.join(base_folder, path)) for path in path_l])
+
+train_data[image_col] = train_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+test_data[image_col] = test_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+```
+
+## Training
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+predictor = MultiModalPredictor(label=label_col)
+predictor.fit(
+    train_data=train_data,
+    time_limit=120,  # seconds
+)
+```
+
+AutoMM automatically:
+- Infers problem type (classification/regression)
+- Detects data modalities
+- Selects appropriate models
+- Trains with late-fusion if multiple backbones are available
+
+## Evaluation
+
+```python
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+## Prediction
+
+```python
+# Get class predictions
+predictions = predictor.predict(test_data.drop(columns=label_col))
+
+# Get class probabilities (classification only)
+probas = predictor.predict_proba(test_data.drop(columns=label_col))
+```
+
+## Extract Embeddings
+
+```python
+embeddings = predictor.extract_embedding(test_data.drop(columns=label_col))
+```
+
+## Save and Load
+
+```python
+import uuid
+model_path = f"./tmp/{uuid.uuid4().hex}-saved_model"
+predictor.save(model_path)
+loaded_predictor = MultiModalPredictor.load(model_path)
+```
+
+⚠️ **Warning**: `MultiModalPredictor.load()` uses `pickle` module which can be insecure. Only load models from trusted sources.
+
+## Additional Resources
+- More examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- Customization: Refer to "Customize AutoMM" documentation

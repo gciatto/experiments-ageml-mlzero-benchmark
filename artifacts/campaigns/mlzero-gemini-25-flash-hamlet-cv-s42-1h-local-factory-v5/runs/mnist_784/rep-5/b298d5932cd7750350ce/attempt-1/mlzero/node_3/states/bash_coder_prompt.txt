@@ -1,0 +1,229 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_3:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.multimodal if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import warnings
+from PIL import Image
+import io
+import random
+
+# Suppress warnings from AutoGluon or other libraries to keep output clean.
+# This is allowed at module scope.
+warnings.filterwarnings('ignore')
+
+# Set global seed for reproducibility.
+# This is allowed at module scope.
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+
+# AutoGluon MultiModal import.
+# This is allowed at module scope.
+from autogluon.multimodal import MultiModalPredictor
+
+class ModelWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self):
+        self.predictor = None
+        self.model_path = None
+
+    def _pixels_to_image_bytearray(self, df: pd.DataFrame) -> list:
+        """
+        Converts a DataFrame of pixel values (784 columns for 28x28 images)
+        into a list of image bytearrays (PNG format). This is a fixed
+        preprocessing step, not learned from data.
+        """
+        image_bytearrays = []
+        for _, row in df.iterrows():
+            # Reshape 784 pixels into a 28x28 NumPy array of unsigned 8-bit integers.
+            # MNIST pixels are typically 0-255.
+            pixels = row.values.astype(np.uint8).reshape(28, 28)
+            
+            # Create a PIL Image object in grayscale mode ('L').
+            img = Image.fromarray(pixels, mode='L')
+            
+            # Save the image to a byte array in PNG format.
+            img_byte_arr = io.BytesIO()
+            img.save(img_byte_arr, format='PNG')
+            image_bytearrays.append(img_byte_arr.getvalue())
+        return image_bytearrays
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the MultiModalPredictor model using the provided training data.
+        All learned preprocessing and model training are performed within this method,
+        using only the training rows for the current fold.
+        """
+        # Create a unique directory for model artifacts for this specific fold.
+        # This ensures isolation and fresh artifacts for each cross-validation fold.
+        self.model_path = f"./automm_model_artifacts_{uuid.uuid4().hex}"
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # Convert pixel data from DataFrame to a list of image bytearrays.
+        X_images = self._pixels_to_image_bytearray(X)
+
+        # Combine processed images and target labels into a single DataFrame.
+        # MultiModalPredictor expects a column named 'image' for image data
+        # and the specified 'label' column for targets.
+        train_data = pd.DataFrame({'image': X_images, 'class': y})
+
+        # Initialize MultiModalPredictor.
+        # 'label' specifies the target column name ('class').
+        # 'problem_type' is explicitly set to 'multiclass' for classification.
+        # 'path' specifies where model artifacts will be saved.
+        # 'verbosity=0' suppresses most AutoGluon output during training.
+        self.predictor = MultiModalPredictor(
+            label='class',
+            problem_type='multiclass',
+            path=self.model_path,
+            verbosity=0
+        )
+
+        # Fit the predictor with a time limit and specific hyperparameters.
+        # The time_limit is set to ensure all 10 folds complete within the
+        # overall shared deadline (3140 seconds total). 200s per fold is a
+        # conservative estimate, leaving ample time for data loading and overhead.
+        # 'model.timm_image.checkpoint_name': 'swin_tiny_patch4_window7_224'
+        # is chosen as a relatively small and fast image backbone to ensure timely completion.
+        # 'env.num_gpus: 1' allows GPU usage if available, falling back to CPU otherwise.
+        # 'optimization.max_epochs: 10' limits the training duration directly.
+        #
+        # FIX: Removed "env.seed" from hyperparameters as it caused a KeyError.
+        # Global numpy and random seeds are already set for reproducibility.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=200, # seconds per fold
+            hyperparameters={
+                "model.timm_image.checkpoint_name": "swin_tiny_patch4_window7_224",
+                "env.num_gpus": 1,
+                "optimization.max_epochs": 10,
+            }
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions on new data using the fitted MultiModalPredictor.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet.")
+
+        # Convert pixel data from DataFrame to a list of image bytearrays,
+        # applying the same preprocessing as during fitting.
+        X_images = self._pixels_to_image_bytearray(X)
+
+        # Create a DataFrame for prediction, with the 'image' column.
+        predict_data = pd.DataFrame({'image': X_images})
+
+        # Get predictions from the MultiModalPredictor.
+        predictions = self.predictor.predict(predict_data)
+        
+        # Return predictions as a 1-dimensional NumPy array of class labels.
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function required by the benchmark harness.
+    It returns a new, unfitted instance of the ModelWrapper.
+    The X_train and y_train arguments are part of the contract but are not
+    used here, as the model is returned unfitted.
+    """
+    return ModelWrapper()
+### Previous errors
+ERROR_SUMMARY: The error is a KeyError indicating that "env.seed" is not a recognized or existing key in the AutoGluon MultiModal configuration when attempting to apply overrides. This occurs because the `apply_omegaconf_overrides` function is called with `check_key_exist=True`, and the provided `env.seed` override does not match an existing configuration path.
+SUGGESTED_FIX: Remove the `"env.seed": SEED` entry from the `hyperparameters` dictionary passed to `predictor.fit()`. Global random and numpy seeds are already set, which should provide sufficient reproducibility for most operations.
+
+ERROR_SUMMARY: The AutoGluon TabularPredictor.fit() method was invoked with an unsupported keyword argument, 'random_state'. This parameter is not a valid direct argument for the `fit` method in the AutoGluon version being used, as indicated by the `ValueError`.
+SUGGESTED_FIX: Remove the `random_state=SEED` argument from the `self.predictor.fit()` call. AutoGluon typically manages internal randomness through its own mechanisms or by respecting global seeds set prior to its initialization.
+
+ERROR_SUMMARY: The conda environment failed to activate due to an issue with the `eval "$(conda shell hook)"` command or missing `conda init` execution in the script's context. This prevented required Python packages, such as `numpy`, from being installed into the correct environment, leading to a `ModuleNotFoundError` when the evaluation script was run.
+SUGGESTED_FIX: Remove the `eval "$(conda shell hook)"` and `conda activate` commands from the bash script. Instead, use `conda run -p "$CONDA_ENV_DIR"` as a prefix for all subsequent commands that need to execute within the newly created conda environment, including `pip install uv` and `uv pip install` commands.
+### Previous installation attempt
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+# Print commands and their arguments as they are executed.
+set -x
+
+# Define the target conda environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_0/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+# --- Step 1: Ensure conda is available ---
+if ! command -v conda &> /dev/null
+then
+    echo "Error: 'conda' command not found. Please ensure Anaconda/Miniconda is installed and in your PATH."
+    exit 1
+fi
+
+# --- Step 2: Create the conda environment with Python 3.11 ---
+echo "Creating conda environment at $ENV_PATH with Python 3.11..."
+# Use --yes for non-interactive creation.
+conda create --prefix "$ENV_PATH" python=3.11 --yes || {
+    echo "Error: Failed to create conda environment at $ENV_PATH."
+    exit 1
+}
+
+# --- Step 3: Activate the newly created conda environment ---
+echo "Activating conda environment at $ENV_PATH..."
+# Source conda.sh to make 'conda activate' available in the current shell.
+# This is crucial for subsequent pip commands to target the correct environment.
+source "$(conda info --base)/etc/profile.d/conda.sh" || {
+    echo "Error: Failed to source conda.sh. Ensure conda is properly initialized."
+    exit 1
+}
+conda activate "$ENV_PATH" || {
+    echo "Error: Failed to activate conda environment at $ENV_PATH."
+    exit 1
+}
+
+# --- Step 4: Install uv into the activated environment ---
+echo "Installing uv (a fast Python package installer) into the activated environment..."
+pip install uv || {
+    echo "Error: Failed to install uv."
+    exit 1
+}
+
+# --- Step 5: Install required packages using uv ---
+echo "Installing numpy, pandas, scikit-learn, and packages from requirements files using uv..."
+# The prompt specifies to install numpy, pandas, scikit-learn directly,
+# and to use the exact uv command for the requirements files.
+# uv will handle dependency resolution, respect specified versions,
+# and avoid reinstallation if packages are already at the correct version.
+uv pip install \
+    numpy pandas scikit-learn \
+    -r "$MULTIMODAL_REQ_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQ_FILE" \
+    || {
+    echo "Error: Failed to install packages using uv."
+    exit 1
+}
+
+echo "Conda environment setup complete at $ENV_PATH."
+echo "To use this environment, run: conda activate $ENV_PATH"
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_3/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3126 seconds.

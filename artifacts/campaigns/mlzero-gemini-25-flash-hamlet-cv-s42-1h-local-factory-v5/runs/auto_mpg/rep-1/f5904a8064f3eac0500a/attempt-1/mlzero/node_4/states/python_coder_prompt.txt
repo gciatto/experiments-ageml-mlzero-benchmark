@@ -1,0 +1,253 @@
+Generate a SELF-CONTAINED Python factory MODULE using machine learning.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+This is a **regression** task.
+
+**Input Format:** The input is a tabular dataset provided as `data.csv`. Each row represents an instance with the following features: `cylinders`, `displacement`, `horsepower`, `weight`, `acceleration`, `model`, and `origin`. These are numerical features.
+
+**Prediction Output Format:** The model is required to predict the continuous numerical value for the `class` target column. The output of the `predict(X)` method will be a numerical value for each input instance.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/data.csv
+Content:
+Columns: ['cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model', 'origin', 'class']
+
+First 3 rows:
+ cylinders  displacement  horsepower  weight  acceleration  model  origin  class
+         8         307.0       130.0  3504.0          12.0     70       1   18.0
+         8         350.0       165.0  3693.0          11.5     70       1   15.0
+         8         318.0       150.0  3436.0          11.0     70       1   18.0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: auto_mpg
+Target column: `class`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools remain
+al
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json
+Content:
+Error reading file:   File "<string>", line 1
+    very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very very
+IndentationError: unexpected indent
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+In the bash script, install all necessary packages.
+### Native debug/evolution context
+### Previous Code to Debug
+```python
+import pandas as pd
+import numpy as np
+import os
+import logging
+import random
+from autogluon.tabular import TabularPredictor
+from autogluon.common.utils.utils import set_seed # Corrected import based on previous error
+
+# --- Module-level Initialization ---
+# Set global seed for reproducibility across all relevant libraries.
+SEED = 42
+set_seed(SEED) # AutoGluon's seed setter
+random.seed(SEED)
+np.random.seed(SEED)
+
+# Configure logging to suppress excessive output from AutoGluon during evaluation.
+# This helps keep the console clean and focuses on critical information.
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('autogluon.core').setLevel(logging.WARNING)
+logging.getLogger('autogluon.tabular').setLevel(logging.WARNING)
+
+# --- Model Wrapper Class ---
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    `fit(X, y)` and `predict(X)` interface required by the evaluation harness.
+    """
+    def __init__(self, path_prefix: str = "AutogluonModels", time_limit: int = 200):
+        """
+        Initializes the wrapper. The actual TabularPredictor instance is created
+        and fitted within the `fit` method to ensure it's fresh for each fold
+        and uses the correct, unique artifact path.
+
+        Args:
+            path_prefix (str): A subdirectory name where AutoGluon will store its artifacts.
+                               This will be created relative to the current working directory
+                               of the execution environment, which is unique per fold.
+            time_limit (int): The maximum time in seconds AutoGluon is allowed to train
+                              for a single fold. This helps manage the total shared deadline.
+        """
+        self.predictor: TabularPredictor = None
+        self.path_prefix = path_prefix
+        self.time_limit = time_limit
+        self.model_path: str = None # Will be set dynamically in fit()
+
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor using the provided training data.
+        All learned preprocessing, feature engineering, and model training
+        are performed within this method, using only the `X_train` and `y_train`
+        for the current fold.
+
+        Args:
+            X_train (pd.DataFrame): Training features for the current fold.
+            y_train (pd.Series): Training target values for the current fold.
+        """
+        # Create a unique path for AutoGluon artifacts for this specific fit call.
+        # The harness ensures the current working directory is unique per fold,
+        # so a simple subdirectory name within it is sufficient for isolation.
+        self.model_path = os.path.join(os.getcwd(), self.path_prefix)
+        
+        # AutoGluon's TabularPredictor expects the target column to be part of
+        # the DataFrame passed to `fit`.
+        train_data = X_train.copy()
+        target_column = 'class' # As specified in the task description
+        train_data[target_column] = y_train
+
+        # Initialize TabularPredictor for regression.
+        # `verbosity=0` suppresses most of AutoGluon's console output.
+        self.predictor = TabularPredictor(
+            label=target_column,
+            path=self.model_path,
+            problem_type='regression',
+            eval_metric='rmse', # Metric specified in README.md
+            verbosity=0
+        )
+
+        # Fit the predictor.
+        # `presets='medium_quality_fast_inference'` balances model quality with training speed,
+        # which is crucial for meeting the shared deadline across multiple folds.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=self.time_limit,
+            presets='medium_quality_fast_inference',
+            # AutoGluon's global set_seed handles internal model seeds.
+            # Further specific arguments like num_cpus/num_gpus can be added if resource
+            # constraints are very strict, but usually not needed for small datasets.
+        )
+
+    def predict(self, X_test: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions on new data using the fitted AutoGluon TabularPredictor.
+
+        Args:
+            X_test (pd.DataFrame): Features of the instances to make predictions for.
+
+        Returns:
+            np.ndarray: An array of predicted continuous numerical values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        
+        # AutoGluon's predict method expects a DataFrame.
+        predictions = self.predictor.predict(X_test)
+        
+        # Return predictions as a numpy array to conform to common scikit-learn interfaces.
+        return predictions.values
+
+# --- Factory Function ---
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonModelWrapper:
+    """
+    Factory function to create a new, unfitted model wrapper instance.
+    This function is called by the harness for each fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for signature matching,
+                                not used for fitting at this stage).
+        y_train (pd.Series): Training target values (provided for signature matching,
+                             not used for fitting at this stage).
+
+    Returns:
+        AutoGluonModelWrapper: A fresh, unfitted instance of the model wrapper,
+                               ready to have its `fit()` method called.
+    """
+    # Instantiate the wrapper. The time_limit is set to 200 seconds per fold,
+    # allowing for 10 folds * 200s = 2000s for training, plus overhead,
+    # which should be well within the total shared deadline.
+    return AutoGluonModelWrapper(time_limit=200)
+```
+Please fix the errors in the code above. Make minimal changes necessary to fix the issues.
+
+### Previous errors
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function can no longer be imported from `autogluon.core.utils.utils`. This is due to an API change in the installed AutoGluon version `1.6.4b20260930`, where this utility function has likely been relocated or deprecated.
+SUGGESTED_FIX: Update the import statement for `set_seed` in your Python code. Check the AutoGluon documentation or recent changelogs for version 1.6.4b to find the new correct import path for `set_seed`, which is commonly moved to `autogluon.common.utils.utils`.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function cannot be found in `autogluon.common.utils.utils`. This is because the `set_seed` function has been moved or is located in a different module within the installed AutoGluon version (1.6.3), likely `autogluon.core.utils.utils`.
+SUGGESTED_FIX: Modify the import statement for `set_seed` in your Python code. Change `from autogluon.common.utils.utils import set_seed` to `from autogluon.core.utils.utils import set_seed` to match the correct module path for the installed AutoGluon version.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function could not be found in the specified `autogluon.core.utils.utils` or `autogluon.common.utils.utils` modules. This is due to an API change or refactoring in the installed AutoGluon version (1.6.4b20260930), where the `set_seed` utility has been moved to a different location within the library.
+SUGGESTED_FIX: Update the import statement for `set_seed` in `model_factory.py` to its correct location. Based on recent AutoGluon versions, `set_seed` is typically found in `autogluon.common.utils.init_utils`.
+
+ERROR_SUMMARY: The `ModuleNotFoundError` indicates that the `autogluon.common.utils.init_utils` module could not be found, despite `autogluon-common` being listed as installed. This suggests an issue with the `autogluon-common` package's installation or its internal structure for the specific beta version (`1.6.4b20260930`), possibly due to complex dependency resolution from multiple requirement files.
+
+SUGGESTED_FIX: Simplify the AutoGluon installation by directly installing `autogluon.tabular` instead of relying on separate requirement files. This allows AutoGluon to manage its own dependencies and ensures all sub-packages are installed correctly and are compatible. If the issue persists, consider installing a stable version of AutoGluon.
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+# Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+# Intro to Use Machine Learning or Deep Learning algorithms
+
+You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-1/f5904a8064f3eac0500a/attempt-1/mlzero/node_4/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 2079 seconds.

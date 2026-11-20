@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit()` method in AutoGluon does not accept a `seed` keyword argument, causing a `ValueError`. The provided code attempts to pass a `seed` argument directly to the `fit` method, which is not supported by the AutoGluon API.
+SUGGESTED_FIX: Remove the `seed` argument from the `self.predictor.fit()` method call. Instead, pass the `random_state` argument to the `TabularPredictor` constructor when initializing `self.predictor` to ensure reproducibility.

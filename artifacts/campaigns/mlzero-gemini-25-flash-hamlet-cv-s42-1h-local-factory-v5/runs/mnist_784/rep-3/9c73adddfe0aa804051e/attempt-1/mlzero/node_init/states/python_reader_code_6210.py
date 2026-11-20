@@ -1,0 +1,33 @@
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/data.csv"
+
+try:
+    df = pd.read_csv(file_path)
+
+    columns = df.columns.tolist()
+    if len(columns) > 20:
+        print("Columns:", columns[:10] + ['...'] + columns[-10:])
+    else:
+        print("Columns:", columns)
+
+    print("\nFirst 3 rows:")
+    # Select first 10 columns for display to keep output concise
+    cols_to_display = df.columns[:10]
+    display_df = df[cols_to_display].head(3).copy()
+    for col in display_df.columns:
+        display_df[col] = display_df[col].astype(str).apply(lambda x: (x[:47] + '...') if len(x) > 50 else x)
+    print(display_df.to_string(index=False))
+
+except Exception as e:
+    # Fallback for text or unreadable files
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(768)
+            print(content)
+    except Exception as text_e:
+        if os.path.exists(file_path):
+            print(f"Could not read file. It might be binary or corrupted. Size: {os.path.getsize(file_path)} bytes.")
+        else:
+            print("File not found.")

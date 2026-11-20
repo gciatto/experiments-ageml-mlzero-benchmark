@@ -1,0 +1,24 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define variables for paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-1/9083f22fdcbb98fc1c37/attempt-1/mlzero/node_2/conda_env"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+# Create the Conda environment with Python 3.11
+conda create --yes --prefix "$CONDA_ENV_PATH" python=3.11
+
+# Activate the environment
+# Ensure conda is initialized for the current shell session
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$CONDA_ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install required packages from requirements.txt using uv
+uv pip install -r "$ML_REQ_PATH" --prerelease=allow -r "$COMMON_REQ_PATH"
+
+# Install additional packages: numpy, pandas, scikit-learn, and autogluon.tabular
+uv pip install numpy pandas scikit-learn autogluon.tabular

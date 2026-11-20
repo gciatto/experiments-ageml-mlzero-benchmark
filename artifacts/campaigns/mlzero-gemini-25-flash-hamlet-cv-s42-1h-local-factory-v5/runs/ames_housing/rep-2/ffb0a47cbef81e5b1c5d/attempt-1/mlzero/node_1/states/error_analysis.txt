@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unexpected `seed` keyword argument. In the installed version of AutoGluon MultiModal, the seed for reproducibility should be configured as a hyperparameter within the `fit` method, specifically using the `env.seed` key.
+SUGGESTED_FIX: Remove the `seed=GLOBAL_SEED` argument from the `MultiModalPredictor` constructor. Instead, pass `GLOBAL_SEED` within the `hyperparameters` dictionary to the `predictor.fit()` method, using the key `"env.seed"`.

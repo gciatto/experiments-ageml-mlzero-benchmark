@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The Python code attempts to import and use `set_num_and_seed` from `autogluon.core.utils.utils`, but this function has been removed or refactored in the installed AutoGluon version (1.6.4b20260930). This API incompatibility leads to an `ImportError`.
+SUGGESTED_FIX: Remove the `from autogluon.core.utils.utils import set_num_and_seed` line and the `set_num_and_seed(SEED)` call from the `fit` method. AutoGluon's newer versions manage internal seeding or expect standard library seeding if needed.

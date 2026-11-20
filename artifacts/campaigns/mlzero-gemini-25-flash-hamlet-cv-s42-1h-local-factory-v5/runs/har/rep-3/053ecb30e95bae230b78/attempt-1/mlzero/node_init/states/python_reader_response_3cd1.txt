@@ -1,0 +1,39 @@
+```python
+import pandas as pd
+from io import StringIO
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv"
+output_buffer = StringIO()
+
+try:
+    # Attempt to read as a CSV file
+    df = pd.read_csv(file_path)
+
+    columns = df.columns.tolist()
+    num_columns = len(columns)
+
+    output_buffer.write("Column Names:\n")
+    if num_columns > 20:
+        output_buffer.write(f"Total: {num_columns}. First 10: {columns[:10]}, Last 10: {columns[-10:]}\n")
+    else:
+        output_buffer.write(f"{columns}\n")
+
+    output_buffer.write("\nFirst 3 Rows:\n")
+    # Use to_string to format the DataFrame, truncating cell content and without index
+    df.head(3).to_string(output_buffer, index=False, max_colwidth=50)
+    output_buffer.write("\n")
+
+except Exception as e:
+    # If CSV reading fails, treat it as a text file
+    output_buffer.write(f"Could not read as CSV ({type(e).__name__}). Displaying first 768 characters as text:\n")
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(768)
+            output_buffer.write(content)
+    except Exception as text_e:
+        output_buffer.write(f"Could not read file: {text_e}\n")
+
+# Get the full output and truncate it to 768 characters before printing
+final_output = output_buffer.getvalue()
+print(final_output[:768])
+```

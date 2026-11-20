@@ -1,0 +1,138 @@
+
+You are an expert at generating search queries to find relevant machine learning tutorials. Given the context below, generate a concise and effective search query that will help find the most relevant tutorials for this task.
+
+### Task Description
+The data science task is **classification**.
+
+*   **Problem Type**: Classification.
+*   **Input Format**: Tabular data, where `X` represents features and `y` represents the target column named `Class`.
+*   **Prediction Output Format**: Discrete class labels, corresponding to the values found in the `Class` column.
+*   **Evaluation Metric**: Balanced accuracy (higher is better).
+
+**Methodology Constraints**:
+The task requires training models using a 10-fold cross-validation setup, with predefined folds specified in `cv_contract.json`. There is no independent test set. Models must be returned by `build_model(X_train, y_train)` as new, unfitted objects with `fit(X,y)` and `predict(X)` methods. All preprocessing must be internal to the model and fitted only on the training data for each fold. Stochastic models must use `random_state/seed 42`. No external data, services, or unstated assumptions are permitted.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/README.md
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (text):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+       ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unrecognized `seed` keyword argument. The AutoGluon library's `fit` method does not accept a `seed` parameter directly; instead, reproducibility is typically controlled by passing `random_state` to the `TabularPredictor` constructor.
+SUGGESTED_FIX: Remove the `seed` argument from the `predictor.fit()` method call. Instead, pass the `seed` value as `random_state` to the `TabularPredictor` constructor when initializing the predictor object.
+
+ERROR_SUMMARY: The `MultiModalPredictor` constructor received an unexpected `random_state` keyword argument, leading to a `TypeError`. The `random_state` parameter is not a valid argument for the `MultiModalPredictor`'s initialization method in the AutoGluon version being used.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor call. To ensure reproducibility, pass the `random_state` value as a hyperparameter, specifically `env.seed`, within the `hyperparameters` dictionary to the `predictor.fit()` method.
+
+ERROR_SUMMARY: The `conda create` command failed to properly initialize the conda environment at the specified path, resulting in the absence of the `bin/activate` script. This prevented the environment from being activated, causing subsequent `uv pip install` commands to install packages into an incorrect or default environment, leading to a `ModuleNotFoundError` for `numpy` when the Python script executed.
+SUGGESTED_FIX: Add a check after the `conda create` command to verify its successful completion and the existence of the `bin/activate` script within the specified environment path. Ensure the `conda` executable is correctly configured and has the necessary permissions to create environments.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script failed due to a `ModuleNotFoundError` for `numpy`, indicating that the `numpy` package was not accessible in the Python environment where the evaluation script was executed. This suggests a discrepancy between the environment setup by the bash script and the environment used by the Trusted CV evaluator.
+SUGGESTED_FIX: Modify the environment setup script to install `numpy` using `conda install numpy` instead of `uv pip install numpy`. This ensures `numpy` is managed directly by `conda`, which can improve robustness and compatibility when the environment is activated and used by external evaluators.
+
+ERROR_SUMMARY: The Conda environment creation failed to generate the necessary activation script (`bin/activate`), despite the `conda create` command exiting with a success code. This indicates an incomplete or corrupted environment setup, likely due to underlying system issues such as insufficient disk space or file system permissions in the target directory. Consequently, the Python script failed with a `ModuleNotFoundError` for `numpy` because the environment was not properly established and packages could not be installed.
+SUGGESTED_FIX: Check the available disk space on the file system where the Conda environment is being created, specifically in the `/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/...` path. Verify that the user executing the script has appropriate write permissions for the target environment directory. Consider trying to create a minimal Conda environment in a different, known-good location to rule out a corrupted Conda installation.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script failed due to a `ModuleNotFoundError` for `numpy`, indicating that the `numpy` library is not accessible within the Python environment used to execute the cross-validation evaluation. This suggests an issue with the environment setup or activation, preventing the harness from finding a fundamental dependency.
+SUGGESTED_FIX: Ensure that `numpy` is correctly installed and available in the specified conda environment. Verify that the `conda activate` command successfully activates the environment for all subsequent operations, and confirm that the Python interpreter used by the harness to run `evaluate_cv.py` is indeed the one from the activated conda environment.
+
+ERROR_SUMMARY: The Conda environment creation failed to complete successfully, specifically missing the `bin/activate` script within the designated environment directory, despite the `conda create` command reporting a successful exit code. This incomplete environment prevents the activation of the environment and subsequent installation of necessary packages like `numpy`, leading to a `ModuleNotFoundError`.
+SUGGESTED_FIX: Verify that there is sufficient disk space available on the filesystem where the Conda environment is being created. Check the write permissions for the user executing the script in the target environment directory path. Additionally, test the integrity of the base Conda installation by attempting to create a minimal environment manually outside of this script.
+
+ERROR_SUMMARY: The `ModuleNotFoundError` for `autogluon` is caused by a failure to properly activate the conda environment. The bash script reported "No such file or directory" for the `activate` script within the newly created environment's `bin` directory, preventing `autogluon.tabular` and other dependencies from being installed into the intended environment.
+SUGGESTED_FIX: Replace the `source "$CONDA_ENV_PATH/bin/activate"` command and subsequent `uv pip install` commands with `conda run -p "$CONDA_ENV_PATH" uv pip install ...`. This ensures that all package installations are executed directly within the specified conda environment, bypassing potential issues with the `activate` script.
+
+### Selected Tool/Library
+autogluon.tabular
+
+
+Based on the above context, generate a search query that will help find tutorials most relevant to this task. The query should:
+1. Include key technical terms and concepts
+2. Focus on the main task/problem to solve
+3. Be concise but specific
+
+IMPORTANT: Respond ONLY with the search query text. Do not include explanations, quotes, or any other formatting.

@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unsupported keyword argument, `random_seed`. The `random_seed` parameter is intended for the `TabularPredictor` constructor to control internal randomness, not for the `fit` method itself.
+SUGGESTED_FIX: Move the `random_seed` argument from the `predictor.fit()` call to the `TabularPredictor()` constructor call within the `AutoGluonTabularWrapper` class. Remove `random_seed=self.seed` from the `fit` method.

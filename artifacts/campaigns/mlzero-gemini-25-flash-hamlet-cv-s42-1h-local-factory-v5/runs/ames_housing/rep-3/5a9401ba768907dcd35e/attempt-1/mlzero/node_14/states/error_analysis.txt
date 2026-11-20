@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unsupported `seed` keyword argument. The `seed` parameter is not a direct argument to the `MultiModalPredictor`'s `__init__` method, leading to a `TypeError`.
+SUGGESTED_FIX: Remove the `seed` argument from the `MultiModalPredictor` constructor call. Instead, pass the `seed` value within the `hyperparameters` dictionary to the `fit` method, typically under the key `env.seed`, to ensure reproducibility.

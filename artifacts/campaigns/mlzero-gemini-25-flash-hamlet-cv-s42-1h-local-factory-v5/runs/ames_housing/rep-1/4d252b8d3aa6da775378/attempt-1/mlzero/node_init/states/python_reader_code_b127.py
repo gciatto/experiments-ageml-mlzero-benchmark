@@ -1,0 +1,54 @@
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv"
+MAX_OUTPUT_CHARS = 768
+
+output_parts = []
+
+try:
+    # Attempt to read as a CSV file
+    df = pd.read_csv(file_path)
+
+    # Display column names
+    columns = df.columns.tolist()
+    if len(columns) > 20:
+        cols_display = columns[:10] + ['...'] + columns[-10:]
+        output_parts.append(f"Columns: {', '.join(cols_display)}\n")
+    else:
+        output_parts.append(f"Columns: {', '.join(columns)}\n")
+
+    # Show first 2-3 rows with truncated cell content (50 chars)
+    df_head = df.head(3).copy()
+    for col in df_head.columns:
+        # Ensure all values are strings before truncation
+        df_head[col] = df_head[col].astype(str).apply(lambda x: x[:50] + '...' if len(x) > 50 else x)
+    
+    # Convert DataFrame head to string, without index
+    # Temporarily set display options to ensure wide tables are not truncated by pandas itself
+    # before we apply the overall output truncation.
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.width', 1000):
+        rows_output = df_head.to_string(index=False)
+    output_parts.append(rows_output)
+
+    final_output = "\n".join(output_parts)
+    print(final_output[:MAX_OUTPUT_CHARS])
+
+except Exception as e:
+    # If reading as CSV fails (e.g., FileNotFoundError, pd.errors.ParserError), treat as a text file
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(MAX_OUTPUT_CHARS) # Read up to MAX_OUTPUT_CHARS
+            print(content)
+    except Exception as text_e:
+        # Fallback for any other error (e.g., binary file, permission issues)
+        error_msg = f"Could not process file: {text_e}"
+        if os.path.exists(file_path):
+            try:
+                file_size = os.path.getsize(file_path)
+                error_msg += f"\nFile is likely binary or unreadable. Size: {file_size} bytes."
+            except OSError:
+                error_msg += "\nFile exists but size could not be determined."
+        else:
+            error_msg += "\nFile not found."
+        print(error_msg[:MAX_OUTPUT_CHARS])

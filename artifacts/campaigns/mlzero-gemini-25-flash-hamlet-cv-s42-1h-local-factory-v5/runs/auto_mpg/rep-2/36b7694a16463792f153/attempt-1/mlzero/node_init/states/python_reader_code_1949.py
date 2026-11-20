@@ -1,0 +1,35 @@
+import pandas as pd
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/data.csv"
+
+try:
+    # Attempt to read the file as a CSV
+    df = pd.read_csv(file_path)
+
+    # Display column names
+    columns = df.columns.tolist()
+    if len(columns) > 20:
+        print(f"Columns: {columns[:10]} ... {columns[-10:]}")
+    else:
+        print(f"Columns: {columns}")
+
+    # Show first 3 rows with truncated cell content (50 chars)
+    print("\nFirst 3 rows:")
+    # Using to_string with max_rows and max_colwidth for concise output
+    print(df.head(3).to_string(index=False, max_rows=3, max_colwidth=50))
+
+except (pd.errors.EmptyDataError, pd.errors.ParserError, FileNotFoundError, UnicodeDecodeError) as e:
+    # If pandas fails to read (e.g., not a valid CSV, file not found, encoding issue),
+    # treat it as a text file.
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(f"File content (first 768 chars):\n{content}")
+    except Exception as text_e:
+        print(f"Could not read file as text: {text_e}")
+        print(f"Could not process file: {file_path}. It might be a binary or unsupported format.")
+
+except Exception as e:
+    # Catch any other unexpected errors
+    print(f"An unexpected error occurred: {e}")
+    print(f"Could not process file: {file_path}. It might be a binary or unsupported format.")

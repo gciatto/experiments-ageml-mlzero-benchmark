@@ -1,0 +1,139 @@
+```python
+import pandas as pd
+import numpy as np
+import tempfile
+import shutil
+import os
+import logging
+
+# AutoGluon imports
+from autogluon.multimodal import MultiModalPredictor
+from autogluon.core.utils.utils import set_seed
+
+# Set global seed for reproducibility
+# This ensures that any random operations within AutoGluon or other libraries
+# that respect this seed will be reproducible across runs and folds.
+set_seed(42)
+
+# Configure logging to suppress excessive output from AutoGluon if desired,
+# or to direct it to a specific file. For this task, default behavior is usually fine,
+# but if the logs are too verbose, this can be adjusted.
+# For benchmark environments, it's often better to keep logging minimal or directed.
+# logging.basicConfig(level=logging.INFO) # Example: set to INFO or WARNING
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon's MultiModalPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, label_column: str):
+        """
+        Initializes the wrapper. The MultiModalPredictor itself is initialized
+        and fitted within the `fit` method to ensure a fresh state for each fold.
+
+        Args:
+            label_column: The name of the target column in the training data.
+        """
+        self.label_column = label_column
+        self.predictor = None
+        self.temp_dir = None
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the MultiModalPredictor model using the provided training data.
+        A new temporary directory is created for each fit call to store model artifacts,
+        ensuring isolation and fresh state between cross-validation folds.
+
+        Args:
+            X: A pandas DataFrame containing feature columns ('V1' through 'V40').
+            y: A pandas Series containing the target column ('Class').
+        """
+        # Clean up any previous temporary directory if fit is called multiple times
+        # on the same instance (e.g., if the harness reuses the wrapper object).
+        if self.temp_dir and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir)
+            except OSError as e:
+                # Log a warning if cleanup fails, but don't block execution.
+                # The OS might eventually clean up /tmp directories.
+                logging.warning(f"Error removing old temporary directory {self.temp_dir}: {e}")
+
+        # Create a fresh temporary directory for the current fold's model artifacts.
+        self.temp_dir = tempfile.mkdtemp()
+        logging.info(f"Created temporary directory for AutoGluon model: {self.temp_dir}")
+        
+        # Combine features and target into a single DataFrame as required by MultiModalPredictor.
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Initialize MultiModalPredictor.
+        # - `label`: Specifies the target column.
+        # - `path`: Directs AutoGluon to save artifacts in our temporary directory,
+        #           ensuring fresh artifacts per fold.
+        # - `problem_type`: Explicitly set to 'classification' as per task description.
+        # - `presets`: Using default presets for a balance of quality and speed.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            path=self.temp_dir,
+            problem_type='classification',
+        )
+        
+        # Fit the predictor.
+        # - `time_limit`: Crucial for bounding training time per fold.
+        #   200 seconds per fold allows for 10 folds within the 3301s total deadline,
+        #   leaving ample buffer for overhead and other operations.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=200, # Set a conservative time limit per fold
+        )
+        logging.info(f"AutoGluon MultiModalPredictor fitted successfully in {self.temp_dir}")
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Generates predictions for the given input features.
+
+        Args:
+            X: A pandas DataFrame containing feature columns for prediction.
+
+        Returns:
+            A 1-dimensional NumPy array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        
+        # MultiModalPredictor.predict returns a pandas Series or numpy array.
+        predictions = self.predictor.predict(X)
+        
+        # Ensure the output is a 1D NumPy array as required by the contract.
+        if isinstance(predictions, pd.Series):
+            return predictions.to_numpy()
+        return np.asarray(predictions)
+
+    def __del__(self):
+        """
+        Attempts to clean up the temporary directory when the wrapper object is
+        garbage collected. This helps manage disk space.
+        """
+        if self.temp_dir and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir)
+                logging.info(f"Cleaned up temporary directory: {self.temp_dir}")
+            except OSError as e:
+                # This can happen if the directory is still in use or permissions issues.
+                # The OS might eventually clean up /tmp directories.
+                logging.warning(f"Failed to remove temporary directory {self.temp_dir} during cleanup: {e}")
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted model wrapper for the classification task.
+
+    Args:
+        X_train: Training features (provided by harness, but not used for model initialization here).
+        y_train: Training labels (provided by harness, but not used for model initialization here).
+
+    Returns:
+        An unfitted instance of AutoGluonMultiModalWrapper, ready to be fitted.
+    """
+    # The target column name is 'Class' as specified in the problem description.
+    return AutoGluonMultiModalWrapper(label_column='Class')
+```

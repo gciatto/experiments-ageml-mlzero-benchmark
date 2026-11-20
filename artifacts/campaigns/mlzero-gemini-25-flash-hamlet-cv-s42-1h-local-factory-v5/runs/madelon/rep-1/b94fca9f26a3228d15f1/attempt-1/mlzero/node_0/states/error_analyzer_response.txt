@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid keyword argument, `seed`. The `seed` parameter is not a recognized argument for initializing `TabularPredictor` instances, as indicated by the `ValueError` and the list of valid keyword arguments.
+SUGGESTED_FIX: Remove the `seed` argument from the `TabularPredictor` constructor call within the `AutoGluonTabularWrapper`'s `fit` method. If reproducibility for AutoGluon's internal processes is desired, pass a `random_state` argument to the `predictor.fit()` method instead.

@@ -1,0 +1,11 @@
+Search Query: AutoGluon classification pandas custom fit predict model
+==================================================
+Retrieved 1 Tutorial Results:
+
+1. File: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/condensed_tutorials/intro.md
+   Score: 0.6234
+   Title: Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+   Content Preview: # Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed i...
+------------------------------

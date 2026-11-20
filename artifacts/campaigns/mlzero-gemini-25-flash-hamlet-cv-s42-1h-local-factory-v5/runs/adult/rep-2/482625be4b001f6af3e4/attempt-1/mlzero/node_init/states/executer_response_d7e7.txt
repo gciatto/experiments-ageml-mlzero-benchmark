@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: The code uses `DataFrame.applymap`, which is deprecated and raised a `FutureWarning`. It should be replaced with `DataFrame.map` for better practice and future compatibility.
+VALIDATION_SCORE: None

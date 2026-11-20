@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The AutoGluon `TabularPredictor` was configured with a `presets` argument `'medium_quality_faster_inference'` that is not recognized by the installed AutoGluon version. The error message explicitly lists the valid presets, and the specified preset is not included in that list.
+SUGGESTED_FIX: Modify the `predictor.fit` call in the `AutoGluonModelWrapper` class. Change the `presets` argument from `'medium_quality_faster_inference'` to one of the valid presets listed in the error message, such as `'medium_quality'`.

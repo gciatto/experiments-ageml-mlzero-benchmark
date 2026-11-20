@@ -1,0 +1,76 @@
+```python
+import json
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json"
+
+output_lines = []
+
+def truncate_cell(content, max_chars=50):
+    s = str(content)
+    return s[:max_chars] + "..." if len(s) > max_chars else s
+
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = json.load(f)
+
+    if isinstance(content, list) and all(isinstance(item, dict) for item in content):
+        # It's a list of dictionaries, likely tabular
+        df = pd.DataFrame(content)
+
+        # Display column names
+        columns = df.columns.tolist()
+        if len(columns) > 20:
+            output_lines.append("Columns: " + ", ".join(columns[:10]) + " ... " + ", ".join(columns[-10:]))
+        else:
+            output_lines.append("Columns: " + ", ".join(columns))
+
+        # Show first 2-3 rows
+        output_lines.append("First 3 rows:")
+        
+        # Prepare header with truncation
+        header_str = " | ".join([truncate_cell(col) for col in df.columns])
+        output_lines.append(header_str)
+        output_lines.append("-" * len(header_str))
+
+        for _, row in df.head(3).iterrows():
+            truncated_row_values = [truncate_cell(row[col]) for col in df.columns]
+            output_lines.append(" | ".join(truncated_row_values))
+
+    elif isinstance(content, dict):
+        # It's a single dictionary, print keys and some values
+        output_lines.append("JSON object keys: " + ", ".join(content.keys()))
+        output_lines.append("First few values:")
+        for i, (key, value) in enumerate(content.items()):
+            if i >= 3: # Limit to 3 key-value pairs
+                break
+            output_lines.append(f"  {truncate_cell(key)}: {truncate_cell(value)}")
+    else:
+        # Fallback for other JSON structures (e.g., simple list of values, string, number, boolean)
+        output_lines.append("JSON content (first 768 chars):")
+        output_lines.append(truncate_cell(json.dumps(content), 768))
+
+except (json.JSONDecodeError, UnicodeDecodeError) as e:
+    # If JSON decoding fails or it's not UTF-8, treat as a text file
+    output_lines.append(f"Could not parse as JSON ({type(e).__name__}). Reading as text.")
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            head = f.read(768)
+            output_lines.append(head)
+    except UnicodeDecodeError:
+        # If even UTF-8 text reading fails, treat as binary
+        output_lines.append("Could not read as UTF-8 text. Reading as binary.")
+        with open(file_path, 'rb') as f:
+            head = f.read(256) # Read a smaller chunk for binary
+            output_lines.append(f"First 256 bytes (hex): {head.hex()}")
+    except Exception as e:
+        output_lines.append(f"Error reading file as text: {e}")
+except FileNotFoundError:
+    output_lines.append(f"File not found: {file_path}")
+except Exception as e:
+    output_lines.append(f"An unexpected error occurred: {e}")
+
+final_output = "\n".join(output_lines)
+print(final_output[:768])
+```

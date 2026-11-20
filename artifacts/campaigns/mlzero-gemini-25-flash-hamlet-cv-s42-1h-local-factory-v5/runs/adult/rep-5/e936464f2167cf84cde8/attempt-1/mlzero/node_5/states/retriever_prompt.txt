@@ -1,0 +1,156 @@
+
+You are an expert at generating search queries to find relevant machine learning tutorials. Given the context below, generate a concise and effective search query that will help find the most relevant tutorials for this task.
+
+### Task Description
+**Problem Type:** Classification.
+
+**Input Format:** Tabular data. Features (`X`) are provided as all columns from `data.csv` except the 'class' column. The target (`y`) is the 'class' column from `data.csv`. These are supplied to the model's `fit(X,y)` and `predict(X)` methods.
+
+**Prediction Output Format:** The model's `predict(X)` method must return predicted class labels.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv
+Content:
+Columns: ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'class']
+
+First 2 rows (truncated to 50 chars per cell, max 3 columns):
+age workclass   fnlwgt
+ 25   Private 226802.0
+ 38   Private  89814.0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: adult
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other 
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/cv_contract.json
+Content:
+Could not parse as tabular. First 768 chars as text:
+{
+  "cv_folds": [
+    {
+      "train": [
+        4843,
+        4845,
+        4846,
+        4847,
+        4850,
+        4851,
+        4852,
+        4853,
+        4856,
+        4858,
+        4859,
+        4860,
+        4861,
+        4862,
+        4864,
+        4865,
+        4867,
+        4870,
+        4871,
+        4874,
+        4875,
+        4876,
+        4877,
+        4878,
+        4879,
+        4880,
+        4882,
+        4885,
+        4886,
+        4887,
+        4888,
+        4889,
+        4890,
+        4894,
+        4895,
+        4896,
+        4897,
+        4898,
+        4902,
+        4903,
+        4904,
+        4905,
+        4906,
+        4907,
+        4909,
+        4910,
+        4911,
+        4912,...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `ValueError` indicates that the `random_seed` argument was incorrectly passed to the `TabularPredictor.fit()` method. AutoGluon's `TabularPredictor` expects the `random_seed` to be provided during its initialization, not during the `fit` call. The `fit` method's valid arguments do not include `random_seed`.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `predictor.fit()` method call. Instead, pass the `random_seed` directly to the `TabularPredictor` constructor when initializing `self.predictor` within the `AutoGluonTabularWrapper`'s `fit` method.
+
+ERROR_SUMMARY: The `MultiModalPredictor` constructor received an unexpected keyword argument `random_seed`. This indicates that the `random_seed` parameter is not a direct argument to the predictor's initialization method in the version of AutoGluon MultiModal being used.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `MultiModalPredictor` constructor call. If reproducibility is required, investigate setting a global random seed using `autogluon.set_seed()` or passing `random_seed` as a hyperparameter to the `predictor.fit()` method, as the constructor does not support it directly.
+
+ERROR_SUMMARY: The `TabularPredictor` constructor in AutoGluon version 1.6.3 does not accept a `random_seed` argument. The provided code attempts to pass `random_seed` directly to the constructor, leading to a `ValueError` because it's an unrecognized keyword argument.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. If specific internal reproducibility for AutoGluon is required, consider using `autogluon.core.utils.utils.set_seed()` before instantiation or passing `random_seed` via `ag_args_fit` to the `fit` method, if supported by the AutoGluon version.
+
+ERROR_SUMMARY: The `ImportError` occurs because the `set_seed` function, previously located in `autogluon.core.utils.utils`, has been moved or removed in the installed AutoGluon version (1.6.4b20260930). This change in the library's internal structure prevents the Python script from finding and importing the function at the specified path.
+SUGGESTED_FIX: Update the import statement for `set_seed` in your `model_factory.py` file. Change `from autogluon.core.utils.utils import set_seed` to `from autogluon.common.utils.utils import set_seed` to match the current AutoGluon library structure.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function cannot be found in the `autogluon.common.utils.utils` module. This is likely due to an API change in the installed beta version of AutoGluon, where the function has been moved to a different module or removed entirely.
+
+SUGGESTED_FIX: Remove the problematic import statement for `set_seed`. Then, consult the official AutoGluon documentation or source code for the installed version (`1.6.4b20260930`) to determine the correct way to set the global random seed for `MultiModalPredictor`, potentially by passing a `random_seed` argument to its constructor or `fit` method, or by importing `set_seed` from an alternative `autogluon.core.utils` or `autogluon.common.utils.random` module.
+
+### Selected Tool/Library
+autogluon.tabular
+
+
+Based on the above context, generate a search query that will help find tutorials most relevant to this task. The query should:
+1. Include key technical terms and concepts
+2. Focus on the main task/problem to solve
+3. Be concise but specific
+
+IMPORTANT: Respond ONLY with the search query text. Do not include explanations, quotes, or any other formatting.

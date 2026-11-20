@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `AssertionError` indicates that an invalid key, 'env', was provided in the `hyperparameters` dictionary passed to `TabularPredictor.fit`. AutoGluon interprets top-level keys in this dictionary as model types, and 'env' is not a recognized model type. The intent was to set a random seed for reproducibility.
+SUGGESTED_FIX: Remove the `'env'` key from the `hyperparameters` dictionary passed to the `fit` method. Instead, pass the `seed` directly to the `TabularPredictor` constructor using the `random_state` argument for overall reproducibility.

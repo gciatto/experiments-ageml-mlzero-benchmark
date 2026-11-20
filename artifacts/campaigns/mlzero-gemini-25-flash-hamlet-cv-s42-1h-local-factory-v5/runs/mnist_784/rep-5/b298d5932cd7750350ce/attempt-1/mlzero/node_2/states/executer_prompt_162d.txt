@@ -1,0 +1,338 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+The data science task is **classification**.
+
+**Input Format:**
+*   **Features (X):** A Pandas DataFrame containing 784 columns named 'pixel1' through 'pixel784'.
+*   **Target (y):** A Pandas Series named 'class'.
+
+**Prediction Output Format:**
+*   A 1-dimensional NumPy array of predicted class labels, with length equal to the number of input samples.
+
+### Data Structure
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/data.csv
+Content:
+Columns: ['pixel1', 'pixel2', 'pixel3', 'pixel4', 'pixel5', 'pixel6', 'pixel7', 'pixel8', 'pixel9', 'pixel10', '...', 'pixel776', 'pixel777', 'pixel778', 'pixel779', 'pixel780', 'pixel781', 'pixel782', 'pixel783', 'pixel784', 'class']
+
+First 3 rows:
+pixel1 pixel2 pixel3 pixel4 pixel5 pixel6 pixel7 pixel8 pixel9 pixel10
+     0      0      0      0      0      0      0      0      0       0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: mnist_784
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and ot
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/cv_contract.json
+Content:
+Could not parse as tabular JSON (Error: All arrays must be of the same length). Reading as text.
+{
+  "cv_folds": [
+    {
+      "train": [
+        6653,
+        6656,
+        6669,
+        6672,
+        6674,
+        6689,
+        6714,
+        6716,
+        6724,
+        6729,
+        6733,
+        6753,
+        6759,
+        6761,
+        6770,
+        6777,
+        6778,
+        6794,
+        6796,
+        6797,
+        6798,
+        6799,
+        6800,
+        6804,
+        6807,
+        6810,
+        6812,
+        6817,
+        6818,
+        6824,
+        6828,
+        6833,
+        6835,
+        6837,
+        6843,
+        6845,
+        6854,
+        6862,
+        6865,
+        6866,
+        6869,
+        6871,
+        6874,
+        6876,
+        687...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### Python Code
+import pandas as pd
+import numpy as np
+import random
+import os
+import logging
+import uuid
+from autogluon.tabular import TabularPredictor
+from autogluon.common.utils.utils import set_seed
+
+# --- Module-level initialization ---
+# Set global seeds for reproducibility across different libraries and operations.
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+set_seed(SEED)  # Set AutoGluon's internal seed for its components
+
+# Configure logging to suppress excessive AutoGluon output.
+# This helps keep the console clean during evaluation and focuses on critical messages.
+logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('autogluon.core').setLevel(logging.WARNING)
+logging.getLogger('autogluon.tabular').setLevel(logging.WARNING)
+logging.getLogger('autogluon.features').setLevel(logging.WARNING)
+logging.getLogger('autogluon.mxnet').setLevel(logging.WARNING) # Relevant if MXNet backend is used
+logging.getLogger('autogluon.extra').setLevel(logging.WARNING)
+
+# Define a base directory for AutoGluon models' artifacts.
+# This path is relative to the current working directory where the harness executes.
+# Using a unique subdirectory for each fold ensures isolation and prevents conflicts.
+AUTOGLUON_BASE_DIR = "autogluon_models_artifacts"
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor, designed to provide a
+    scikit-learn-like fit/predict interface. This class encapsulates the
+    AutoGluon model and handles its lifecycle, including artifact management.
+    """
+    def __init__(self, problem_type: str, eval_metric: str):
+        """
+        Initializes the wrapper. The AutoGluon predictor itself is not
+        instantiated or fitted until the .fit() method is called.
+
+        Args:
+            problem_type (str): The type of machine learning problem (e.g., 'multiclass').
+            eval_metric (str): The evaluation metric to optimize (e.g., 'balanced_accuracy').
+        """
+        self.predictor = None
+        self.problem_type = problem_type
+        self.eval_metric = eval_metric
+        self.model_path = None  # Stores the unique path for this model instance's artifacts
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All preprocessing, feature engineering, and model training are performed
+        internally by AutoGluon within this method, using only the supplied (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Create a unique path for this fold's AutoGluon artifacts.
+        # This is crucial for cross-validation to ensure each fold's model
+        # is trained and saved independently without interfering with others.
+        self.model_path = os.path.join(AUTOGLUON_BASE_DIR, f"fold_{uuid.uuid4()}")
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # AutoGluon's TabularPredictor expects the target column to be part of the DataFrame.
+        train_data = X.copy()
+        train_data[y.name] = y
+
+        # Initialize TabularPredictor.
+        # 'label' specifies the name of the target column.
+        # 'path' specifies where AutoGluon will save its models and intermediate files.
+        # 'problem_type' and 'eval_metric' are set based on the task requirements.
+        self.predictor = TabularPredictor(
+            label=y.name,
+            path=self.model_path,
+            problem_type=self.problem_type,
+            eval_metric=self.eval_metric,
+        )
+
+        # Set a time limit for each fit operation.
+        # The total time for ten folds is 3220 seconds, so approximately 322 seconds per fold.
+        # Setting it to 300 seconds allows for some overhead and ensures all fits can complete.
+        time_limit_per_fold = 300
+
+        # Fit the predictor. 'presets' like 'best_quality' instruct AutoGluon
+        # to try various models and ensemble them for optimal performance.
+        # Based on previous errors, 'env.seed' and 'random_state' are not
+        # valid direct arguments for `predictor.fit()`, so they are omitted.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=time_limit_per_fold,
+            presets='best_quality',  # Aims for the highest quality model within the time limit
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Generates predictions for the input features X using the fitted model.
+
+        Args:
+            X (pd.DataFrame): Features for which to generate predictions.
+
+        Returns:
+            np.ndarray: A 1-dimensional NumPy array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's predict method returns a pandas Series or DataFrame.
+        # The contract requires a 1-dimensional NumPy array of predicted class labels.
+        predictions = self.predictor.predict(X)
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted AutoGluon model wrapper.
+    This function is called once for each cross-validation fold by the harness.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used here for metadata inference, not fitting).
+        y_train (pd.Series): Training target labels (used here for metadata inference, not fitting).
+
+    Returns:
+        AutoGluonModelWrapper: An unfitted instance of the model wrapper.
+    """
+    # The data science task is classification, specifically multi-class (MNIST digits 0-9).
+    # The target column is named 'class'.
+    # The evaluation metric specified in the README is 'balanced_accuracy'.
+    return AutoGluonModelWrapper(problem_type='multiclass', eval_metric='balanced_accuracy')
+
+## Execution Results
+### Standard Output (stdout)
+
+Creating conda environment at /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_2/conda_env with Python 3.11...
+Channels:
+ - conda-forge
+Platform: linux-64
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+## Package Plan ##
+  environment location: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_2/conda_env
+  added / updated specs:
+    - python=3.11
+The following NEW packages will be INSTALLED:
+  _openmp_mutex      conda-forge/linux-64::_openmp_mutex-4.5-20_gnu 
+  bzip2              conda-forge/linux-64::bzip2-1.0.8-hda65f42_10 
+  ca-certificates    conda-forge/noarch::ca-certificates-2026.10.23-hbd8a1cb_0 
+  ld_impl_linux-64   conda-forge/linux-64::ld_impl_linux-64-2.46.1-default_hbd61a6d_103 
+  libexpat           conda-forge/linux-64::libexpat-2.9.0-hd2095e1_0 
+  libffi             conda-forge/linux-64::libffi-3.7.0-h81df57d_1 
+  libgcc             conda-forge/linux-64::libgcc-16.2.0-ha9f2e26_7 
+  libgomp            conda-forge/linux-64::libgomp-16.2.0-he0feb66_7 
+  liblzma            conda-forge/linux-64::liblzma-5.8.3-hb03c661_1 
+  libnsl             conda-forge/linux-64::libnsl-2.0.1-hb9d3cd8_1 
+  libpython          conda-forge/linux-64::libpython-3.11.18-ha57cdbe_0_cpython 
+  libsqlite          conda-forge/linux-64::libsqlite-3.54.1-h0737f62_101 
+  libuuid            conda-forge/linux-64::libuuid-2.42.4-hcfc3c73_1 
+  libxcrypt          conda-forge/linux-64::libxcrypt-4.4.38-h280c20c_0 
+  libzlib            conda-forge/linux-64::libzlib-1.3.2-h25fd6f3_3 
+  ncurses            conda-forge/linux-64::ncurses-6.6-hdb14827_1 
+  openssl            conda-forge/linux-64::openssl-3.6.5-h781a0a9_0 
+  packaging          conda-forge/noarch::packaging-26.3-pyhc364b38_0 
+  pip                conda-forge/noarch::pip-26.2.2-pyh8b19718_2 
+  python             conda-forge/linux-64::python-3.11.18-h5f976f7_0_cpython 
+  readline           conda-forge/linux-64::readline-8.3-hd6e31c0_1 
+  setuptools         conda-forge/noarch::setuptools-84.2.1-pyhe730653_0 
+  tk                 conda-forge/linux-64::tk-8.6.13-noxft_h1df4ec4_4 
+  tzdata             conda-forge/noarch::tzdata-2026e-h5d301ff_0 
+  wheel              conda-forge/noarch::wheel-0.48.0-pyhd8ed1ab_0 
+  zstd               conda-forge/linux-64::zstd-1.5.7-hb78ec9c_7 
+Downloading and Extracting Packages: ...working... done
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+#
+# To activate this environment, use
+#     $ conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_2/conda_env
+# To deactivate an active environment, use
+#     $ conda deactivate
+Activating conda environment /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_2/conda_env...
+
+
+### Standard Error (stderr)
+
+usage: conda [-h] [-v] [--no-plugins] [-V] COMMAND ...
+conda: error: argument COMMAND: invalid choice: 'shell' (choose from 'activate', 'check', 'clean', 'commands', 'compare', 'config', 'create', 'deactivate', 'doctor', 'env', 'export', 'index', 'info', 'init', 'install', 'list', 'menuinst', 'notices', 'package', 'pypi', 'remove', 'rename', 'repoquery', 'run', 'search', 'self', 'uninstall', 'update', 'upgrade')
+WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
+CondaError: Run 'conda init' before 'conda activate'
+
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

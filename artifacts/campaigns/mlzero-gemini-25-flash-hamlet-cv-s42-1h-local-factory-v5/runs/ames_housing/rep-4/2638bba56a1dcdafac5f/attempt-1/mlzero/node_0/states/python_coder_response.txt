@@ -1,0 +1,169 @@
+```python
+import os
+import numpy as np
+import pandas as pd
+import logging
+import tempfile
+import shutil
+import random
+from autogluon.tabular import TabularPredictor, TabularDataset
+
+# Set up logging for the module. This will output informational messages
+# about the model's operations, such as temporary directory creation.
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Global seed for reproducibility. This ensures that any random operations
+# outside of AutoGluon's explicit control are consistent.
+GLOBAL_SEED = 42
+random.seed(GLOBAL_SEED)
+np.random.seed(GLOBAL_SEED)
+
+# AutoGluon's internal randomness can also be influenced by environment variables.
+# Setting these provides an additional layer of control for reproducibility.
+os.environ['PYTHONHASHSEED'] = str(GLOBAL_SEED)
+# AG_RANDOM_SEED is an AutoGluon-specific environment variable that can influence
+# internal randomness if supported by the version.
+os.environ['AG_RANDOM_SEED'] = str(GLOBAL_SEED)
+
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    `fit(X, y)` and `predict(X)` interface required by the evaluation harness.
+    Each instance of this wrapper manages its own AutoGluon model and
+    associated temporary files.
+    """
+
+    def __init__(self, time_limit_per_fold: int = 300):
+        """
+        Initializes the wrapper. The AutoGluon predictor itself is not
+        instantiated or fitted until the `fit` method is called.
+
+        Args:
+            time_limit_per_fold (int): The maximum time in seconds allowed
+                                       for AutoGluon's `fit` operation for
+                                       a single fold. This helps ensure all
+                                       ten folds complete within the overall
+                                       shared deadline.
+        """
+        self.predictor = None
+        self.model_path = None
+        self.time_limit_per_fold = time_limit_per_fold
+        # The target column name for the Ames Housing dataset.
+        self.label_column = 'SalePrice'
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All preprocessing, model selection, and training are handled by AutoGluon
+        within this method, using only the data from the current fold.
+
+        Args:
+            X (pd.DataFrame): Training features for the current fold.
+            y (pd.Series): Training target values for the current fold.
+        """
+        # Combine X and y into a single DataFrame, as AutoGluon's TabularDataset
+        # expects the label column to be present in the input DataFrame.
+        train_df = X.copy()
+        train_df[self.label_column] = y
+
+        # Create a unique temporary directory for AutoGluon's model artifacts
+        # for this specific fold. This ensures "fresh artifact directories per fold"
+        # and prevents conflicts between different folds or runs.
+        self.model_path = tempfile.mkdtemp(prefix="autogluon_ames_housing_model_")
+        logger.info(f"AutoGluon model artifacts for this fold will be saved to: {self.model_path}")
+
+        # Initialize TabularPredictor.
+        # - `label`: Specifies the target column.
+        # - `path`: The directory where AutoGluon will save its models and logs.
+        # - `eval_metric`: Set to 'root_mean_squared_error' as required by the task.
+        # - `problem_type`: Explicitly set to 'regression' for clarity, though
+        #                   AutoGluon often infers this correctly for numerical labels.
+        self.predictor = TabularPredictor(
+            label=self.label_column,
+            path=self.model_path,
+            eval_metric='root_mean_squared_error',
+            problem_type='regression',
+        )
+
+        # Fit the predictor.
+        # - `train_data`: The combined DataFrame containing features and target.
+        # - `time_limit`: Enforces a maximum training time per fold, crucial for
+        #                 meeting the overall deadline.
+        # - `presets`: 'high_quality' offers a good balance between predictive
+        #              accuracy and training time, suitable for the given time constraints.
+        # - `random_seed`: Ensures reproducibility for AutoGluon's internal
+        #                  stochastic processes during model training.
+        self.predictor.fit(
+            train_data=TabularDataset(train_df),
+            time_limit=self.time_limit_per_fold,
+            presets='high_quality',
+            random_seed=GLOBAL_SEED,
+            # AutoGluon automatically handles internal validation splits,
+            # so there's no need to manually split X_train, y_train further.
+        )
+        logger.info(f"AutoGluon model fitted successfully for this fold.")
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: A 1D numpy array of predicted `SalePrice` values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's `predict` method expects a TabularDataset or DataFrame.
+        predictions = self.predictor.predict(TabularDataset(X))
+
+        # Ensure the output is a 1D numpy array as required by the contract.
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Attempts to clean up the temporary directory created for AutoGluon artifacts.
+        This method is called when the object is garbage collected. While its
+        execution is not strictly guaranteed in all Python environments or
+        program termination scenarios, it's a best-effort attempt to manage
+        disk space.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+                logger.info(f"Cleaned up AutoGluon model artifacts from: {self.model_path}")
+            except OSError as e:
+                logger.warning(f"Error cleaning up model path {self.model_path}: {e}")
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted model wrapper for the
+    Ames Housing regression task using AutoGluon Tabular.
+
+    This function adheres to the contract by returning a fresh, unfitted
+    model instance that exposes `fit(X,y)` and `predict(X)` methods.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This argument is present
+                                to indicate the expected input type but is
+                                not used for model initialization, as the
+                                model should be returned unfitted.
+        y_train (pd.Series): Training target. Similar to X_train, indicates
+                             expected input type but not used for initialization.
+
+    Returns:
+        AutoGluonTabularWrapper: A fresh, unfitted model wrapper instance
+                                 ready to be fitted.
+    """
+    # The total time limit for all ten folds is 3480 seconds.
+    # This averages to 348 seconds per fold.
+    # Setting a per-fold time limit slightly below the average allows for
+    # overhead in the harness, data loading, and other operations.
+    per_fold_time_limit = 300  # seconds
+    return AutoGluonTabularWrapper(time_limit_per_fold=per_fold_time_limit)
+```

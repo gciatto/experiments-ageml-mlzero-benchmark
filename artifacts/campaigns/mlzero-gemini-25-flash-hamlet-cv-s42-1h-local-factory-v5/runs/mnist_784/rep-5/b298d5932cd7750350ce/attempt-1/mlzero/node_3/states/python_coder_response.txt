@@ -1,0 +1,135 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import warnings
+from PIL import Image
+import io
+import random
+
+# Suppress warnings from AutoGluon or other libraries to keep output clean.
+# This is allowed at module scope.
+warnings.filterwarnings('ignore')
+
+# Set global seed for reproducibility.
+# This is allowed at module scope.
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+
+# AutoGluon MultiModal import.
+# This is allowed at module scope.
+from autogluon.multimodal import MultiModalPredictor
+
+class ModelWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self):
+        self.predictor = None
+        self.model_path = None
+
+    def _pixels_to_image_bytearray(self, df: pd.DataFrame) -> list:
+        """
+        Converts a DataFrame of pixel values (784 columns for 28x28 images)
+        into a list of image bytearrays (PNG format). This is a fixed
+        preprocessing step, not learned from data.
+        """
+        image_bytearrays = []
+        for _, row in df.iterrows():
+            # Reshape 784 pixels into a 28x28 NumPy array of unsigned 8-bit integers.
+            # MNIST pixels are typically 0-255.
+            pixels = row.values.astype(np.uint8).reshape(28, 28)
+            
+            # Create a PIL Image object in grayscale mode ('L').
+            img = Image.fromarray(pixels, mode='L')
+            
+            # Save the image to a byte array in PNG format.
+            img_byte_arr = io.BytesIO()
+            img.save(img_byte_arr, format='PNG')
+            image_bytearrays.append(img_byte_arr.getvalue())
+        return image_bytearrays
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the MultiModalPredictor model using the provided training data.
+        All learned preprocessing and model training are performed within this method,
+        using only the training rows for the current fold.
+        """
+        # Create a unique directory for model artifacts for this specific fold.
+        # This ensures isolation and fresh artifacts for each cross-validation fold.
+        self.model_path = f"./automm_model_artifacts_{uuid.uuid4().hex}"
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # Convert pixel data from DataFrame to a list of image bytearrays.
+        X_images = self._pixels_to_image_bytearray(X)
+
+        # Combine processed images and target labels into a single DataFrame.
+        # MultiModalPredictor expects a column named 'image' for image data
+        # and the specified 'label' column for targets.
+        train_data = pd.DataFrame({'image': X_images, 'class': y})
+
+        # Initialize MultiModalPredictor.
+        # 'label' specifies the target column name ('class').
+        # 'problem_type' is explicitly set to 'multiclass' for classification.
+        # 'path' specifies where model artifacts will be saved.
+        # 'verbosity=0' suppresses most AutoGluon output during training.
+        self.predictor = MultiModalPredictor(
+            label='class',
+            problem_type='multiclass',
+            path=self.model_path,
+            verbosity=0
+        )
+
+        # Fit the predictor with a time limit and specific hyperparameters.
+        # The time_limit is set to ensure all 10 folds complete within the
+        # overall shared deadline (3140 seconds total). 200s per fold is a
+        # conservative estimate, leaving ample time for data loading and overhead.
+        # 'model.timm_image.checkpoint_name': 'swin_tiny_patch4_window7_224'
+        # is chosen as a relatively small and fast image backbone to ensure timely completion.
+        # 'env.num_gpus: 1' allows GPU usage if available, falling back to CPU otherwise.
+        # 'optimization.max_epochs: 10' limits the training duration directly.
+        #
+        # FIX: Removed "env.seed" from hyperparameters as it caused a KeyError.
+        # Global numpy and random seeds are already set for reproducibility.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=200, # seconds per fold
+            hyperparameters={
+                "model.timm_image.checkpoint_name": "swin_tiny_patch4_window7_224",
+                "env.num_gpus": 1,
+                "optimization.max_epochs": 10,
+            }
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions on new data using the fitted MultiModalPredictor.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet.")
+
+        # Convert pixel data from DataFrame to a list of image bytearrays,
+        # applying the same preprocessing as during fitting.
+        X_images = self._pixels_to_image_bytearray(X)
+
+        # Create a DataFrame for prediction, with the 'image' column.
+        predict_data = pd.DataFrame({'image': X_images})
+
+        # Get predictions from the MultiModalPredictor.
+        predictions = self.predictor.predict(predict_data)
+        
+        # Return predictions as a 1-dimensional NumPy array of class labels.
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function required by the benchmark harness.
+    It returns a new, unfitted instance of the ModelWrapper.
+    The X_train and y_train arguments are part of the contract but are not
+    used here, as the model is returned unfitted.
+    """
+    return ModelWrapper()
+```

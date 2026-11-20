@@ -1,0 +1,138 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+import random
+from autogluon.tabular import TabularPredictor
+
+# Set global random seeds for general Python and NumPy operations.
+# AutoGluon's TabularPredictor constructor also takes a random_state argument,
+# which is the primary mechanism for reproducibility within AutoGluon.
+# Setting global seeds here provides an additional layer of control for
+# any other random operations that might occur.
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the benchmark.
+    """
+    def __init__(self, time_limit: int = 300, random_state: int = SEED):
+        """
+        Initializes the AutoGluon model wrapper.
+
+        Args:
+            time_limit (int): Maximum time in seconds for the AutoGluon fit process.
+                              This helps ensure all ten folds finish within the shared deadline.
+            random_state (int): Seed for reproducibility of AutoGluon's internal processes.
+        """
+        self.time_limit = time_limit
+        self.random_state = random_state
+        self.predictor: TabularPredictor = None
+        self.model_path: str = None
+
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        All preprocessing and model training are performed within this method,
+        using only the provided training data. A fresh temporary directory
+        is created for AutoGluon artifacts for each fit call, ensuring
+        "fresh artifact directories per fold".
+
+        Args:
+            X_train (pd.DataFrame): Training feature data.
+            y_train (pd.Series): Training target data.
+        """
+        # Create a unique temporary directory for AutoGluon artifacts for this fold.
+        # This ensures "fresh artifact directories per fold" as required.
+        self.model_path = tempfile.mkdtemp(prefix="autogluon_model_")
+
+        # AutoGluon expects the target column to be part of the DataFrame.
+        train_data = X_train.copy()
+        train_data[y_train.name] = y_train
+
+        # Determine problem type (binary or multiclass classification).
+        # The task is classification, so we check the number of unique classes.
+        problem_type = 'binary' if y_train.nunique() == 2 else 'multiclass'
+
+        # Initialize TabularPredictor with the specified path and random state.
+        self.predictor = TabularPredictor(
+            label=y_train.name,
+            path=self.model_path,
+            problem_type=problem_type,
+            random_state=self.random_state  # Pass seed for reproducibility
+        )
+
+        # Fit the predictor with a time limit.
+        # Using 'medium_quality' preset to balance performance and speed,
+        # crucial for fitting within the shared deadline.
+        # The 'seed' argument is explicitly removed from fit() as per previous error.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=self.time_limit,
+            presets='medium_quality',
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon model.
+
+        Args:
+            X (pd.DataFrame): Feature data for making predictions.
+
+        Returns:
+            np.ndarray: A 1-dimensional NumPy array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+
+        # AutoGluon's predict method returns a pandas Series, convert to numpy array
+        # to match the required output format.
+        predictions = self.predictor.predict(X)
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created by AutoGluon.
+        Note: The __del__ method is not guaranteed to be called by Python's garbage collector.
+        However, it's included for best effort cleanup of temporary files.
+        In containerized environments, temporary directories are often cleaned up
+        when the container exits.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError as e:
+                # Print a warning if cleanup fails, but do not block execution.
+                print(f"Warning: Could not remove AutoGluon model directory {self.model_path}: {e}")
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonModelWrapper:
+    """
+    Factory function to generate a new, unfitted model wrapper.
+
+    This function is called once per cross-validation fold by the evaluation harness.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This argument is provided to
+                                allow the factory to inspect data characteristics
+                                (e.g., target column name, number of classes) if needed,
+                                but the model itself is returned unfitted.
+        y_train (pd.Series): Training target.
+
+    Returns:
+        AutoGluonModelWrapper: An unfitted model wrapper instance with
+                               fit(X,y) and predict(X) methods.
+    """
+    # The total remaining search time for all ten fits is 3349 seconds.
+    # For 10 folds, this allows approximately 330 seconds per fold.
+    # Setting time_limit to 300 seconds leaves a buffer for other operations
+    # and overhead, helping to ensure all fits complete within the deadline.
+    return AutoGluonModelWrapper(time_limit=300, random_state=SEED)
+```

@@ -1,0 +1,43 @@
+```bash
+#!/bin/bash
+set -e
+
+# Define the target Conda environment path
+# The prompt specifies node_3 for this installation.
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-1/f5904a8064f3eac0500a/attempt-1/mlzero/node_3/conda_env"
+
+# Define paths to the requirements files
+REQ_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_AUTOGLUON_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Creating Conda environment at $CONDA_ENV_PATH ---"
+# Create a new conda environment with Python 3.11
+# -y for non-interactive mode
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+echo "--- Activating Conda environment ---"
+# Initialize conda for the current shell session if not already done
+# This is crucial for 'conda activate' to work in non-interactive scripts
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$CONDA_ENV_PATH"
+
+echo "--- Installing uv into the environment ---"
+# Install uv using the environment's pip
+pip install uv
+
+echo "--- Installing core libraries: numpy, pandas, scikit-learn ---"
+# Install numpy, pandas, scikit-learn using uv
+uv pip install numpy pandas scikit-learn
+
+echo "--- Installing required packages from requirements files using uv ---"
+# Install packages from both requirements files.
+# uv handles dependencies and ensures exact versions where specified,
+# avoiding unnecessary upgrades or reinstallation if versions match.
+# --prerelease=allow is used as specified.
+uv pip install \
+    -r "$REQ_AUTOGLUON_TABULAR" \
+    -r "$REQ_COMMON" \
+    --prerelease=allow
+
+echo "--- Conda environment setup complete ---"
+```

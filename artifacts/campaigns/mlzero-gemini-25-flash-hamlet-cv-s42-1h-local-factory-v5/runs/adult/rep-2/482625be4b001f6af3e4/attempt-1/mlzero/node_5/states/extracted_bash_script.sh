@@ -1,0 +1,43 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define paths based on the problem description
+BASE_NODE_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-2/482625be4b001f6af3e4/attempt-1/mlzero/node_5"
+CONDA_ENV_PATH="${BASE_NODE_DIR}/conda_env"
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# 1. Remove any existing environment directory to ensure a clean installation
+if [ -d "${CONDA_ENV_PATH}" ]; then
+    echo "Removing existing environment directory: ${CONDA_ENV_PATH}"
+    rm -rf "${CONDA_ENV_PATH}"
+fi
+
+# 2. Create the conda environment with Python 3.11
+echo "Creating conda environment at ${CONDA_ENV_PATH} with Python 3.11..."
+conda create -p "${CONDA_ENV_PATH}" python=3.11 -y || { echo "Error: Failed to create conda environment."; exit 1; }
+echo "Conda environment created successfully."
+
+# 3. Activate the environment
+echo "Activating conda environment: ${CONDA_ENV_PATH}"
+source activate "${CONDA_ENV_PATH}" || { echo "Error: Failed to activate conda environment."; exit 1; }
+echo "Environment activated."
+
+# 4. Install uv into the activated environment
+echo "Installing uv into the environment..."
+pip install uv || { echo "Error: Failed to install uv."; exit 1; }
+echo "uv installed successfully."
+
+# 5. Install required packages from the specified requirements files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "${ML_REQUIREMENTS_FILE}" --prerelease=allow -r "${COMMON_REQUIREMENTS_FILE}" || { echo "Error: Failed to install packages from requirements files."; exit 1; }
+echo "Packages from requirements files installed successfully."
+
+# 6. Install additional packages: numpy, pandas, scikit-learn, and autogluon.tabular
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular using uv..."
+uv pip install numpy pandas scikit-learn autogluon.tabular || { echo "Error: Failed to install additional packages."; exit 1; }
+echo "Additional packages installed successfully."
+
+echo "--- Conda Environment Setup Complete ---"

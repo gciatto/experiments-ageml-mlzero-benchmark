@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was invoked with an unsupported keyword argument, `random_state`. AutoGluon's `TabularPredictor` does not expose a `random_state` parameter directly within its `fit` method signature.
+SUGGESTED_FIX: Remove the `random_state=SEED` argument from the `self.predictor.fit()` method call. Global random seeds for `random` and `numpy` are already set, which is the appropriate way to manage reproducibility for AutoGluon in this context.

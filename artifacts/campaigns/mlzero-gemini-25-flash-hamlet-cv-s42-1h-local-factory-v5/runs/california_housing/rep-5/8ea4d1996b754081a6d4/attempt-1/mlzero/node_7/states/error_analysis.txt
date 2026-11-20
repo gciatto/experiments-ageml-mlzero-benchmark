@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function is no longer available at `autogluon.core.utils.utils` in the installed AutoGluon version (1.6.4b). This is due to an API change where the function has been moved to a different module.
+SUGGESTED_FIX: Update the import statement for `set_seed` in your Python code. Change the import path from `autogluon.core.utils.utils` to `autogluon.common.utils.utils`.

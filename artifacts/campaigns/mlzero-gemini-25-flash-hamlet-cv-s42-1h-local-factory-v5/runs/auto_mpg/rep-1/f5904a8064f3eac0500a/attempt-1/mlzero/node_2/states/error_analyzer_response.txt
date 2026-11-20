@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function could not be found in the specified `autogluon.core.utils.utils` or `autogluon.common.utils.utils` modules. This is due to an API change or refactoring in the installed AutoGluon version (1.6.4b20260930), where the `set_seed` utility has been moved to a different location within the library.
+SUGGESTED_FIX: Update the import statement for `set_seed` in `model_factory.py` to its correct location. Based on recent AutoGluon versions, `set_seed` is typically found in `autogluon.common.utils.init_utils`.

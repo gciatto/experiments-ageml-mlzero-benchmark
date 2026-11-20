@@ -1,0 +1,1 @@
+The Conda environment activation failed with a `CondaError: Run 'conda init' before 'conda activate'`. This indicates that the environment was not properly activated, which is necessary for the Python script to execute with the correct dependencies.

@@ -1,0 +1,30 @@
+```bash
+#!/bin/bash
+set -e
+
+# Define environment and file paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-4/4c241e27bfec28ef4c09/attempt-1/mlzero/node_0/conda_env"
+REQ_FILE_AG_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+REQ_FILE_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+# 1. Create the conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+# 2. Activate the environment
+echo "Activating conda environment..."
+source activate "$CONDA_ENV_PATH"
+
+# 3. Install uv using the environment's pip
+echo "Installing uv into the environment..."
+pip install uv
+
+# 4. Install required packages using uv
+# This command installs packages from both requirements files,
+# allows prerelease versions, and uv ensures only exact packages
+# and their dependencies are installed without unnecessary upgrades.
+echo "Installing required packages from requirements files using uv..."
+uv pip install -r "$REQ_FILE_AG_TABULAR" --prerelease=allow -r "$REQ_FILE_COMMON"
+
+echo "Conda environment setup complete."
+```

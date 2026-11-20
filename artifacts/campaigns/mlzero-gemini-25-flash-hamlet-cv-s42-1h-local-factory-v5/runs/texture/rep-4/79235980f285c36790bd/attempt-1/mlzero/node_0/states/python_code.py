@@ -1,0 +1,105 @@
+import pandas as pd
+import numpy as np
+import uuid # For generating unique model paths
+
+from autogluon.tabular import TabularPredictor
+from autogluon.core.metrics import make_scorer
+from sklearn.metrics import balanced_accuracy_score
+
+# Define the custom scorer for balanced accuracy
+# AutoGluon expects its own scorer objects for eval_metric.
+# The metric is 'balanced_accuracy', where a higher score is better.
+# It needs class predictions, not probabilities.
+ag_balanced_accuracy_scorer = make_scorer(
+    name='balanced_accuracy',
+    score_func=balanced_accuracy_score,
+    optimum=1,
+    greater_is_better=True,
+    needs_class=True # This metric takes class labels directly
+)
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self):
+        self.predictor = None
+        self.label_column = 'Class'
+        self.seed = 42
+        # The eval_metric is passed to TabularPredictor constructor
+        self.eval_metric = ag_balanced_accuracy_scorer
+
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        Args:
+            X_train (pd.DataFrame): Training features.
+            y_train (pd.Series): Training target labels.
+        """
+        # Combine X_train and y_train into a single DataFrame as required by AutoGluon
+        train_data = X_train.copy()
+        train_data[self.label_column] = y_train
+
+        # Create a unique path for the AutoGluon model artifacts for each fold.
+        # This ensures "fresh artifact directories per fold" as required.
+        # AutoGluon will create this directory if it doesn't exist.
+        model_path = f"AG_models_{uuid.uuid4()}"
+
+        # Initialize TabularPredictor
+        # Set random_state for reproducibility in the constructor.
+        self.predictor = TabularPredictor(
+            label=self.label_column,
+            eval_metric=self.eval_metric,
+            path=model_path,
+            random_state=self.seed # Set random_state for reproducibility
+        )
+
+        # Fit the predictor
+        # Use presets='high_quality' for a good balance of performance and speed.
+        # Set a time_limit to ensure all fits finish within the shared deadline.
+        # The total shared deadline is 3481 seconds for 10 folds, so approximately
+        # 348 seconds per fold. Setting time_limit=300s per fold to leave some buffer.
+        # Set seed for reproducibility in the fit method.
+        # Calibrate decision threshold, which is often beneficial for balanced_accuracy.
+        self.predictor.fit(
+            train_data,
+            presets='high_quality',      # Good balance of accuracy and speed
+            time_limit=300,              # Max 300 seconds per fold
+            seed=self.seed,              # Seed for fit operations
+            calibrate_decision_threshold=True # Important for balanced_accuracy
+        )
+
+    def predict(self, X_test: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X_test (pd.DataFrame): Test features.
+
+        Returns:
+            np.ndarray: Predicted class labels as a 1-dimensional NumPy array.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+
+        # AutoGluon's predict method returns a pandas Series, convert to NumPy array
+        predictions = self.predictor.predict(X_test)
+        return predictions.to_numpy()
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted AutoGluonTabularWrapper model.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used for schema inference, not fitting).
+        y_train (pd.Series): Training target labels (used for schema inference, not fitting).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper instance.
+    """
+    # X_train and y_train are provided here for potential schema inference
+    # or to pass initial parameters, but the model itself must be unfitted.
+    # Our wrapper doesn't need them in __init__, so we just return a fresh instance.
+    return AutoGluonTabularWrapper()

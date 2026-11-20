@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `autogluon.tabular.TabularPredictor` constructor received an invalid keyword argument, `random_state`. This parameter is not supported during the initialization of the predictor object.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor call. If reproducibility is required for AutoGluon's internal models, consider setting a global seed using `autogluon.core.utils.utils.set_random_seed()` or passing `random_state` within the `hyperparameters` dictionary to specific models during the `fit` method call.

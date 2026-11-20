@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: The conda environment activation failed during the installation script. An invalid `conda shell` command was used, and a `CondaError` was raised indicating that `conda init` was not run, which is necessary for `conda activate` to function correctly. This prevented the Python code from executing in the intended environment, and thus no model training or evaluation could occur.
+VALIDATION_SCORE: None

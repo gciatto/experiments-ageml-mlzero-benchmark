@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `AutoGluon MultiModalPredictor` raised a `ValueError` because an unrecognized preset type, 'good_quality', was provided to its `fit` method. The `autogluon.multimodal` library does not define a preset with this specific name.
+SUGGESTED_FIX: Review the `presets` argument passed to the `MultiModalPredictor.fit()` method in your Python code. Replace 'good_quality' with one of the officially supported preset names, such as 'high_quality' or 'medium_quality', which are documented in the AutoGluon MultiModal tutorials.

@@ -1,0 +1,1 @@
+The code only displayed 1 row of data instead of the requested 2-3 rows for tabular files.

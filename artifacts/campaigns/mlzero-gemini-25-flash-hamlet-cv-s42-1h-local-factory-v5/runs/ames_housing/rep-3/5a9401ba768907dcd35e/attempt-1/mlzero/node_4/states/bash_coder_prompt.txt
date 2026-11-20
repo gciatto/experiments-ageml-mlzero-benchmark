@@ -1,0 +1,200 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_4:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+import tempfile
+import shutil
+import os
+# Fix: Add the correct import for set_seed as suggested by the error.
+# This function is used for global reproducibility settings in AutoGluon.
+from autogluon.common.utils.utils import set_seed
+
+# --- Module-level constants ---
+TARGET_COLUMN = 'SalePrice'
+RANDOM_STATE = 42
+# A reasonable time limit per fold for AutoGluon's fit method.
+# The total remaining time is 3045 seconds for 10 folds, which is ~304 seconds per fold.
+# Setting it to 280 seconds leaves a buffer for data loading, setup, and cleanup overhead.
+AUTOGLUON_TIME_LIMIT_PER_FOLD = 280
+
+# Fix: Call set_seed at the module level for global reproducibility.
+# This ensures that any stochastic operations not explicitly controlled by
+# the predictor's 'seed' argument are also reproducible.
+set_seed(RANDOM_STATE)
+
+# --- Wrapper Class for AutoGluon ---
+class AutoGluonModelWrapper:
+    """
+    A wrapper class to encapsulate AutoGluon's TabularPredictor,
+    providing fit and predict methods compatible with the evaluation harness.
+    Handles temporary directory management for AutoGluon artifacts and
+    ensures the 'Id' column is not used as a feature.
+    """
+    def __init__(self):
+        self.predictor = None
+        # Create a unique temporary directory for AutoGluon artifacts for each model instance.
+        # This ensures "fresh artifact directories per fold" as required.
+        self.output_dir = tempfile.mkdtemp(prefix="autogluon_model_")
+        # print(f"AutoGluon output directory: {self.output_dir}") # Uncomment for debugging
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon TabularPredictor on the provided training data.
+        All preprocessing and model fitting are performed within this method,
+        using only the data (X, y) supplied for the current fold.
+        """
+        # Ensure X is a DataFrame for consistent operations, as AutoGluon expects it.
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        # Drop the 'Id' column if it exists, as it must not be used as a feature.
+        X_processed = X.drop(columns=['Id'], errors='ignore')
+
+        # Combine features and target into a single DataFrame for AutoGluon.
+        train_data = X_processed.copy()
+        train_data[TARGET_COLUMN] = y
+
+        # Initialize TabularPredictor.
+        # The 'path' argument directs AutoGluon to store its artifacts in our
+        # unique temporary directory.
+        self.predictor = TabularPredictor(
+            label=TARGET_COLUMN,
+            problem_type='regression',
+            eval_metric='rmse',  # Explicitly set RMSE as per task requirements.
+            path=self.output_dir,
+            verbosity=0  # Suppress AutoGluon output during fit to reduce log noise.
+        )
+
+        # Fit the predictor with a time limit and specified presets for efficiency.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=AUTOGLUON_TIME_LIMIT_PER_FOLD,
+            presets='medium_quality_fast_inference',  # Balances speed and performance.
+            seed=RANDOM_STATE,  # Ensures reproducibility for stochastic models.
+            # num_cpus=... # Can be set if specific resource limits are known.
+            # num_gpus=... # Uncomment and set if GPU is available and desired.
+        )
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor.
+        """
+        # Ensure X is a DataFrame for consistent operations.
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        # Drop the 'Id' column if it exists, matching the preprocessing during fit.
+        X_processed = X.drop(columns=['Id'], errors='ignore')
+
+        # Make predictions on the processed data.
+        predictions = self.predictor.predict(X_processed)
+        return predictions
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts.
+        This method is called when the object is garbage collected, helping to
+        prevent disk space accumulation across multiple folds.
+        """
+        if os.path.exists(self.output_dir):
+            try:
+                shutil.rmtree(self.output_dir)
+                # print(f"Cleaned up AutoGluon output directory: {self.output_dir}") # Uncomment for debugging
+            except Exception as e:
+                # print(f"Error cleaning up AutoGluon directory {self.output_dir}: {e}") # Uncomment for debugging
+                # Ignore errors during cleanup, e.g., if the directory is already removed
+                # or there are permissions issues.
+                pass
+
+# --- Factory function ---
+def build_model(X_train, y_train):
+    """
+    Factory function as required by the contract.
+    It returns a NEW, unfitted model wrapper instance.
+    X_train and y_train are provided for type inference/initialization,
+    but the actual fitting happens within the wrapper's fit method.
+    """
+    # For AutoGluon, the TabularPredictor itself handles type inference and
+    # configuration during its .fit() call, so X_train and y_train are not
+    # directly used at this stage for model initialization.
+    return AutoGluonModelWrapper()
+### Previous errors
+ERROR_SUMMARY: The system's trusted cross-validation evaluator script (`evaluate_cv.py`) failed to import the `numpy` library, resulting in a `ModuleNotFoundError`. This indicates that `numpy` is missing from the specific Python environment where the evaluation harness executes its internal scripts, which is distinct from the user-defined model's `conda_env`.
+SUGGESTED_FIX: The user's installation script correctly installs `numpy` for their model's environment. This error points to a missing dependency in the evaluation harness's own execution environment for `evaluate_cv.py`. The user should report this issue to the platform administrators, as they need to ensure `numpy` is available for the system's evaluator script.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script failed because the `numpy` module was not found. This is likely caused by the conda environment setup failing or exiting prematurely due to an "unbound variable" error (`CONDA_SHLVL`) during environment activation, which prevented `numpy` and other necessary packages from being installed correctly within the intended Python environment.
+SUGGESTED_FIX: First, debug the bash script to resolve the `CONDA_SHLVL: unbound variable` error during conda environment activation, potentially by temporarily disabling strict variable checking (`set -u`) around the `conda activate` command. After ensuring the environment activates successfully, verify that `numpy` is correctly installed within that environment by checking the output of the `uv pip install` commands.
+
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function could not be found in `autogluon.core.utils.utils`. This is due to an API change in the installed AutoGluon version `1.6.4b20260930`, where this utility function has been moved to a different module.
+SUGGESTED_FIX: Update the import statement for `set_seed` to its new location, which is typically `autogluon.common.utils.utils.set_seed` in recent AutoGluon versions. Verify the exact path in the installed AutoGluon packages if the suggested path does not resolve the issue.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script, a system component, failed with a `ModuleNotFoundError` for `numpy`. This indicates that the Python environment used to execute `evaluate_cv.py` did not have `numpy` installed or accessible, despite the user's bash script explicitly installing `numpy` into the designated `conda_env`.
+SUGGESTED_FIX: Verify that `numpy` is indeed successfully installed and available within the `conda_env` created by your bash script. If the installation is confirmed, ensure that your environment setup is comprehensive and includes all necessary packages for any Python script that the evaluation harness might execute within that `conda_env`.
+### Previous installation attempt
+#!/bin/bash
+set -euo pipefail
+
+# Define the target conda environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_1/conda_env"
+
+# Define paths to the requirements files
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# 1. Ensure conda is available
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Anaconda/Miniconda is installed and in your PATH."
+    exit 1
+fi
+
+# 2. Remove existing environment if it exists, to ensure a clean installation
+if [ -d "$ENV_PATH" ]; then
+    echo "Removing existing conda environment at $ENV_PATH..."
+    conda env remove -p "$ENV_PATH" -y || true # '|| true' prevents script from failing if env doesn't exist
+fi
+
+# 3. Create a new conda environment with Python 3.11
+echo "Creating new conda environment at $ENV_PATH with Python 3.11..."
+conda create -p "$ENV_PATH" python=3.11 -y
+
+# 4. Activate the newly created environment
+echo "Activating conda environment..."
+# Initialize conda for the current shell session if not already done
+if [ -z "$CONDA_SHLVL" ]; then
+    eval "$(conda shell hook --shell bash)"
+fi
+conda activate "$ENV_PATH"
+
+# 5. Install uv (a fast Python package installer)
+echo "Installing uv..."
+pip install uv
+
+# 6. Install required packages from the specified requirements.txt files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$ML_REQ_FILE" --prerelease=allow -r "$COMMON_REQ_FILE"
+
+# 7. Install additional packages required by the factory module:
+#    numpy, pandas, scikit-learn, and the selected ML library (autogluon.tabular).
+#    autogluon.tabular typically pulls in numpy and pandas as dependencies.
+echo "Installing autogluon.tabular and scikit-learn..."
+uv pip install autogluon.tabular scikit-learn
+
+echo "--- Conda Environment Setup Complete ---"
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_4/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3018 seconds.

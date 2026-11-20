@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unrecognized keyword argument, 'seed'. The AutoGluon library's `TabularPredictor` does not accept a 'seed' parameter directly in its `fit` method for setting reproducibility.
+SUGGESTED_FIX: Remove the 'seed' argument from the `predictor.fit()` call. Instead, pass `random_state=RANDOM_SEED` to the `TabularPredictor` constructor when initializing the predictor to ensure reproducibility.

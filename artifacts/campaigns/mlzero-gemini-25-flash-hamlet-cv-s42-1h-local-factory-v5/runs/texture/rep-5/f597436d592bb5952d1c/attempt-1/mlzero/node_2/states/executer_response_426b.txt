@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: The evaluation harness failed to read the `cv_contract.json` file, preventing the model from being evaluated. The error `ValueError: All arrays must be of the same length` occurred during `pandas.read_json` when the harness attempted to parse `cv_contract.json`. This was followed by an `AttributeError: module 'pandas.io.common' has no attribute 'EmptyDataError'`. This indicates an issue with the evaluation environment's pandas version or the `cv_contract.json` file itself, which prevented the benchmark from running the model. The user's model code itself appears syntactically correct and its dependencies were installed successfully.
+VALIDATION_SCORE: None

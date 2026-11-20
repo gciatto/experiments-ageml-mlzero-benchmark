@@ -1,0 +1,205 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/4d252b8d3aa6da775378/attempt-1/mlzero/node_3:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.multimodal if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import uuid
+import os
+import warnings
+from autogluon.multimodal import MultiModalPredictor
+
+# Suppress warnings from AutoGluon or other libraries if they are too verbose
+warnings.filterwarnings('ignore')
+
+class AutoGluonMMWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self, base_output_dir="."):
+        """
+        Initializes the wrapper.
+
+        Args:
+            base_output_dir (str): The base directory where AutoGluon will save its artifacts.
+                                   A unique subdirectory will be created within this for each fit.
+        """
+        self.predictor = None
+        self.label_column = 'SalePrice'
+        self.problem_type = 'regression'
+        self.seed = 42
+        # The total shared deadline is 1610 seconds for 10 folds.
+        # Setting a time limit of 120 seconds per fold (10 * 120 = 1200 seconds)
+        # for the MultiModalPredictor.fit() call. This leaves approximately 410 seconds
+        # for overhead (Python startup, data loading, wrapper instantiation, etc.)
+        # across all 10 folds, ensuring all fits finish within the deadline.
+        self.time_limit_per_fold = 120
+        self.base_output_dir = base_output_dir
+        self.model_path = None # To store the path of the fitted model for potential loading/prediction
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        All preprocessing and model fitting are encapsulated here,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target.
+        """
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor.
+        # Ensure the 'Id' column is dropped as it should not be used as a feature.
+        X_processed = X.copy()
+        if 'Id' in X_processed.columns:
+            X_processed = X_processed.drop(columns=['Id'])
+        
+        combined_df = pd.concat([X_processed, y.rename(self.label_column)], axis=1)
+
+        # Create a unique path for this fold's model artifacts.
+        # This ensures "fresh artifact directories per fold" as required.
+        unique_id = uuid.uuid4().hex
+        self.model_path = os.path.join(self.base_output_dir, f"automm_model_{unique_id}")
+        
+        # Ensure the directory exists for AutoGluon to save its files.
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # Instantiate MultiModalPredictor.
+        # For purely tabular data, MultiModalPredictor automatically leverages its
+        # tabular backend, which includes various models like LightGBM, CatBoost, etc.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            problem_type=self.problem_type,
+            path=self.model_path,
+        )
+
+        # Fit the predictor.
+        # The 'seed' argument is used for reproducibility, as per the task requirements.
+        # The 'time_limit' ensures each fold's training respects the overall deadline.
+        self.predictor.fit(
+            train_data=combined_df,
+            time_limit=self.time_limit_per_fold,
+            seed=self.seed,
+            # Presets can be specified here, e.g., presets='best_quality'.
+            # The problem statement implies presets are already configured, so default is fine.
+        )
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+            
+        Returns:
+            pd.Series: Predicted target values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # Ensure the 'Id' column is dropped before making predictions.
+        X_processed = X.copy()
+        if 'Id' in X_processed.columns:
+            X_processed = X_processed.drop(columns=['Id'])
+
+        return self.predictor.predict(X_processed)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to build a new, unfitted model wrapper.
+    This function is called once per cross-validation fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features for the current fold.
+                                (Used for schema inference by the harness, not for fitting here).
+        y_train (pd.Series): Training target for the current fold.
+                             (Used for schema inference by the harness, not for fitting here).
+        
+    Returns:
+        AutoGluonMMWrapper: An unfitted model wrapper instance with `fit` and `predict` methods.
+    """
+    # The `base_output_dir="."` ensures that AutoGluon creates its artifact
+    # directories within the current working directory, which is the node output
+    # folder where `model_factory.py` is saved by the harness.
+    return AutoGluonMMWrapper(base_output_dir=".")
+### Previous errors
+ERROR_SUMMARY: The `numpy` module, required by the evaluation script, was not found in the execution environment. This occurred because the `conda` environment activation failed during the setup phase of the bash script. The `eval "$(conda shell hook)"` command, intended to enable `conda activate`, encountered an error due to `conda` not being properly initialized for the shell, preventing packages from being installed into the correct environment.
+SUGGESTED_FIX: Ensure that `conda init` has been run for the shell type (e.g., bash) in the environment where the script is executed, as explicitly suggested by the `CondaError`. This will properly configure `conda` for activation in non-interactive scripts, allowing the environment to be activated and dependencies like `numpy` to be installed correctly.
+
+ERROR_SUMMARY: The `TabularPredictor` constructor in AutoGluon version 1.6.3 does not accept a `random_state` argument directly, leading to a `ValueError`. Reproducibility settings like `random_state` or `seed` should be passed to the `fit` method instead of the constructor.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` initialization. Instead, pass the `random_state` value as a `seed` argument to the `predictor.fit()` method to ensure stochastic models use the specified seed for reproducibility.
+### Previous installation attempt
+#!/bin/bash
+set -euo pipefail
+
+# --- Configuration ---
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/4d252b8d3aa6da775378/attempt-1/mlzero/node_2/conda_env"
+COMMON_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+PYTHON_VERSION="3.11"
+
+echo "Starting Conda environment setup for Python $PYTHON_VERSION at $CONDA_ENV_PATH"
+
+# --- Conda Initialization ---
+# Ensure conda is initialized for the current shell session.
+# This addresses the "conda init" error from previous attempts by directly sourcing conda.sh.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "ERROR: conda.sh not found. Ensure Conda is installed and in PATH." >&2
+    exit 1
+fi
+
+# Deactivate any currently active conda environment to avoid conflicts
+conda deactivate || true
+
+# --- Clean up existing environment if it exists ---
+# Check if the target path is a registered conda environment
+if conda env list | grep -q "$CONDA_ENV_PATH"; then
+    echo "Existing conda environment found at $CONDA_ENV_PATH. Removing it for a clean installation."
+    conda env remove --prefix "$CONDA_ENV_PATH" --yes
+# If the directory exists but is not a registered conda environment, remove it manually
+elif [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Directory $CONDA_ENV_PATH exists but is not a registered conda environment. Removing directory."
+    rm -rf "$CONDA_ENV_PATH"
+fi
+
+# --- Create and Activate Environment ---
+echo "Creating conda environment with Python $PYTHON_VERSION..."
+conda create --prefix "$CONDA_ENV_PATH" python="$PYTHON_VERSION" --yes
+
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH"
+
+# --- Install Packages ---
+echo "Installing uv..."
+pip install uv
+
+echo "Installing numpy, pandas, scikit-learn..."
+uv pip install numpy pandas scikit-learn
+
+echo "Installing required packages from requirements files using uv..."
+# The --prerelease=allow is crucial for autogluon.multimodal.
+# uv handles the "only install exact packages" and "do not upgrade if already correct" by default,
+# ensuring minimal changes and respecting specified versions.
+uv pip install -r "$MULTIMODAL_REQUIREMENTS_PATH" --prerelease=allow -r "$COMMON_REQUIREMENTS_PATH"
+
+echo "Deactivating conda environment."
+conda deactivate
+
+echo "Conda environment setup complete."
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/4d252b8d3aa6da775378/attempt-1/mlzero/node_3/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 1592 seconds.

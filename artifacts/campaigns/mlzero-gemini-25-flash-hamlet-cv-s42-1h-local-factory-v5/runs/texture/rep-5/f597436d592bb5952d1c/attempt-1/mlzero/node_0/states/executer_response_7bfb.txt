@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: The execution failed during the Conda environment setup phase with a `CondaError: Run 'conda init' before 'conda activate'`. This error prevented the Python script from being executed. Additionally, the benchmark harness reported an error reading `cv_contract.json` (`ValueError: All arrays must be of the same length` and `AttributeError: module 'pandas.io.common' has no attribute 'EmptyDataError'`), which might indicate broader environment or setup issues. The provided Python code itself appears correct and adheres to the task requirements, but it was not run.
+VALIDATION_SCORE: None

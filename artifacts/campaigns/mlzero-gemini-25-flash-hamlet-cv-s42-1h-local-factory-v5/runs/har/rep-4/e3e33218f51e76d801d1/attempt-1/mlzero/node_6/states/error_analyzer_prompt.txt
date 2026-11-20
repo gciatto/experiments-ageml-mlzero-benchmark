@@ -1,0 +1,784 @@
+
+Analyze the error and provide your response in this exact format:
+
+ERROR_SUMMARY: [Brief technical description of the root cause in 1-3 sentences]
+SUGGESTED_FIX: [Specific debugging directions in 1-3 sentences without code]
+
+### Error Message
+stderr: + ENV_DIR=/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env
++ COMMON_REQ_FILE=/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
++ MM_REQ_FILE=/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt
+++ dirname /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env
++ mkdir -p /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6
++ '[' -d /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env ']'
++ echo 'Creating conda environment at /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env with Python 3.11...'
++ conda create --prefix /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env python=3.11 --yes
+WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
++ '[' 0 -ne 0 ']'
++ '[' '!' -f /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env/bin/activate ']'
++ echo 'ERROR: Conda environment created, but /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env/bin/activate not found.'
+ERROR: Conda environment created, but /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env/bin/activate not found.
++ echo 'This indicates a corrupted or incomplete environment setup. Please check disk space, permissions, and conda installation.'
+This indicates a corrupted or incomplete environment setup. Please check disk space, permissions, and conda installation.
++ exit 1
+
+
+Error summary: MATCHED_CV_REJECTED: Trusted CV evaluator exited 1: Traceback (most recent call last):
+  File "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py", line 18, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+
+
+### Task Description
+The data science task is **classification**.
+
+*   **Problem Type**: Classification.
+*   **Input Format**: Tabular data, where `X` represents features and `y` represents the target column named `Class`.
+*   **Prediction Output Format**: Discrete class labels, corresponding to the values found in the `Class` column.
+*   **Evaluation Metric**: Balanced accuracy (higher is better).
+
+**Methodology Constraints**:
+The task requires training models using a 10-fold cross-validation setup, with predefined folds specified in `cv_contract.json`. There is no independent test set. Models must be returned by `build_model(X_train, y_train)` as new, unfitted objects with `fit(X,y)` and `predict(X)` methods. All preprocessing must be internal to the model and fitted only on the training data for each fold. Stochastic models must use `random_state/seed 42`. No external data, services, or unstated assumptions are permitted.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/README.md
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (text):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+       ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+
+----------
+
+
+### User Instructions
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Python Code:
+import pandas as pd
+import uuid
+import os
+import shutil
+from autogluon.multimodal import MultiModalPredictor
+import logging
+
+# Configure logging to suppress excessive output from AutoGluon if needed,
+# or to direct our own warnings.
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Define a wrapper class for AutoGluon MultiModalPredictor
+# This wrapper provides a scikit-learn-like API (fit/predict)
+# and handles AutoGluon-specific requirements like unique artifact paths
+# and time limits per training fold.
+class AutoGluonMMWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to conform to a scikit-learn-like
+    API for classification tasks.
+    """
+    def __init__(self, label_column_name: str, random_state: int = 42):
+        """
+        Initializes the wrapper.
+
+        Args:
+            label_column_name (str): The name of the target column.
+            random_state (int): Seed for reproducibility of stochastic processes.
+        """
+        self.label_column_name = label_column_name
+        self.random_state = random_state
+        self.predictor = None
+        self.model_path = None # Stores the path to the model's artifacts for cleanup
+
+    def fit(self, X: pd.DataFrame, y: pd.Series, time_limit: int = 180):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        All preprocessing and model training are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+            time_limit (int): Maximum time in seconds for fitting the model.
+                              This is crucial for bounding each fold's training
+                              time within the overall deadline.
+        """
+        # Ensure y is a pandas Series with the correct name and index,
+        # aligning it with X.
+        if not isinstance(y, pd.Series):
+            y_series = pd.Series(y, name=self.label_column_name, index=X.index)
+        else:
+            y_series = y.rename(self.label_column_name)
+
+        # Combine features (X) and target (y) into a single DataFrame
+        # as required by MultiModalPredictor.fit().
+        train_data = pd.concat([X, y_series], axis=1)
+
+        # Create a unique temporary directory for this fold's model artifacts.
+        # This ensures that each fold's training is isolated and uses fresh
+        # artifact storage, preventing data leakage or conflicts.
+        # Using a more robust path construction with os.path.join
+        self.model_path = os.path.join(os.getcwd(), f"autogluon_mm_model_{uuid.uuid4().hex}")
+        os.makedirs(self.model_path, exist_ok=True)
+        logger.info(f"Created model artifact directory: {self.model_path}")
+
+        # Initialize MultiModalPredictor.
+        # - `label`: Specifies the target column.
+        # - `problem_type`: Explicitly set to "classification".
+        # - `path`: Directs AutoGluon to store artifacts in our unique temporary directory.
+        # - `verbosity`: Set to 1 to show minimal progress updates during training.
+        # FIX: Removed `random_state` from constructor as per previous error message.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column_name,
+            problem_type="classification",
+            path=self.model_path,
+            verbosity=1
+        )
+
+        # Fit the predictor.
+        # The `time_limit` parameter is critical for managing the total
+        # training time across all cross-validation folds.
+        # FIX: Pass `random_state` via `hyperparameters={"env.seed": ...}`
+        # as suggested by the previous error message.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=time_limit,
+            hyperparameters={
+                "env.seed": self.random_state,
+                # For purely tabular data, AutoGluon MultiModal will automatically
+                # leverage its internal tabular models. No specific image/text
+                # hyperparameters are needed here unless we want to customize.
+                # The problem statement implies presets are configured, so we don't
+                # need to specify them explicitly unless overriding.
+            }
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions on new data.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        
+        # MultiModalPredictor.predict() directly returns class labels for
+        # classification tasks.
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Destructor to clean up the temporary model directory created during fit.
+        This helps manage disk space, especially during cross-validation.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+                logger.info(f"Cleaned up model artifact directory: {self.model_path}")
+            except OSError as e:
+                # Log a warning if cleanup fails, but do not block execution.
+                logger.warning(f"Could not remove model directory {self.model_path}: {e}")
+
+# The factory function required by the evaluation harness.
+# It returns a fresh, unfitted model wrapper.
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMMWrapper:
+    """
+    Factory function to create an unfitted AutoGluon MultiModal classification model.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used for schema inference, not fitting).
+        y_train (pd.Series): Training target labels (used for schema inference, not fitting).
+
+    Returns:
+        AutoGluonMMWrapper: An unfitted model wrapper instance ready for training.
+    """
+    # The target column name is 'Class' as specified in the problem description.
+    label_column_name = 'Class'
+    # Return a new, unfitted instance of our wrapper.
+    return AutoGluonMMWrapper(label_column_name=label_column_name, random_state=42)
+
+### Previous Bash Script to Execute the Python Code:
+#!/bin/bash
+set -euxo pipefail
+
+# Define the target Conda environment directory
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-4/e3e33218f51e76d801d1/attempt-1/mlzero/node_6/conda_env"
+
+# Define paths to requirements files
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MM_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+# Ensure the parent directory exists before creating the environment
+mkdir -p "$(dirname "$ENV_DIR")"
+
+# Attempt to remove any existing environment at the target path to ensure a clean slate.
+# This helps prevent issues from partially failed previous installations.
+if [ -d "$ENV_DIR" ]; then
+    echo "Existing environment found at $ENV_DIR. Attempting to remove it..."
+    # Use conda env remove if possible, fallback to rm -rf if conda command fails
+    conda env remove --prefix "$ENV_DIR" --yes || {
+        echo "Warning: 'conda env remove' failed for $ENV_DIR. Attempting 'rm -rf $ENV_DIR' as fallback." >&2
+        rm -rf "$ENV_DIR"
+    }
+fi
+
+# 1. Create the Conda environment with Python 3.11
+echo "Creating conda environment at $ENV_DIR with Python 3.11..."
+conda create --prefix "$ENV_DIR" python=3.11 --yes
+if [ $? -ne 0 ]; then
+    echo "ERROR: Conda environment creation failed." >&2
+    exit 1
+fi
+
+# Verify that the activate script was created. This addresses previous errors
+# where the environment creation succeeded but the activation script was missing.
+if [ ! -f "$ENV_DIR/bin/activate" ]; then
+    echo "ERROR: Conda environment created, but $ENV_DIR/bin/activate not found." >&2
+    echo "This indicates a corrupted or incomplete environment setup. Please check disk space, permissions, and conda installation." >&2
+    exit 1
+fi
+
+# 2. Activate the environment
+echo "Activating conda environment..."
+# Source conda's initialization script to make 'conda activate' available in the current shell.
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$ENV_DIR"
+if [ $? -ne 0 ]; then
+    echo "ERROR: Conda environment activation failed." >&2
+    exit 1
+fi
+
+# 3. Install uv into the activated environment
+echo "Installing uv into the environment..."
+# 'pip' here refers to the pip executable within the activated conda environment.
+pip install uv
+if [ $? -ne 0 ]; then
+    echo "ERROR: uv installation failed." >&2
+    exit 1
+fi
+
+# 4. Install required packages using uv
+# This command installs packages from both requirements files,
+# allows prerelease versions, and explicitly includes numpy, pandas, and scikit-learn.
+# 'uv' ensures only the exact packages specified (and their dependencies) are installed,
+# avoiding unnecessary upgrades or reinstalls if versions are already satisfied.
+echo "Installing packages from requirements files and additional libraries (numpy, pandas, scikit-learn) using uv..."
+# 'uv' here refers to the uv executable within the activated conda environment.
+uv pip install \
+    -r "$MM_REQ_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQ_FILE" \
+    numpy pandas scikit-learn
+if [ $? -ne 0 ]; then
+    echo "ERROR: Package installation with uv failed." >&2
+    exit 1
+fi
+
+echo "Conda environment setup complete at $ENV_DIR."
+
+### Relevant Tutorials
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal, a framework for multimodal machine learning that handles mixed data types. It covers implementing a pet adoption speed predictor using images and tabular data, showcasing automatic modality detection, model selection, and late-fusion techniques. Key functionalities include training a multimodal predictor with minimal code, evaluating model performance, making predictions, extracting embeddings for downstream tasks, and saving/loading models. The tutorial is valuable for developers implementing classification tasks with mixed data types (images and tabular data) who need automated machine learning capabilities without extensive manual configuration.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Tutorial
+
+## Setup
+
+```python
+!pip install autogluon.multimodal
+
+import os
+import numpy as np
+import warnings
+warnings.filterwarnings('ignore')
+np.random.seed(123)
+```
+
+## Dataset Preparation
+
+Using a simplified version of PetFinder dataset to predict animal adoption rates (0=slow, 1=fast).
+
+```python
+# Download dataset
+download_dir = './ag_automm_tutorial'
+zip_file = 'https://automl-mm-bench.s3.amazonaws.com/petfinder_for_tutorial.zip'
+from autogluon.core.utils.loaders import load_zip
+load_zip.unzip(zip_file, unzip_dir=download_dir)
+
+# Load data
+import pandas as pd
+dataset_path = download_dir + '/petfinder_for_tutorial'
+train_data = pd.read_csv(f'{dataset_path}/train.csv', index_col=0)
+test_data = pd.read_csv(f'{dataset_path}/test.csv', index_col=0)
+label_col = 'AdoptionSpeed'
+
+# Process image paths
+image_col = 'Images'
+train_data[image_col] = train_data[image_col].apply(lambda ele: ele.split(';')[0])  # Use first image only
+test_data[image_col] = test_data[image_col].apply(lambda ele: ele.split(';')[0])
+
+def path_expander(path, base_folder):
+    path_l = path.split(';')
+    return ';'.join([os.path.abspath(os.path.join(base_folder, path)) for path in path_l])
+
+train_data[image_col] = train_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+test_data[image_col] = test_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+```
+
+## Training
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+predictor = MultiModalPredictor(label=label_col)
+predictor.fit(
+    train_data=train_data,
+    time_limit=120,  # seconds
+)
+```
+
+AutoMM automatically:
+- Infers problem type (classification/regression)
+- Detects data modalities
+- Selects appropriate models
+- Trains with late-fusion if multiple backbones are available
+
+## Evaluation
+
+```python
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+## Prediction
+
+```python
+# Get class predictions
+predictions = predictor.predict(test_data.drop(columns=label_col))
+
+# Get class probabilities (classification only)
+probas = predictor.predict_proba(test_data.drop(columns=label_col))
+```
+
+## Extract Embeddings
+
+```python
+embeddings = predictor.extract_embedding(test_data.drop(columns=label_col))
+```
+
+## Save and Load
+
+```python
+import uuid
+model_path = f"./tmp/{uuid.uuid4().hex}-saved_model"
+predictor.save(model_path)
+loaded_predictor = MultiModalPredictor.load(model_path)
+```
+
+⚠️ **Warning**: `MultiModalPredictor.load()` uses `pickle` module which can be insecure. Only load models from trusted sources.
+
+## Additional Resources
+- More examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- Customization: Refer to "Customize AutoMM" documentation
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, semantic segmentation, similarity matching, NER, and feature extraction. It helps with implementing models that handle various data modalities (text, image, numerical, categorical) and specifies which problem types support training vs. zero-shot prediction. The tutorial details evaluation metrics for each problem type and provides implementation context for working with multimodal data. It's valuable for coding tasks involving multimodal machine learning, particularly when working with mixed data types and needing automated model training across different problem domains.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Problem Types
+
+## Installation and Setup
+
+```python
+!pip install autogluon.multimodal
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+## Problem Types Overview
+
+### Classification
+
+AutoGluon supports two types of classification:
+
+**Binary Classification (2 classes)**
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: accuracy, balanced_accuracy, f1, mcc, roc_auc (default)
+- Supports training and zero-shot prediction
+
+**Multiclass Classification (3+ classes)**
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: accuracy (default), balanced_accuracy, f1, log_loss
+- Supports training and zero-shot prediction
+
+### Regression
+
+- Supported modalities: image, numerical, text, categorical, tabular
+- Evaluation metrics: mse, rmse (default), r2, mae, mape
+- Supports training and zero-shot prediction
+
+### Object Detection
+
+- Supported modalities: image
+- Evaluation metrics: map (default)
+- Supports training but not zero-shot prediction
+
+### Semantic Segmentation
+
+- Supported modalities: image
+- Evaluation metrics: overall_accuracy, mean_accuracy, mean_iou (default), weighted_iou
+- Supports training but not zero-shot prediction
+
+### Similarity Matching Problems
+
+**Text Similarity**
+- Input requirements: text
+- Supports zero-shot prediction
+
+**Image Similarity**
+- Input requirements: image
+- Supports zero-shot prediction
+
+**Image-Text Similarity**
+- Input requirements: image, text
+- Supports zero-shot prediction
+
+### Named Entity Recognition (NER)
+
+- Supported modalities: text
+- Evaluation metrics: overall_f1 (default)
+- Supports training but not zero-shot prediction
+
+### Feature Extraction
+
+- Supported modalities: image, numerical, text, categorical, tabular
+- Supports training and zero-shot prediction
+
+### Few-shot Classification
+
+- Supported modalities: image, text
+- Evaluation metrics: accuracy (default)
+- Supports training and zero-shot prediction
+
+## Additional Resources
+- For more examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- For customization: [Customize AutoMM](../advanced_topics/customization.ipynb)
+- For similarity matching: [Matching Tutorials](../semantic_matching/index.md)
+
+
+### Condensed: Multiple Label Columns with AutoMM
+# Condensed: Multiple Label Columns with AutoMM
+
+Summary: This tutorial explains how to handle multiple label columns in AutoGluon MultiModal using two approaches: (1) converting mutually exclusive labels into a single combined column, or (2) training separate models for non-mutually exclusive labels. It provides code examples for both methods, emphasizing the need to properly manage label columns during training and prediction. Key implementation notes include time allocation across multiple models, excluding other label columns as features, and maintaining consistent preprocessing between training and inference. The tutorial helps with multi-label classification tasks in AutoGluon's MultiModal framework.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# Multiple Label Columns with AutoMM
+
+## Multiple Label Columns with AutoMM
+
+### Implementation Details
+
+When working with multiple label columns in AutoGluon MultiModal, you have two main approaches:
+
+1. **Mutually Exclusive Labels**: Convert multiple columns to a single label
+   ```python
+   df['combined_label'] = df.apply(lambda row: combine_labels(row, label_columns), axis=1)
+   predictor = MultiModalPredictor(label='combined_label').fit(df)
+   ```
+
+2. **Non-Mutually Exclusive Labels**: Train separate models
+   ```python
+   predictors = {}
+   for label in label_columns:
+       train_df = df.drop(columns=[l for l in label_columns if l != label])
+       predictors[label] = MultiModalPredictor(label=label).fit(train_df)
+   ```
+
+### Key Implementation Notes
+
+- For mutually exclusive labels, convert to a single column before training
+- For non-mutually exclusive labels, train separate models for each label
+- When using multiple predictors, allocate time_limit/N for each of N label columns
+- Always exclude other label columns from features when training individual models
+- For prediction, apply the same preprocessing/postprocessing steps as during training
+
+### Best Practices
+
+- Ensure consistent preprocessing between training and inference
+- When using the multiple-model approach, be aware of increased training time and resource usage
+- Consider model ensembling if appropriate for your use case
+- For customization options, refer to the AutoMM customization documentation
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal for multimodal machine learning, focusing on image-text classification with the PetFinder dataset. It covers implementation techniques for preparing multimodal data (handling image paths and text features), training a MultiModalPredictor with automatic modality detection and model selection, and making predictions. Key functionalities include automatic problem type inference, multimodal feature handling, time-constrained training, classification prediction, probability estimation, and performance evaluation using metrics like ROC-AUC. This knowledge helps with tasks requiring combined processing of images and tabular data for classification problems.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon MultiModal Quickstart Tutorial
+
+## Setup
+
+```python
+!python -m pip install --upgrade pip
+!python -m pip install autogluon
+
+import os
+import warnings
+import numpy as np
+
+warnings.filterwarnings('ignore')
+np.random.seed(123)
+```
+
+## Data Preparation
+
+Download and prepare the PetFinder dataset (simplified version with binary adoption speed):
+
+```python
+from autogluon.core.utils.loaders import load_zip
+import pandas as pd
+
+# Download dataset
+download_dir = './ag_multimodal_tutorial'
+zip_file = 'https://automl-mm-bench.s3.amazonaws.com/petfinder_for_tutorial.zip'
+load_zip.unzip(zip_file, unzip_dir=download_dir)
+
+# Load data
+dataset_path = f'{download_dir}/petfinder_for_tutorial'
+train_data = pd.read_csv(f'{dataset_path}/train.csv', index_col=0)
+test_data = pd.read_csv(f'{dataset_path}/test.csv', index_col=0)
+label_col = 'AdoptionSpeed'
+
+# Process image paths (take only first image per record)
+image_col = 'Images'
+train_data[image_col] = train_data[image_col].apply(lambda ele: ele.split(';')[0])
+test_data[image_col] = test_data[image_col].apply(lambda ele: ele.split(';')[0])
+
+# Expand image paths to absolute paths
+def path_expander(path, base_folder):
+    path_l = path.split(';')
+    return ';'.join([os.path.abspath(os.path.join(base_folder, path)) for path in path_l])
+
+train_data[image_col] = train_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+test_data[image_col] = test_data[image_col].apply(lambda ele: path_expander(ele, base_folder=dataset_path))
+```
+
+## Training
+
+Train the MultiModalPredictor with a time limit:
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+
+predictor = MultiModalPredictor(label=label_col).fit(
+    train_data=train_data,
+    time_limit=120  # 2 minutes time limit for quick demo
+)
+```
+
+Key features:
+- Automatically infers problem type (classification/regression)
+- Detects feature modalities
+- Selects appropriate models
+- Adds late-fusion model (MLP or transformer) for multiple backbones
+
+## Prediction
+
+Make predictions on test data:
+
+```python
+# Class predictions
+predictions = predictor.predict(test_data.drop(columns=label_col))
+
+# Probability predictions
+probs = predictor.predict_proba(test_data.drop(columns=label_col))
+```
+
+## Evaluation
+
+Evaluate model performance:
+
+```python
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+This tutorial demonstrates basic functionality - see in-depth tutorials for advanced features like embedding extraction, distillation, model fine-tuning, and semantic matching.
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon's MultiModalPredictor for text classification using different quality presets. It covers implementation techniques for sentiment analysis with three preset configurations: medium_quality (fast, smaller models), high_quality (balanced), and best_quality (performance-focused). The tutorial shows how to add hyperparameter optimization with _hpo suffixes, evaluate models using metrics like roc_auc, and view preset configurations. Key functionalities include automatic model selection, time-limited training, and hyperparameter tuning for text classification tasks with minimal code, making it useful for quickly implementing sentiment analysis or other text classification problems.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoMM Presets Tutorial
+
+## Setup
+```python
+!pip install autogluon.multimodal
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+## Dataset
+Using Stanford Sentiment Treebank (SST) for binary classification of movie reviews.
+
+```python
+from autogluon.core.utils.loaders import load_pd
+
+train_data = load_pd.load('https://autogluon-text.s3-accelerate.amazonaws.com/glue/sst/train.parquet')
+test_data = load_pd.load('https://autogluon-text.s3-accelerate.amazonaws.com/glue/sst/dev.parquet')
+subsample_size = 1000  # subsample for faster demo
+train_data = train_data.sample(n=subsample_size, random_state=0)
+```
+
+## Quality Presets
+
+### Medium Quality
+Optimized for fast training and inference with smaller models.
+
+```python
+from autogluon.multimodal import MultiModalPredictor
+
+predictor = MultiModalPredictor(label='label', eval_metric='acc', presets="medium_quality")
+predictor.fit(train_data=train_data, time_limit=20)  # seconds
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+### High Quality
+Balances prediction quality and speed using larger models.
+
+```python
+predictor = MultiModalPredictor(label='label', eval_metric='acc', presets="high_quality")
+predictor.fit(train_data=train_data, time_limit=20)
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+### Best Quality
+Prioritizes performance over training/inference cost. Requires more time and GPU memory.
+
+```python
+predictor = MultiModalPredictor(label='label', eval_metric='acc', presets="best_quality")
+predictor.fit(train_data=train_data, time_limit=180)
+scores = predictor.evaluate(test_data, metrics=["roc_auc"])
+```
+
+## HPO Presets
+Add `_hpo` suffix to enable hyperparameter optimization:
+- `medium_quality_hpo`
+- `high_quality_hpo`
+- `best_quality_hpo`
+
+## Viewing Preset Configurations
+```python
+import json
+from autogluon.multimodal.utils.presets import get_presets
+
+# View high_quality preset details
+hyperparameters, hyperparameter_tune_kwargs = get_presets(problem_type="default", presets="high_quality")
+print(f"hyperparameters: {json.dumps(hyperparameters, sort_keys=True, indent=4)}")
+
+# View high_quality_hpo preset details
+hyperparameters, hyperparameter_tune_kwargs = get_presets(problem_type="default", presets="high_quality_hpo")
+```
+
+HPO presets tune parameters like model backbone, batch size, learning rate, max epoch, and optimizer type.
+
+## Additional Resources
+- More examples: [AutoMM Examples](https://github.com/autogluon/autogluon/tree/master/examples/automm)
+- Customization: Refer to "Customize AutoMM" documentation
+

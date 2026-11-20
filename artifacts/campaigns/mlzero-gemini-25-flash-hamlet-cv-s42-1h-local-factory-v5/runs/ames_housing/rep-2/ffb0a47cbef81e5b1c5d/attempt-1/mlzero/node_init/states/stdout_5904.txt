@@ -1,0 +1,6 @@
+Columns (first 10 and last 10):
+['Id', 'MSSubClass', 'MSZoning', 'LotFrontage', 'LotArea', 'Street', 'Alley', 'LotShape', 'LandContour', 'Utilities', '...', 'PoolArea', 'PoolQC', 'Fence', 'MiscFeature', 'MiscVal', 'MoSold', 'YrSold', 'SaleType', 'SaleCondition', 'SalePrice']
+
+First row (truncated, first 7 columns):
+ Id  MSSubClass MSZoning  LotFrontage  LotArea Street Alley
+  1          60       RL         65.0     8450   Pave   NaN

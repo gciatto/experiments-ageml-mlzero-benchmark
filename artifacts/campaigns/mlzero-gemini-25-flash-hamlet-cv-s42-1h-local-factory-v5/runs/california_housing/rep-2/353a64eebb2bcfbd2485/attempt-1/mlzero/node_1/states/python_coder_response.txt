@@ -1,0 +1,140 @@
+```python
+import pandas as pd
+import autogluon.tabular as agt
+from autogluon.core.utils.utils import set_random_seed
+import tempfile
+import shutil
+import os
+import logging
+
+# Set up basic logging to suppress excessive AutoGluon output if needed.
+# AutoGluon can be quite verbose. Setting its logger level to WARNING or ERROR
+# can reduce output during evaluation, which is often desirable in benchmarks.
+# logging.basicConfig(level=logging.WARNING)
+# logging.getLogger('autogluon').setLevel(logging.WARNING)
+
+# Set a global seed for reproducibility across AutoGluon's internal models.
+# This addresses the previous error regarding `random_state` in TabularPredictor constructor
+# and ensures consistent results for stochastic algorithms within AutoGluon.
+set_random_seed(42)
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    `fit(X, y)` and `predict(X)` interface required by the benchmark.
+    """
+    def __init__(self, label_column_name: str):
+        """
+        Initializes the wrapper.
+
+        Args:
+            label_column_name (str): The name of the target column.
+        """
+        self.predictor = None
+        self.temp_path = None
+        self.label_column_name = label_column_name
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+
+        All preprocessing and model training are performed within this method,
+        using only the data from the current training fold.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target variable.
+        """
+        # Ensure y is a pandas Series with a name, as AutoGluon expects this.
+        # If y is a numpy array or a Series without a name, assign the inferred name.
+        if not isinstance(y, pd.Series):
+            y = pd.Series(y, name=self.label_column_name, index=X.index)
+        elif y.name is None:
+            y.name = self.label_column_name
+
+        # Combine X and y into a single DataFrame as required by AutoGluon's fit method.
+        train_data = X.copy()
+        train_data[self.label_column_name] = y
+
+        # Create a temporary directory for AutoGluon artifacts for this specific fold.
+        # This ensures "fresh artifact directories per fold" as required by the contract,
+        # preventing interference between different folds' models.
+        self.temp_path = tempfile.mkdtemp(prefix="autogluon_model_")
+        
+        # Initialize TabularPredictor.
+        # 'problem_type' is set to 'regression' as per the task description.
+        # 'path' points to the temporary directory for storing model artifacts.
+        # 'verbosity=0' can be uncommented to suppress AutoGluon's extensive logging during fit.
+        self.predictor = agt.TabularPredictor(
+            label=self.label_column_name,
+            problem_type='regression',
+            path=self.temp_path,
+            # verbosity=0 # Uncomment to suppress AutoGluon output during fit
+        )
+
+        # Fit the predictor.
+        # 'time_limit' is crucial to ensure all ten fits complete within the shared deadline.
+        # With a total of 3180 seconds for 10 folds, 250 seconds per fold (2500s total)
+        # leaves a comfortable buffer for data loading, evaluation, and other overhead.
+        # 'presets' are chosen for a good balance of speed and accuracy.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=250, # seconds per fold
+            presets='medium_quality_faster_inference',
+            # Specific hyperparameters for individual models within AutoGluon can be set here, e.g.:
+            # hyperparameters={'GBM': {'random_state': 42}, 'RF': {'random_state': 42}}
+            # However, the global set_random_seed(42) often suffices for overall reproducibility.
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Generates predictions for the given input features using the fitted model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            pd.Series: Predicted target values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        predictions = self.predictor.predict(X)
+        return predictions
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts.
+        This method is called when the object is garbage collected, ensuring
+        that temporary files are removed.
+        """
+        if self.temp_path and os.path.exists(self.temp_path):
+            try:
+                shutil.rmtree(self.temp_path)
+                # print(f"Cleaned up temporary directory: {self.temp_path}") # For debugging
+            except OSError as e:
+                # print(f"Error removing temporary directory {self.temp_path}: {e}") # For debugging
+                pass # Ignore errors during cleanup to avoid crashing if directory is in use or already gone.
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to build and return a new, unfitted model wrapper.
+
+    This function is called by the evaluation harness for each cross-validation fold.
+    It must return a fresh instance of a model that exposes `fit(X,y)` and `predict(X)` methods.
+    The `X_train` and `y_train` arguments are provided to infer metadata (like the target column name)
+    but should not be used for fitting the model at this stage.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used here to infer the target column name).
+        y_train (pd.Series): Training target (used here to infer the target column name).
+
+    Returns:
+        AutoGluonModelWrapper: An unfitted model wrapper with fit/predict methods.
+    """
+    # Infer the label column name from y_train.
+    # If y_train is a Series without a name, use the known target column name as a fallback.
+    label_column_name = y_train.name if y_train.name else 'median_house_value'
+    
+    return AutoGluonModelWrapper(label_column_name=label_column_name)
+```

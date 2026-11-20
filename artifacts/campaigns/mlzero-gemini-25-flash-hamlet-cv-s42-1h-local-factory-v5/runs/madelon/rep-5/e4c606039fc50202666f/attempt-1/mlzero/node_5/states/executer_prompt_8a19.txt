@@ -1,0 +1,349 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+This is a **classification** task.
+
+**Input Format:** Tabular data provided in `data.csv`. Each input instance consists of 500 features, named `V1` through `V500`.
+
+**Prediction Output Format:** Predicted class labels for the `Class` column.
+
+### Data Structure
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv
+Content:
+Columns (501): ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', '...', 'V492', 'V493', 'V494', 'V495', 'V496', 'V497', 'V498', 'V499', 'V500', 'Class']
+   V1    V2    V3    V4    V5    V6    V7    V8    V9   V10   V11   V12   V13   V14   V15   V16   V17   V18   V19   V20   V21   V22   V23   V24   V25   V26   V27   V28   V29   V30   V31   V32   V33   V34   V35   V36   V37   V38   V39   V40   V41   V42   V43   V44   V45   V46   V47   V48   V49   V50   V51   V52   V53   V54   V55   V56   V57   V58   V59   V60   V61   V62   V63   V64   V65   V66   V67   V68   V69   V70   V71   V72   V73   V74   V75   V76   V77   V78   V79   V80   V81   V82   V83   V84   V85   V86   V87   V88   V89   V90   V91   V92   V93   V94   V95   V96   V97   V98   V99  V100 ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: madelon
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and othe
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/cv_contract.json
+Content:
+Could not parse as JSON/DataFrame. Attempting to read as text. Error: All arrays must be of the same length
+File Type: Text
+First few lines:
+{
+  "cv_folds": [
+    {
+      "train": [
+        211,
+        212,
+        214,
+        215,
+        220,
+        221,
+        223,
+        224,
+        225,
+        228,
+        232,
+        234,
+        235,
+        239,
+        242,
+        243,
+        244,
+        247,
+        248,
+        249,
+        250,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        261,
+        263,
+        268,
+        269,
+        270,
+        279,
+        280,
+        282,
+        289,
+        294,
+        296,
+        297,
+        299,
+        300,
+        301,
+        302,
+        303,
+        304...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### Python Code
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+import tempfile
+import shutil
+import os
+import logging
+
+# Configure logging to suppress excessive AutoGluon output during training.
+# The verbosity parameter in TabularPredictor's constructor is also set to 0.
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('autogluon.core').setLevel(logging.WARNING)
+logging.getLogger('autogluon.tabular').setLevel(logging.WARNING)
+
+# Helper function to set random seed for AutoGluon's internal operations.
+# This ensures reproducibility for each fold's training.
+def set_autogluon_seed(seed: int):
+    """Sets the random seed for AutoGluon's internal operations."""
+    from autogluon.common.utils.utils import set_random_seed
+    set_random_seed(seed)
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor, providing a scikit-learn-like
+    fit/predict interface and handling artifact management.
+    """
+    def __init__(self, label_column: str, random_seed: int, time_limit_per_fit: int):
+        """
+        Initializes the wrapper. The AutoGluon predictor is not fitted here.
+
+        Args:
+            label_column (str): The name of the target column.
+            random_seed (int): The random seed for reproducibility.
+            time_limit_per_fit (int): Maximum time in seconds allowed for each fit call.
+        """
+        self.label_column = label_column
+        self.random_seed = random_seed
+        self.time_limit_per_fit = time_limit_per_fit
+        self.predictor: TabularPredictor = None
+        self.save_path: str = None # Path to store AutoGluon's model artifacts
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        All learned preprocessing and model fitting occur within this method,
+        using only the provided training data (X, y). A unique temporary
+        directory is created for each fit call to store AutoGluon's artifacts.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Set the random seed for AutoGluon for reproducibility for this fold
+        set_autogluon_seed(self.random_seed)
+
+        # Combine X and y into a single DataFrame as required by AutoGluon
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Create a unique temporary directory for this fold's AutoGluon artifacts.
+        # This ensures "fresh artifact directories per fold" as required.
+        self.save_path = tempfile.mkdtemp(prefix="autogluon_model_")
+        
+        # Initialize TabularPredictor.
+        # 'balanced_accuracy' is specified as the metric in the problem description.
+        # 'best_quality' preset is chosen for a good balance of accuracy and training time
+        # within the given per-fold time limit.
+        self.predictor = TabularPredictor(
+            label=self.label_column,
+            eval_metric='balanced_accuracy',
+            path=self.save_path,
+            verbosity=0 # Suppress verbose output during training
+        )
+
+        # Fit the predictor with the specified time limit and presets.
+        # The 'seed' argument is not passed directly to fit, as global seeding is handled by set_autogluon_seed.
+        self.predictor.fit(
+            train_data,
+            time_limit=self.time_limit_per_fit,
+            presets='best_quality',
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's predict method can directly take a pandas DataFrame.
+        predictions = self.predictor.predict(X)
+        return predictions
+
+    def __del__(self):
+        """
+        Attempts to clean up the temporary directory created for AutoGluon artifacts
+        when the wrapper object is garbage collected. This is a best-effort cleanup.
+        """
+        if self.save_path and os.path.exists(self.save_path):
+            try:
+                shutil.rmtree(self.save_path)
+            except OSError as e:
+                # Log the error but do not raise, as __del__ should not fail.
+                logging.warning(f"Error cleaning up AutoGluon temporary directory {self.save_path}: {e}")
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to build a new, unfitted AutoGluon Tabular model wrapper.
+
+    This function adheres to the contract: it returns a NEW, unfitted model
+    with `fit(X,y)` and `predict(X)` methods.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used for fitting here).
+        y_train (pd.Series): Training target (provided for context, not used for fitting here).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper instance.
+    """
+    # The target column name is explicitly 'Class' as per the problem description.
+    label_column = 'Class'
+    
+    # The total shared deadline is ~3090 seconds for 10 folds.
+    # Allocating 280 seconds per fold for AutoGluon's fit allows for ~29 seconds
+    # of overhead per fold (e.g., data loading, wrapper instantiation, cleanup).
+    time_limit_per_fit = 280 
+    
+    # Instantiate the wrapper. It is unfitted at this point.
+    return AutoGluonTabularWrapper(
+        label_column=label_column,
+        random_seed=42, # Seed 42 as required
+        time_limit_per_fit=time_limit_per_fit
+    )
+
+## Execution Results
+### Standard Output (stdout)
+
+Starting minimal BASH INSTALLATION script for factory module.
+Creating conda environment at /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_5/conda_env with Python 3.11...
+Channels:
+ - conda-forge
+Platform: linux-64
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+## Package Plan ##
+  environment location: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_5/conda_env
+  added / updated specs:
+    - python=3.11
+The following NEW packages will be INSTALLED:
+  _openmp_mutex      conda-forge/linux-64::_openmp_mutex-4.5-20_gnu 
+  bzip2              conda-forge/linux-64::bzip2-1.0.8-hda65f42_10 
+  ca-certificates    conda-forge/noarch::ca-certificates-2026.10.23-hbd8a1cb_0 
+  ld_impl_linux-64   conda-forge/linux-64::ld_impl_linux-64-2.46.1-default_hbd61a6d_103 
+  libexpat           conda-forge/linux-64::libexpat-2.9.0-hd2095e1_0 
+  libffi             conda-forge/linux-64::libffi-3.7.0-h81df57d_1 
+  libgcc             conda-forge/linux-64::libgcc-16.2.0-ha9f2e26_7 
+  libgomp            conda-forge/linux-64::libgomp-16.2.0-he0feb66_7 
+  liblzma            conda-forge/linux-64::liblzma-5.8.3-hb03c661_1 
+  libnsl             conda-forge/linux-64::libnsl-2.0.1-hb9d3cd8_1 
+  libpython          conda-forge/linux-64::libpython-3.11.18-ha57cdbe_0_cpython 
+  libsqlite          conda-forge/linux-64::libsqlite-3.54.1-h0737f62_101 
+  libuuid            conda-forge/linux-64::libuuid-2.42.4-hcfc3c73_1 
+  libxcrypt          conda-forge/linux-64::libxcrypt-4.4.38-h280c20c_0 
+  libzlib            conda-forge/linux-64::libzlib-1.3.2-h25fd6f3_3 
+  ncurses            conda-forge/linux-64::ncurses-6.6-hdb14827_1 
+  openssl            conda-forge/linux-64::openssl-3.6.5-h781a0a9_0 
+  packaging          conda-forge/noarch::packaging-26.3-pyhc364b38_0 
+  pip                conda-forge/noarch::pip-26.2.2-pyh8b19718_2 
+  python             conda-forge/linux-64::python-3.11.18-h5f976f7_0_cpython 
+  readline           conda-forge/linux-64::readline-8.3-hd6e31c0_1 
+  setuptools         conda-forge/noarch::setuptools-84.2.1-pyhe730653_0 
+  tk                 conda-forge/linux-64::tk-8.6.13-noxft_h1df4ec4_4 
+  tzdata             conda-forge/noarch::tzdata-2026e-h5d301ff_0 
+  wheel              conda-forge/noarch::wheel-0.48.0-pyhd8ed1ab_0 
+  zstd               conda-forge/linux-64::zstd-1.5.7-hb78ec9c_7 
+Downloading and Extracting Packages: ...working... done
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+#
+# To activate this environment, use
+#     $ conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_5/conda_env
+# To deactivate an active environment, use
+#     $ conda deactivate
+Installing uv into the environment using /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_5/conda_env/bin/pip...
+Collecting uv
+  Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.6 MB)
+Installing collected packages: uv
+Successfully installed uv-0.13.9
+Installing required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt, /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt, numpy, pandas, scikit-learn using /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_5/conda_env/bin/uv...
+Conda environment setup complete at /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_5/conda_env.
+The environment is prepared with autogluon.tabular, numpy, pandas, and scikit-learn.
+
+
+### Standard Error (stderr)
+
+WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+Checked 19 packages in 14ms
+
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

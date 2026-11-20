@@ -1,0 +1,160 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import random
+import shutil
+import logging
+
+# AutoGluon MultiModal import
+from autogluon.multimodal import MultiModalPredictor
+
+# Set global seed for reproducibility.
+# This ensures that any random operations outside of AutoGluon's internal
+# seeding (which is often influenced by global seeds) are consistent.
+GLOBAL_SEED = 42
+random.seed(GLOBAL_SEED)
+np.random.seed(GLOBAL_SEED)
+
+# AutoGluon MultiModal uses PyTorch internally, so setting torch seed is also good practice.
+try:
+    import torch
+    torch.manual_seed(GLOBAL_SEED)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(GLOBAL_SEED)
+except ImportError:
+    # torch might not be installed or needed for all AGMM operations,
+    # or if running on a CPU-only environment without CUDA.
+    pass
+
+# Define the target column name as a module-level constant.
+TARGET_COLUMN_NAME = 'class'
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, seed: int = GLOBAL_SEED):
+        self.predictor = None
+        self.seed = seed
+        self.temp_path = None
+        # Ensure seeds are set for this instance's operations if any
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        try:
+            import torch
+            torch.manual_seed(self.seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(self.seed)
+        except ImportError:
+            pass
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training labels.
+        """
+        # Ensure seeds are set before AutoGluon operations within fit for consistency.
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        try:
+            import torch
+            torch.manual_seed(self.seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(self.seed)
+        except ImportError:
+            pass
+
+        # Create a combined DataFrame for AutoGluon MultiModalPredictor.
+        # The predictor expects the label column to be part of the training DataFrame.
+        train_data = X.copy()
+        train_data[TARGET_COLUMN_NAME] = y
+
+        # Create a unique temporary directory for this fold's artifacts.
+        # This ensures "fresh artifact directories per fold" as required.
+        # Using a path relative to the current working directory.
+        self.temp_path = f"./autogluon_mm_artifacts_{uuid.uuid4().hex}"
+        os.makedirs(self.temp_path, exist_ok=True)
+
+        # Initialize MultiModalPredictor.
+        # For tabular classification, problem_type='classification' is appropriate.
+        # MultiModalPredictor will automatically detect numerical features as tabular.
+        self.predictor = MultiModalPredictor(
+            label=TARGET_COLUMN_NAME,
+            problem_type='classification',
+            path=self.temp_path,
+            # verbosity=0, # Uncomment to suppress AutoGluon logs during training
+        )
+
+        # Fit the predictor.
+        # The total time limit for all ten fits is 1030 seconds.
+        # Allocating ~90-100 seconds per fold (1030 / 10 = 103s average).
+        # Setting to 90 seconds to leave buffer for initialization, cleanup, and harness overhead.
+        fit_time_limit = 90  # seconds per fold
+
+        # Use 'medium_quality' presets for a balance between accuracy and training speed.
+        # 'best_quality' might exceed the per-fold time limit.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=fit_time_limit,
+            presets='medium_quality',
+            # The 'seed' argument is not directly supported by MultiModalPredictor.fit.
+            # Reproducibility is handled by global seed settings and AG's internal mechanisms.
+            # The previous error indicated 'seed' is an unrecognized argument for .fit().
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: A 1-dimensional array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet.")
+        
+        # MultiModalPredictor expects a DataFrame for prediction.
+        predictions = self.predictor.predict(X)
+        
+        # Ensure the output is a 1-dimensional NumPy array of predicted class labels.
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Cleans up the temporary artifact directory when the object is garbage collected.
+        This is a best-effort cleanup.
+        """
+        if self.temp_path and os.path.exists(self.temp_path):
+            try:
+                shutil.rmtree(self.temp_path)
+            except OSError as e:
+                # Log the error if necessary, but do not fail the program.
+                # print(f"Error removing directory {self.temp_path}: {e}")
+                pass
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMultiModalWrapper:
+    """
+    Factory function to build and return a new, unfitted model wrapper
+    for tabular classification using AutoGluon MultiModal.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for contract compliance,
+                                not used for fitting at this stage).
+        y_train (pd.Series): Training labels (provided for contract compliance,
+                              not used for fitting at this stage).
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper with fit(X,y) and predict(X) methods.
+    """
+    # Return a fresh, unfitted instance of the wrapper.
+    # The actual fitting will happen when the harness calls its .fit() method.
+    return AutoGluonMultiModalWrapper(seed=GLOBAL_SEED)
+```

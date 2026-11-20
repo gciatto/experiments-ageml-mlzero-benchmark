@@ -1,0 +1,29 @@
+Best Run Summary
+================
+Linked to: node_8
+Reason: best validation score (-2.7734)
+Tool used: machine learning
+Symlink created at: best_run
+
+Validation Score Summary:
+Node 2 (autogluon.multimodal): -4.048384805428467
+Node 3 (autogluon.multimodal): -4.048384805428467
+Node 6 (autogluon.multimodal): -4.048384805428467
+Node 5 (autogluon.multimodal): -4.048384805428467
+Node 7 (autogluon.multimodal): -4.048384805428467
+Node 8 (machine learning): -2.7733811974052043 (BEST)
+Node 9 (machine learning): -2.7733811974052043
+Node 11 (machine learning): -2.7733811974052043
+Node 15 (machine learning): -2.7733811974052043
+Node 13 (machine learning): -2.7733811974052043
+Node 10 (machine learning): -2.7733811974052043
+Node 12 (machine learning): -2.7733811974052043
+Node 14 (machine learning): -2.7733811974052043
+
+Best score: -2.7734 from node 8 using machine learning
+
+Tool Usage Summary:
+==================
+Available tools: autogluon.tabular, machine learning, autogluon.multimodal
+Tools used: autogluon.multimodal, machine learning, autogluon.tabular
+Tools not used: 

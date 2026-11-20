@@ -1,0 +1,137 @@
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+import os
+import uuid
+import numpy as np
+import random
+import logging
+import shutil
+
+# Set a global random seed for reproducibility across different libraries
+RANDOM_SEED = 42
+np.random.seed(RANDOM_SEED)
+random.seed(RANDOM_SEED)
+
+# Configure logging to reduce verbosity from AutoGluon if desired.
+# AutoGluon's verbosity parameter in TabularPredictor handles this well,
+# but this can catch other library logs.
+# For benchmark environments, minimal output is often preferred.
+# logging.basicConfig(level=logging.WARNING) # Example: set global logging level to WARNING
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor to conform to the fit/predict interface
+    required by the benchmark harness.
+    """
+    def __init__(self, seed: int = RANDOM_SEED, time_limit: int = 10):
+        """
+        Initializes the wrapper with a random seed and a time limit for the fit operation.
+
+        Args:
+            seed (int): Random seed for reproducibility.
+            time_limit (int): Maximum time in seconds allowed for the fit operation
+                              of AutoGluon's TabularPredictor.
+        """
+        self.predictor: TabularPredictor = None
+        self.seed = seed
+        self.time_limit = time_limit
+        self.model_path: str = None
+        # The target column name is 'Class' as specified in the problem description.
+        self.target_column = 'Class'
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training labels.
+        """
+        # Combine features and target into a single DataFrame, which AutoGluon expects.
+        train_data = X.copy()
+        train_data[self.target_column] = y
+
+        # Generate a unique path for each fold's model artifacts.
+        # This ensures "fresh artifact directories per fold" as required.
+        # Using a UUID ensures uniqueness, and storing in /tmp is suitable for temporary artifacts.
+        self.model_path = os.path.join("/tmp", f"autogluon_model_{uuid.uuid4()}")
+        os.makedirs(self.model_path, exist_ok=True) # Ensure the directory exists
+
+        # Initialize TabularPredictor.
+        # - label: Specifies the target column.
+        # - eval_metric: Set to 'balanced_accuracy' as per the task description.
+        # - path: Directs AutoGluon to save model artifacts to the unique path for this fold.
+        # - verbosity: Set to 1 for minimal progress updates, reducing log spam.
+        self.predictor = TabularPredictor(
+            label=self.target_column,
+            eval_metric='balanced_accuracy',
+            path=self.model_path,
+            verbosity=1 # 0: silent, 1: minimal, 2: default, 3: detailed
+        )
+
+        # Fit the model.
+        # - presets='good': A faster preset than 'best_quality', suitable for tight time limits.
+        #   It's described as "Stronger than other AutoML frameworks" and "Fast inference".
+        #   This preset aims to provide a good balance of speed and performance.
+        # - time_limit: Bounds the training time for this specific fold, crucial for
+        #   meeting the overall deadline across multiple folds.
+        # - ag_args_fit={'seed': self.seed}: Passes the random seed to AutoGluon's
+        #   internal processes for reproducibility.
+        self.predictor.fit(
+            train_data,
+            presets='good', # Changed from 'best_quality' to 'good' for speed
+            time_limit=self.time_limit,
+            ag_args_fit={'seed': self.seed},
+        )
+        return self
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Predicted class labels as a NumPy array.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's predict method expects a DataFrame.
+        # It automatically handles feature alignment and preprocessing based on
+        # what was learned during the fit phase.
+        predictions = self.predictor.predict(X)
+        
+        # Optionally, clean up the model artifacts to save disk space.
+        # This is not strictly required by the contract, but good practice for temporary files.
+        # Given "fresh artifact directories per fold", it implies each fold's model
+        # is independent and not reloaded.
+        try:
+            if os.path.exists(self.model_path):
+                shutil.rmtree(self.model_path)
+        except Exception as e:
+            logging.warning(f"Failed to remove AutoGluon model directory {self.model_path}: {e}")
+
+        return predictions.values # Return as numpy array as typically expected by evaluation harness
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a NEW, unfitted AutoGluon Tabular model wrapper.
+
+    This function is called by the benchmark harness for each cross-validation fold
+    to obtain a fresh model instance.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used for fitting here).
+        y_train (pd.Series): Training labels (provided for context, not used for fitting here).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper with `fit(X, y)` and `predict(X)` methods.
+    """
+    # The total remaining search time is 137 seconds for 10 folds.
+    # This means approximately 13.7 seconds per fold.
+    # Setting `time_limit` to 10 seconds per fit leaves a buffer for overhead
+    # (e.g., data loading, wrapper initialization, evaluation by the harness).
+    # Using 'good' preset for faster training to meet the tight deadline.
+    return AutoGluonTabularWrapper(seed=RANDOM_SEED, time_limit=10)

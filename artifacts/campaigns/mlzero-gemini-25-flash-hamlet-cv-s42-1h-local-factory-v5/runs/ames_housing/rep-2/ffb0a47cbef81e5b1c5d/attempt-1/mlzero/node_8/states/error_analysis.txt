@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor received an invalid keyword argument, `random_seed`. This argument is not recognized by the `TabularPredictor`'s initialization method.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor. For reproducibility, pass the `seed` argument with your desired value directly to the `predictor.fit()` method instead.

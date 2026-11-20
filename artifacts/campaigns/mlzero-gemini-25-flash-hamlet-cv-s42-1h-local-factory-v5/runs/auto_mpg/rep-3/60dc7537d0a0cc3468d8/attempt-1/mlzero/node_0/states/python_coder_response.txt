@@ -1,0 +1,129 @@
+```python
+import pandas as pd
+import numpy as np
+import random
+import os
+import tempfile
+import shutil
+from autogluon.tabular import TabularPredictor, TabularDataset
+
+# Set global seeds for reproducibility across the entire module.
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+
+class AutoGluonRegressionWrapper:
+    """
+    A wrapper class for AutoGluon TabularPredictor to conform to the
+    fit/predict model factory contract. This class encapsulates the
+    AutoGluon model and its lifecycle, including artifact management.
+    """
+    def __init__(self, path: str):
+        """
+        Initializes the wrapper with a unique path for AutoGluon artifacts.
+
+        Args:
+            path (str): A unique directory path where AutoGluon will store
+                        its models and temporary files for this specific fold.
+        """
+        self.predictor = None
+        self.path = path
+        self.label_column = 'class' # The name of the target column as per task description.
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All preprocessing and model learning occur within this method.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target values.
+        """
+        # AutoGluon TabularPredictor expects the target column to be
+        # part of the training DataFrame. We create a copy to avoid modifying
+        # the original DataFrame passed to the method.
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Initialize TabularPredictor for a regression task.
+        # - label: Specifies the target column.
+        # - problem_type: Explicitly set to 'regression' for clarity, though AutoGluon
+        #                 can often infer this from the data.
+        # - eval_metric: 'rmse' (Root Mean Squared Error) is a standard metric for
+        #                regression and is mentioned in the task's README.
+        # - path: The unique temporary directory for this model's artifacts.
+        # - random_state: Ensures reproducibility of AutoGluon's internal processes.
+        self.predictor = TabularPredictor(
+            label=self.label_column,
+            problem_type='regression',
+            eval_metric='rmse',
+            path=self.path,
+            random_state=SEED
+        )
+
+        # Fit the model.
+        # - presets='high_quality': This preset balances predictive performance with
+        #                           training time. It's a good choice given the
+        #                           shared deadline for all folds.
+        # - time_limit: Crucially, this limits the training time for each individual
+        #               fold. With a total deadline of ~3498 seconds for 10 folds,
+        #               300 seconds per fold leaves sufficient buffer for data loading,
+        #               Python startup, and other overheads, ensuring all fits complete.
+        self.predictor.fit(
+            train_data,
+            presets='high_quality',
+            time_limit=300 # seconds per fold
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: A 1D array of predicted numerical values (floats).
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's predict method expects a DataFrame.
+        predictions = self.predictor.predict(X)
+
+        # The task requires the prediction output to be a 1D array of numerical values.
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Attempts to clean up the temporary directory created for AutoGluon artifacts.
+        This is a best-effort cleanup, as __del__ is not guaranteed to be called
+        in all circumstances (e.g., abrupt program termination or circular references).
+        """
+        if os.path.exists(self.path) and os.path.isdir(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                # In a production environment, one might log this error.
+                # For a benchmark, silent failure is often acceptable.
+                pass
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonRegressionWrapper:
+    """
+    Factory function to create a new, unfitted model wrapper instance.
+    This function is called once per cross-validation fold by the harness.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used for fitting here).
+        y_train (pd.Series): Training target values (provided for context, not used for fitting here).
+
+    Returns:
+        AutoGluonRegressionWrapper: A fresh, unfitted model instance that exposes
+                                   `fit(X, y)` and `predict(X)` methods.
+    """
+    # Create a unique temporary directory for each model instance.
+    # This fulfills the requirement for "fresh artifact directories per fold"
+    # and ensures isolation between different folds' models.
+    model_path = tempfile.mkdtemp()
+    return AutoGluonRegressionWrapper(model_path)
+```

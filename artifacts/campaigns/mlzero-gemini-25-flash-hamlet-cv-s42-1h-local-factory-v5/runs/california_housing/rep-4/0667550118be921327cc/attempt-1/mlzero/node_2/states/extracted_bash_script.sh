@@ -1,0 +1,50 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the full path for the conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-4/0667550118be921327cc/attempt-1/mlzero/node_2/conda_env"
+
+# Define paths to requirement files
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "Starting conda environment setup at $CONDA_ENV_PATH"
+
+# Ensure 'conda' command is available.
+# This script assumes 'conda init' has been run in the parent shell or
+# that the execution environment properly sets up 'conda' for use.
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Conda is installed and initialized."
+    exit 1
+fi
+
+# Remove existing environment if it exists to ensure a clean install.
+# This command will fail if the path exists but is not a conda environment,
+# or if there are permission issues, causing the script to exit due to 'set -e'.
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Removing existing environment at $CONDA_ENV_PATH"
+    conda env remove -p "$CONDA_ENV_PATH" -y
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment with Python 3.11 at $CONDA_ENV_PATH"
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+# Activate the environment
+echo "Activating environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH"
+
+# Install uv using the environment's pip
+echo "Installing uv..."
+pip install uv
+
+# Install required packages from the specified requirements.txt files using uv
+echo "Installing packages from requirement files using uv..."
+uv pip install -r "$ML_REQ_FILE" --prerelease=allow -r "$COMMON_REQ_FILE"
+
+# Install additional packages: numpy, pandas, scikit-learn, and autogluon.tabular
+# These are explicitly mentioned as needed or derived from the factory module's imports.
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular using uv..."
+uv pip install numpy pandas scikit-learn autogluon.tabular
+
+echo "Conda environment setup complete."

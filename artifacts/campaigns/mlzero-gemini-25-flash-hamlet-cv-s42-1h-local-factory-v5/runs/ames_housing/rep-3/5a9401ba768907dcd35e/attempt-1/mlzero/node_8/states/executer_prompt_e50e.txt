@@ -1,0 +1,363 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+This is a **tabular regression** task.
+
+**Problem Type:** Regression. The goal is to predict the continuous numerical value of the `SalePrice` column.
+
+**Input Format:** Tabular data provided in `data.csv`. Each row represents an instance, and columns (excluding `Id` and `SalePrice`) serve as features. The `Id` column must not be used as a feature.
+
+**Prediction Output Format:** A continuous numerical value representing the predicted `SalePrice` for each input instance.
+
+**Additional Details:**
+*   **Metric:** Root Mean Squared Error (RMSE), where lower is better.
+*   **Evaluation:** Ten-fold cross-validation is used, with predefined folds specified in `cv_contract.json`. There is no independent test set.
+*   **Constraints:** The dataset must not be shuffled, split, filtered, reordered, or sampled. All preprocessing must be encapsulated within the model and fitted only on the training data of each fold. Stochastic models should use `random_state/seed 42`.
+
+### Data Structure
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv
+Content:
+Columns: Id, MSSubClass, MSZoning, LotFrontage, LotArea, Street, Alley, LotShape, LandContour, Utilities, ..., PoolArea, PoolQC, Fence, MiscFeature, MiscVal, MoSold, YrSold, SaleType, SaleCondition, SalePrice
+
+Id MSSubClass MSZoning LotFrontage LotArea Street Alley LotShape LandContour Utilities LotConfig LandSlope Neighborhood Condition1 Condition2 BldgType HouseStyle OverallQual OverallCond YearBuilt YearRemodAdd RoofStyle RoofMatl Exterior1st Exterior2nd MasVnrType MasVnrArea ExterQual ExterCond Foundation BsmtQual BsmtCond BsmtExposure BsmtFinType1 BsmtFinSF1 BsmtFinType2 BsmtFinSF2 BsmtUnfSF TotalBsmtSF Heating HeatingQC CentralAir Electrical 1stFlrSF 2ndFlrSF LowQualFinSF GrLivArea BsmtFullBath BsmtHalfBath FullBath HalfBath BedroomAbvGr KitchenAbvG...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: ames_housing
+Target column: `SalePrice`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools r
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/cv_contract.json
+Content:
+{
+  "cv_folds": [
+    {
+      "train": [
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        2...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### Python Code
+import pandas as pd
+import numpy as np
+import os
+import shutil
+import datetime
+import uuid
+
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self, random_seed: int = 42, time_limit_per_fold: int = 250):
+        """
+        Initializes the wrapper with configuration for AutoGluon.
+
+        Args:
+            random_seed: Seed for reproducibility of stochastic elements.
+            time_limit_per_fold: Maximum time in seconds allowed for fitting
+                                 the model in each fold.
+        """
+        self.predictor: TabularPredictor = None
+        self.random_seed = random_seed
+        self.time_limit_per_fold = time_limit_per_fold
+        self.model_path: str = None # Path where AutoGluon stores its models for the current fold
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        Args:
+            X: Training features.
+            y: Training target variable.
+        """
+        # Ensure X and y are pandas DataFrames/Series and handle target column name
+        # The harness typically provides pandas objects, but this adds robustness.
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        if not isinstance(y, pd.Series):
+            # Ensure the target column is named 'SalePrice' as per problem description
+            # and that its index aligns with X.
+            y = pd.Series(y, name='SalePrice', index=X.index)
+        else:
+            # Ensure the Series has a name, which AutoGluon expects as the label.
+            # If y is already a Series, its name might be None.
+            y.name = 'SalePrice'
+
+
+        # Drop 'Id' column if present, as it should not be used as a feature.
+        # This is crucial as per the problem description.
+        X_processed = X.drop(columns=['Id'], errors='ignore')
+
+        # Combine X and y into a single DataFrame for AutoGluon.
+        # AutoGluon expects the label column to be part of the training DataFrame.
+        train_data = X_processed.copy()
+        train_data[y.name] = y
+
+        # Generate a unique path for this fold's model artifacts.
+        # This ensures "fresh artifact directories per fold" as required by the contract.
+        # AutoGluon creates a directory at this path to store its models and logs.
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_id = str(uuid.uuid4())[:8] # Short unique ID for better readability
+        self.model_path = f"autogluon_models_{timestamp}_{unique_id}"
+
+        # Initialize TabularPredictor.
+        # problem_type='regression' and eval_metric='root_mean_squared_error' are explicit
+        # as per the task description.
+        # random_state ensures reproducibility of stochastic elements within AutoGluon.
+        self.predictor = TabularPredictor(
+            label=y.name,
+            problem_type='regression',
+            eval_metric='root_mean_squared_error', # Metric for the task: RMSE
+            path=self.model_path, # Store models in a unique path for this fold
+            random_state=self.random_seed # Set random seed for reproducibility
+        )
+
+        # Fit the predictor with specified time limit and presets.
+        # 'best' preset is chosen for a good balance of accuracy and training time
+        # on CPU environments, considering the shared deadline.
+        # The 'extreme' preset often requires GPU and might exceed the time limit
+        # on typical CPU-only benchmark environments.
+        self.predictor.fit(
+            train_data,
+            time_limit=self.time_limit_per_fold,
+            presets='best', # Using 'best' preset as 'extreme' typically requires GPU
+            # auto_stack=True is included in 'best' preset by default
+        )
+
+        # AutoGluon stores model artifacts in self.model_path.
+        # These files are necessary for `predict` to function.
+        # We do not delete them here; the overall experiment harness is expected
+        # to manage the cleanup of the output directory for each fold.
+        return self
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X: Features for which to make predictions.
+
+        Returns:
+            An array of predicted values.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # Drop 'Id' column if present, consistent with fitting.
+        X_processed = X.drop(columns=['Id'], errors='ignore')
+
+        # Make predictions. AutoGluon returns a pandas Series by default for regression.
+        predictions = self.predictor.predict(X_processed)
+        # Return as numpy array as typically expected by evaluation harnesses.
+        return predictions.values
+
+# The factory function required by the harness.
+# It returns a NEW, unfitted model instance.
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted AutoGluonTabularWrapper model.
+
+    Args:
+        X_train: Training features (not used for initialization, but part of contract).
+        y_train: Training target (not used for initialization, but part of contract).
+
+    Returns:
+        A fresh, unfitted instance of AutoGluonTabularWrapper.
+    """
+    # The total shared deadline is 2666 seconds for ten-fold cross-validation.
+    # This allocates approximately 266.6 seconds per fold.
+    # We set the time_limit_per_fold for AutoGluon's fit method to 250 seconds,
+    # leaving a buffer for data loading, Python overhead, and other operations
+    # outside of AutoGluon's internal fit timer.
+    return AutoGluonTabularWrapper(random_seed=42, time_limit_per_fold=250)
+
+## Execution Results
+### Standard Output (stdout)
+
+Starting minimal BASH INSTALLATION script for AutoGluonTabularWrapper (node_8)...
+Creating conda environment at '/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_8/conda_env' with Python 3.11...
+Channels:
+ - conda-forge
+Platform: linux-64
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+## Package Plan ##
+  environment location: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_8/conda_env
+  added / updated specs:
+    - python=3.11
+The following NEW packages will be INSTALLED:
+  _openmp_mutex      conda-forge/linux-64::_openmp_mutex-4.5-20_gnu 
+  bzip2              conda-forge/linux-64::bzip2-1.0.8-hda65f42_10 
+  ca-certificates    conda-forge/noarch::ca-certificates-2026.10.23-hbd8a1cb_0 
+  ld_impl_linux-64   conda-forge/linux-64::ld_impl_linux-64-2.46.1-default_hbd61a6d_103 
+  libexpat           conda-forge/linux-64::libexpat-2.9.0-hd2095e1_0 
+  libffi             conda-forge/linux-64::libffi-3.7.0-h81df57d_1 
+  libgcc             conda-forge/linux-64::libgcc-16.2.0-ha9f2e26_7 
+  libgomp            conda-forge/linux-64::libgomp-16.2.0-he0feb66_7 
+  liblzma            conda-forge/linux-64::liblzma-5.8.3-hb03c661_1 
+  libnsl             conda-forge/linux-64::libnsl-2.0.1-hb9d3cd8_1 
+  libpython          conda-forge/linux-64::libpython-3.11.18-ha57cdbe_0_cpython 
+  libsqlite          conda-forge/linux-64::libsqlite-3.54.1-h0737f62_101 
+  libuuid            conda-forge/linux-64::libuuid-2.42.4-hcfc3c73_1 
+  libxcrypt          conda-forge/linux-64::libxcrypt-4.4.38-h280c20c_0 
+  libzlib            conda-forge/linux-64::libzlib-1.3.2-h25fd6f3_3 
+  ncurses            conda-forge/linux-64::ncurses-6.6-hdb14827_1 
+  openssl            conda-forge/linux-64::openssl-3.6.5-h781a0a9_0 
+  packaging          conda-forge/noarch::packaging-26.3-pyhc364b38_0 
+  pip                conda-forge/noarch::pip-26.2.2-pyh8b19718_2 
+  python             conda-forge/linux-64::python-3.11.18-h5f976f7_0_cpython 
+  readline           conda-forge/linux-64::readline-8.3-hd6e31c0_1 
+  setuptools         conda-forge/noarch::setuptools-84.2.1-pyhe730653_0 
+  tk                 conda-forge/linux-64::tk-8.6.13-noxft_h1df4ec4_4 
+  tzdata             conda-forge/noarch::tzdata-2026e-h5d301ff_0 
+  wheel              conda-forge/noarch::wheel-0.48.0-pyhd8ed1ab_0 
+  zstd               conda-forge/linux-64::zstd-1.5.7-hb78ec9c_7 
+Downloading and Extracting Packages: ...working... done
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+#
+# To activate this environment, use
+#     $ conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_8/conda_env
+# To deactivate an active environment, use
+#     $ conda deactivate
+Installing 'uv' into the environment...
+Collecting uv
+  Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.6 MB)
+Installing collected packages: uv
+Successfully installed uv-0.13.9
+Installing packages from requirements files and additional libraries (numpy, pandas, scikit-learn) using uv...
+Conda environment setup complete at '/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_8/conda_env'.
+The environment is prepared with its own interpreter/pip for subsequent operations.
+To activate this environment manually, run: conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-3/5a9401ba768907dcd35e/attempt-1/mlzero/node_8/conda_env
+
+
+### Standard Error (stderr)
+
+WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+Checked 19 packages in 14ms
+
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

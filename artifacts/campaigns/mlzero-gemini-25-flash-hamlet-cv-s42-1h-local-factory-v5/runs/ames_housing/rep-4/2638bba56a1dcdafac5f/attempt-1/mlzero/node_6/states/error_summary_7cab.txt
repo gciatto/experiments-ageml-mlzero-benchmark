@@ -1,0 +1,1 @@
+The execution failed due to a critical environment setup issue. The Conda initialization script (`conda.sh`) was not found at the expected path, preventing the environment from being properly initialized. This indicates a problem with the execution environment rather than the Python code logic itself, as the Python script likely could not run or access its dependencies.

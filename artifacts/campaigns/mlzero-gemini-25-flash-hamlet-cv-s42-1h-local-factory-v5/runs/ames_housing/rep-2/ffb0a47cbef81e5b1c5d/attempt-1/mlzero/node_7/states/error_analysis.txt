@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor was called without the required `label` argument, which specifies the name of the target column. This argument is mandatory for initializing AutoGluon's predictor.
+SUGGESTED_FIX: Modify the `AutoGluonModelWrapper.__init__` method to pass the `TARGET_COLUMN` variable as the `label` argument to the `TabularPredictor` constructor. Ensure the `label` argument is present during the predictor's instantiation.

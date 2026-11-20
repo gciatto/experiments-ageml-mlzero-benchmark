@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor in AutoGluon version 1.6.3 does not accept a `random_state` argument directly, leading to a `ValueError`. Reproducibility settings like `random_state` or `seed` should be passed to the `fit` method instead of the constructor.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` initialization. Instead, pass the `random_state` value as a `seed` argument to the `predictor.fit()` method to ensure stochastic models use the specified seed for reproducibility.

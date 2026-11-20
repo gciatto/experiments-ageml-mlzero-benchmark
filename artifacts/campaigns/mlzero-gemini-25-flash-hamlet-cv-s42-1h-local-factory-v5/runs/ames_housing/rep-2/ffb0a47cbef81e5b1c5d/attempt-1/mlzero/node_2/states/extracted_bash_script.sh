@@ -1,0 +1,66 @@
+#!/bin/bash
+set -euo pipefail # Exit on error, exit on unset variables, propagate errors in pipelines
+
+# Define the target Conda environment path
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-2/ffb0a47cbef81e5b1c5d/attempt-1/mlzero/node_2/conda_env"
+
+# Define paths to requirements files
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "--- Starting Conda environment setup ---"
+
+# Check if conda is available
+if ! command -v conda &> /dev/null
+then
+    echo "Error: conda command not found. Please ensure Anaconda or Miniconda is installed and in your PATH."
+    exit 1
+fi
+
+# Initialize Conda for the current shell session if not already done
+# This is crucial for 'conda activate' to work reliably in a script
+if [ -z "$CONDA_SHLVL" ]; then
+    echo "Initializing conda..."
+    # Find conda base path dynamically
+    CONDA_BASE=$(conda info --base)
+    source "$CONDA_BASE/etc/profile.d/conda.sh" || { echo "Failed to source conda.sh"; exit 1; }
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y || { echo "Failed to create conda environment."; exit 1; }
+
+# Activate the environment
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH" || { echo "Failed to activate conda environment."; exit 1; }
+
+# Ensure we are using the pip from the activated environment
+# Fallback to 'python -m pip' if 'pip' command isn't directly from the env's bin
+PIP_CMD="pip"
+if [[ "$(which pip)" != *"$CONDA_ENV_PATH"* ]]; then
+    echo "Warning: 'pip' command not directly from activated environment. Using 'python -m pip'."
+    PIP_CMD="python -m pip"
+fi
+
+# Install uv
+echo "Installing uv..."
+"$PIP_CMD" install uv || { echo "Failed to install uv."; exit 1; }
+
+# Ensure uv is available in the activated environment
+# Fallback to 'python -m uv' if 'uv' command isn't directly from the env's bin
+UV_CMD="$CONDA_ENV_PATH/bin/uv"
+if ! command -v "$UV_CMD" &> /dev/null
+then
+    echo "Warning: 'uv' command not directly from activated environment. Using 'python -m uv'."
+    UV_CMD="python -m uv"
+fi
+
+# Install required packages from requirements.txt files using uv
+echo "Installing packages from requirements files using uv..."
+"$UV_CMD" pip install -r "$ML_REQUIREMENTS_FILE" --prerelease=allow -r "$COMMON_REQUIREMENTS_FILE" || { echo "Failed to install packages from requirements files."; exit 1; }
+
+# Install additional packages: numpy, pandas, scikit-learn, and autogluon.tabular
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular using uv..."
+"$UV_CMD" pip install numpy pandas scikit-learn autogluon.tabular || { echo "Failed to install core ML libraries."; exit 1; }
+
+echo "--- Conda environment setup complete ---"

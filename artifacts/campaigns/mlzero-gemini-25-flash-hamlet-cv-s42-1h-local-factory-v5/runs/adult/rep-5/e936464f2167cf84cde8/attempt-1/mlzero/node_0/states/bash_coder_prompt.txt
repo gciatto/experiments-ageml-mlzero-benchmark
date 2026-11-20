@@ -1,0 +1,157 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-5/e936464f2167cf84cde8/attempt-1/mlzero/node_0:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.tabular if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import os
+import pandas as pd
+import numpy as np
+from autogluon.tabular import TabularPredictor, TabularDataset
+import logging
+import random
+import shutil
+import time
+
+# Configure logging to suppress excessive AutoGluon output.
+# AutoGluon can be very verbose, which might impact performance or log readability.
+# Setting it to WARNING or ERROR level is often good for production/benchmarking.
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('autogluon.core').setLevel(logging.WARNING)
+logging.getLogger('autogluon.tabular').setLevel(logging.WARNING)
+
+# Global constants
+TARGET_COLUMN = 'class'
+RANDOM_SEED = 42
+
+# Total time limit for all 10 folds is 3460 seconds.
+# We need to ensure ALL ten fits finish within this.
+# A conservative approach is to allocate a fixed time per fold.
+# 300 seconds per fold * 10 folds = 3000 seconds, leaving 460s for overhead.
+# This is a reasonable heuristic given the "do not assume 360 seconds per fold" instruction.
+# If the dataset is very small, this might be too generous, but for 'adult' it's a good starting point.
+TIME_LIMIT_PER_FIT = 300  # seconds
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, seed=RANDOM_SEED):
+        self.predictor = None
+        self.seed = seed
+        self.model_path = None  # Path for AutoGluon artifacts, unique per fit call
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_df = X.copy()
+        train_df[TARGET_COLUMN] = y
+
+        # Create a unique path for AutoGluon artifacts for this fold.
+        # This ensures "fresh artifact directories per fold".
+        # Using a timestamp and a random integer to guarantee uniqueness.
+        # The path is relative to the current working directory, which the harness manages.
+        timestamp = int(time.time() * 1000)  # Milliseconds since epoch
+        unique_id = f"ag_model_{timestamp}_{random.randint(0, 100000):05d}"
+        self.model_path = os.path.join("autogluon_models", unique_id)
+
+        # Ensure the directory exists and is clean.
+        # shutil.rmtree is important to prevent issues if a previous run failed
+        # and left a directory with the same name (though unlikely with timestamp).
+        # It also ensures a truly fresh start for AutoGluon.
+        if os.path.exists(self.model_path):
+            shutil.rmtree(self.model_path)
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # Determine problem type based on unique target values
+        problem_type = 'binary' if len(y.unique()) == 2 else 'multiclass'
+
+        # Initialize TabularPredictor
+        self.predictor = TabularPredictor(
+            label=TARGET_COLUMN,
+            path=self.model_path,
+            eval_metric='balanced_accuracy',  # As specified in README.md
+            problem_type=problem_type,
+            verbosity=0  # Suppress AutoGluon output to reduce log noise
+        )
+
+        # Fit the predictor
+        # 'best_quality' preset is chosen for high accuracy, including stacking/bagging.
+        # 'extreme' preset is typically for smaller datasets (<30K samples) and may require GPU,
+        # and might exceed the time limit for the 'adult' dataset (~48k rows).
+        self.predictor.fit(
+            train_data=TabularDataset(train_df),
+            time_limit=TIME_LIMIT_PER_FIT,
+            presets='best_quality',
+            random_seed=self.seed,
+            # AutoGluon's 'best_quality' preset often includes decision threshold calibration
+            # or makes good choices for metrics like balanced_accuracy by default.
+            # Explicitly setting calibrate_decision_threshold=True can be done if needed.
+        )
+
+        return self
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call fit(X, y) first.")
+        
+        # AutoGluon's predict method returns class labels by default.
+        # Convert to numpy array for consistency with sklearn-like interfaces.
+        predictions = self.predictor.predict(TabularDataset(X))
+        return predictions.values
+
+def build_model(X_train, y_train):
+    """
+    Factory function to build a new, unfitted AutoGluonTabularWrapper model.
+
+    This function is called by the benchmark harness to get a fresh model instance
+    for each fold. The X_train and y_train arguments are part of the contract
+    but are not used for fitting at this stage; actual fitting happens in the
+    returned model's .fit(X, y) method.
+
+    Args:
+        X_train (pd.DataFrame): Training features (placeholder, not used for fitting here).
+        y_train (pd.Series): Training target (placeholder, not used for fitting here).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted instance of the model wrapper.
+    """
+    # Set global seeds for reproducibility for any non-AutoGluon random operations,
+    # such as the unique path generation. AutoGluon's internal seed is set in .fit().
+    random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
+    
+    return AutoGluonTabularWrapper(seed=RANDOM_SEED)
+### Previous errors
+
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-5/e936464f2167cf84cde8/attempt-1/mlzero/node_0/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3433 seconds.

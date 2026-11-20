@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the target Conda environment directory
+CONDA_ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-3/1bf45bafd12f0834c802/attempt-1/mlzero/node_2/conda_env"
+
+# Define paths to requirements files
+REQ_ML_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+REQ_COMMON_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+# --- Conda Environment Setup ---
+
+# Check if conda is available in the PATH
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Conda is installed and in your PATH." >&2
+    exit 1
+fi
+
+# Ensure conda is initialized for the current shell session to use 'conda activate'
+# This is a standard practice for robust conda usage in non-interactive scripts.
+source "$(conda info --base)/etc/profile.d/conda.sh"
+
+# Remove existing environment if it exists to ensure a clean installation
+if [ -d "$CONDA_ENV_DIR" ]; then
+    echo "Removing existing conda environment at $CONDA_ENV_DIR..."
+    conda env remove -p "$CONDA_ENV_DIR" -y
+fi
+
+# Create a new conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_DIR with Python 3.11..."
+conda create -p "$CONDA_ENV_DIR" python=3.11 -y
+
+# Activate the newly created environment
+echo "Activating conda environment: $CONDA_ENV_DIR..."
+conda activate "$CONDA_ENV_DIR"
+
+# --- Package Installation ---
+
+# Install uv (a fast Python package installer)
+echo "Installing uv..."
+pip install uv
+
+# Install required packages from the specified requirements.txt files using uv
+# Note: The path for 'machine learning' contains a space, so it must be quoted.
+echo "Installing packages from requirements.txt using uv..."
+uv pip install -r "$REQ_ML_PATH" --prerelease=allow -r "$REQ_COMMON_PATH"
+
+# Install additional core packages: numpy, pandas, scikit-learn, and autogluon
+echo "Installing numpy, pandas, scikit-learn, and autogluon using uv..."
+uv pip install numpy pandas scikit-learn autogluon
+
+echo "Conda environment setup and package installation complete for node_2."

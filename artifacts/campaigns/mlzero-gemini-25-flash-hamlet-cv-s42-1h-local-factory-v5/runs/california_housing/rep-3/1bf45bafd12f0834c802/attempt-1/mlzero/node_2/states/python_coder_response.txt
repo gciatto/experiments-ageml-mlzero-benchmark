@@ -1,0 +1,133 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+import logging
+
+# Suppress AutoGluon logging verbosity to keep benchmark output clean.
+# This can be adjusted for debugging if needed.
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+
+# AutoGluon import. The benchmark environment is expected to have it installed.
+try:
+    from autogluon.tabular import TabularPredictor
+except ImportError:
+    # Raise an informative error if AutoGluon is not available.
+    # The harness's bash script should ensure this dependency is met.
+    raise ImportError("AutoGluon is not installed. Please ensure it's available in the environment.")
+
+# --- Module-level constants and configurations ---
+# Random seed for reproducibility of stochastic processes within AutoGluon.
+RANDOM_SEED = 42
+
+# The problem type is regression, as specified in the task description.
+PROBLEM_TYPE = 'regression'
+
+# The target column name for the California Housing dataset.
+TARGET_COLUMN = 'median_house_value'
+
+# Time limit per fit call in seconds. This is crucial for ensuring all ten
+# cross-validation folds complete within the total shared deadline.
+# Given a total of 212 seconds for 10 folds, 20 seconds per fold leaves
+# some buffer for overhead.
+TIME_LIMIT_PER_FIT = 20 # seconds
+
+# AutoGluon presets for balancing speed and accuracy.
+# 'medium_quality_fast_inference' offers a good trade-off for competitive benchmarks
+# where speed is a significant factor. Other options like 'fast_ai' or
+# 'good_quality_fast_inference' could also be considered.
+AUTOGLUON_PRESET = 'medium_quality_fast_inference'
+
+# --- Model Wrapper Class ---
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor.
+    This class conforms to the `fit(X, y)` and `predict(X)` interface
+    required by the MLZero benchmark.
+    """
+    def __init__(self):
+        self.predictor = None
+        self.temp_dir = None # Path to store AutoGluon artifacts for this model instance
+
+    def fit(self, X_train: pd.DataFrame, y_train: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor on the provided training data.
+        All necessary preprocessing and model training are encapsulated within
+        this method, using only the data from the current training fold.
+        """
+        # Combine features (X_train) and target (y_train) into a single DataFrame
+        # as expected by AutoGluon's `fit` method.
+        train_data = X_train.copy()
+        train_data[TARGET_COLUMN] = y_train
+
+        # Create a unique temporary directory for AutoGluon artifacts for this specific fold.
+        # This ensures "fresh artifact directories per fold" as required by the contract.
+        # The prefix helps identify these directories.
+        self.temp_dir = tempfile.mkdtemp(prefix="autogluon_model_")
+        
+        # Initialize TabularPredictor.
+        # The 'label' argument specifies the target column.
+        # 'problem_type' is set to 'regression'.
+        # 'path' directs AutoGluon to store its models and intermediate data in the temporary directory.
+        # IMPORTANT: `random_state` is NOT passed to the constructor, as per the previous error.
+        self.predictor = TabularPredictor(
+            label=TARGET_COLUMN,
+            problem_type=PROBLEM_TYPE,
+            path=self.temp_dir,
+        )
+
+        # Fit the predictor.
+        # `random_state` is passed to the `fit` method for reproducibility of stochastic processes.
+        # `time_limit` is crucial for bounding the training time per fold, ensuring overall deadline compliance.
+        # `presets` configure AutoGluon for a desired balance of speed and accuracy.
+        # `verbosity=0` suppresses most of AutoGluon's console output during training.
+        self.predictor.fit(
+            train_data,
+            random_state=RANDOM_SEED,
+            time_limit=TIME_LIMIT_PER_FIT,
+            presets=AUTOGLUON_PRESET,
+            verbosity=0 
+        )
+
+    def predict(self, X_test: pd.DataFrame) -> np.ndarray:
+        """
+        Generates numerical predictions for the given test features.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's `predict` method expects a DataFrame for input.
+        predictions = self.predictor.predict(X_test)
+        
+        # Return predictions as a NumPy array, which is typically expected by
+        # evaluation harnesses for numerical predictions.
+        return predictions.values
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts
+        when the `AutoGluonModelWrapper` object is garbage collected.
+        This helps manage disk space.
+        """
+        if self.temp_dir and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir)
+            except OSError as e:
+                # Log a warning if the directory removal fails (e.g., due to permissions).
+                logging.warning(f"Error cleaning up AutoGluon temp directory {self.temp_dir}: {e}")
+            self.temp_dir = None
+
+# --- Factory Function ---
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function as required by the benchmark contract.
+    It returns a new, unfitted model wrapper instance.
+
+    The `X_train` and `y_train` arguments are provided for context by the harness
+    but are not used to fit the model at this stage. The actual fitting occurs
+    within the returned model's `.fit()` method when called by the harness.
+    """
+    return AutoGluonModelWrapper()
+```

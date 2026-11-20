@@ -1,0 +1,19 @@
+```python
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/README.md"
+
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read(768)
+        print(content)
+except Exception as e:
+    print(f"Could not read file as text: {e}")
+    try:
+        # Fallback for binary or unreadable files, just get basic info
+        print(f"File path: {file_path}")
+        print(f"File size: {os.path.getsize(file_path)} bytes")
+    except Exception as e_fallback:
+        print(f"Could not get file info: {e_fallback}")
+
+```

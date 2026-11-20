@@ -1,0 +1,159 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+import logging
+
+# AutoGluon can be verbose. Setting verbosity=0 in TabularPredictor is usually sufficient.
+# If more aggressive logging suppression is needed, uncomment the lines below.
+# logging.getLogger('autogluon').setLevel(logging.WARNING)
+# logging.getLogger('autogluon.core').setLevel(logging.WARNING)
+# logging.getLogger('autogluon.tabular').setLevel(logging.WARNING)
+
+# Ensure AutoGluon is imported. The harness is expected to install necessary packages.
+try:
+    from autogluon.tabular import TabularPredictor
+except ImportError:
+    # This error should ideally not occur if the environment is set up correctly.
+    raise ImportError("AutoGluon is not installed. Please ensure it's available in the environment.")
+
+class AutoGluonModelWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the harness.
+    """
+    def __init__(self, label_column_name='class', seed=42):
+        self.predictor = None
+        self.label_column_name = label_column_name
+        self.seed = seed
+        self.model_path = None # Path where AutoGluon stores its artifacts for a given fit
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon TabularPredictor model.
+        All preprocessing is learned within this method using only the provided X and y.
+
+        Args:
+            X (pd.DataFrame or np.ndarray): Training features.
+            y (pd.Series or np.ndarray): Training target labels.
+        """
+        # Ensure X is a DataFrame with expected column names 'pixel1' through 'pixel784'.
+        # The problem statement specifies 784 numerical features named 'pixel1' through 'pixel784'.
+        if not isinstance(X, pd.DataFrame):
+            # Assuming X is a numpy array. Create DataFrame with specified column names.
+            feature_columns = [f'pixel{i+1}' for i in range(X.shape[1])]
+            X_df = pd.DataFrame(X, columns=feature_columns)
+        else:
+            # If X is already a DataFrame, make a copy to avoid modifying original.
+            X_df = X.copy()
+
+        # Ensure y is a Series with the correct name and index matching X_df.
+        if not isinstance(y, pd.Series):
+            y_series = pd.Series(y, name=self.label_column_name, index=X_df.index)
+        else:
+            y_series = y.copy()
+            y_series.name = self.label_column_name # Ensure correct label name
+
+        # Combine features and target for AutoGluon.
+        # AutoGluon expects a single DataFrame containing both features and the target column.
+        train_data = X_df
+        train_data[self.label_column_name] = y_series
+
+        # Create a unique temporary directory for AutoGluon artifacts for this specific fit call (fold).
+        # This ensures isolation between folds and prevents conflicts, fulfilling the "fresh artifact
+        # directories per fold" requirement.
+        self.model_path = tempfile.mkdtemp(prefix="autogluon_mnist_")
+
+        # Initialize TabularPredictor.
+        # - `label`: The name of the target column.
+        # - `path`: The directory to store model artifacts.
+        # - `eval_metric`: 'balanced_accuracy' as specified in README.md.
+        # - `verbosity=0`: Suppresses most AutoGluon output during training.
+        # - `seed`: Sets the random seed for reproducibility across AutoGluon's internal operations.
+        self.predictor = TabularPredictor(
+            label=self.label_column_name,
+            path=self.model_path,
+            eval_metric='balanced_accuracy',
+            verbosity=0,
+            seed=self.seed
+        )
+
+        # Fit the predictor.
+        # - `train_data`: The combined DataFrame of features and target.
+        # - `time_limit`: Bounds the training time for this fold.
+        #   Given a total of 3394 seconds for 10 folds, 240 seconds (4 minutes) per fold
+        #   is a conservative estimate, leaving ample time for overhead.
+        # - `presets='best_quality'`: A good default for competitive performance,
+        #   which trains an ensemble of various models.
+        self.predictor.fit(
+            train_data,
+            time_limit=240, # 4 minutes per fold
+            presets='best_quality',
+            # The previous error indicated `random_state` is not a direct argument to `fit()`.
+            # The `seed` parameter in the constructor handles reproducibility for AutoGluon.
+        )
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon model.
+
+        Args:
+            X (pd.DataFrame or np.ndarray): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: A 1-dimensional array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # Ensure X is a DataFrame with expected column names for prediction.
+        if not isinstance(X, pd.DataFrame):
+            feature_columns = [f'pixel{i+1}' for i in range(X.shape[1])]
+            X_df = pd.DataFrame(X, columns=feature_columns)
+        else:
+            X_df = X.copy()
+
+        # AutoGluon's predict method returns a Series or array of labels.
+        predictions = self.predictor.predict(X_df)
+
+        # The contract requires a 1-dimensional array of predicted class labels.
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Attempts to clean up the temporary directory created by AutoGluon.
+        This is a best-effort cleanup. Python's garbage collection timing for __del__
+        is not guaranteed. The harness is ultimately responsible for environment cleanup.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError as e:
+                # Log or print error for debugging, but don't fail the process.
+                # print(f"Warning: Could not clean up AutoGluon model path {self.model_path}: {e}")
+                pass
+
+
+def build_model(X_train, y_train):
+    """
+    Factory function to create a new, unfitted model wrapper for the classification task.
+
+    Args:
+        X_train (pd.DataFrame or np.ndarray): Training features. Used for context
+                                              (e.g., inferring feature names if needed).
+        y_train (pd.Series or np.ndarray): Training target. Used for context
+                                           (e.g., inferring the label column name).
+
+    Returns:
+        AutoGluonModelWrapper: An unfitted model wrapper instance with fit/predict methods.
+    """
+    # Infer the label column name from y_train if it's a pandas Series.
+    # Otherwise, default to 'class' as specified in the README.md.
+    label_column_name = y_train.name if isinstance(y_train, pd.Series) else 'class'
+
+    # Return a new, unfitted instance of our wrapper.
+    # The seed is fixed at 42 as per the problem statement.
+    return AutoGluonModelWrapper(label_column_name=label_column_name, seed=42)
+```

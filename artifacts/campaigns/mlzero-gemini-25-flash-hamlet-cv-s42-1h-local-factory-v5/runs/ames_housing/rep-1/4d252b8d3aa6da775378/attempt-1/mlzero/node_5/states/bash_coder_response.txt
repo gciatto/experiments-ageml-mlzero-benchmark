@@ -1,0 +1,71 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define environment path and requirements files
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/4d252b8d3aa6da775378/attempt-1/mlzero/node_5/conda_env"
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_ML="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+# --- Conda Initialization ---
+# This section ensures 'conda' commands, especially 'conda activate', work correctly.
+# It addresses the common issue where 'conda' is in PATH but not fully initialized for the shell.
+
+# Check if conda command exists
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Conda is installed and in your PATH." >&2
+    exit 1
+fi
+
+# Find and source the conda.sh script to initialize conda for the current shell.
+# This is the most robust way to enable 'conda activate' in non-interactive scripts.
+_CONDA_SH_PATH=""
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    _CONDA_SH_PATH="$(conda info --base)/etc/profile.d/conda.sh"
+elif [ -f "/opt/conda/etc/profile.d/conda.sh" ]; then # Common path in many container environments
+    _CONDA_SH_PATH="/opt/conda/etc/profile.d/conda.sh"
+elif [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then # Common path for user installs
+    _CONDA_SH_PATH="${HOME}/miniconda3/etc/profile.d/conda.sh"
+elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then # Common path for user installs
+    _CONDA_SH_PATH="${HOME}/anaconda3/etc/profile.d/conda.sh"
+fi
+
+if [ -n "${_CONDA_SH_PATH}" ]; then
+    echo "Sourcing conda initialization script: ${_CONDA_SH_PATH}"
+    source "${_CONDA_SH_PATH}"
+else
+    echo "Warning: Could not find a standard conda.sh initialization script. Attempting to use 'eval \"\$(conda shell hook)\"' as a fallback, but this might be less reliable." >&2
+    # Fallback to the shell hook if conda.sh isn't found.
+    eval "$(conda shell hook)" || { echo "Error: Conda shell hook failed. Conda activation may not work." >&2; exit 1; }
+fi
+
+# --- Environment Setup ---
+
+# Remove existing environment if it exists to ensure a clean install
+if [ -d "${CONDA_ENV_PATH}" ]; then
+    echo "Removing existing environment at ${CONDA_ENV_PATH}..."
+    conda env remove -p "${CONDA_ENV_PATH}" -y
+fi
+
+# Create Conda environment with Python 3.11
+echo "Creating conda environment at ${CONDA_ENV_PATH} with Python 3.11..."
+conda create -p "${CONDA_ENV_PATH}" python=3.11 -y
+
+# Activate the environment
+echo "Activating conda environment: ${CONDA_ENV_PATH}"
+conda activate "${CONDA_ENV_PATH}"
+
+# Install uv
+echo "Installing uv..."
+pip install uv
+
+# Install required packages from requirements.txt files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "${REQUIREMENTS_ML}" --prerelease=allow -r "${REQUIREMENTS_COMMON}"
+
+# Install additional packages: numpy, pandas, scikit-learn, and autogluon.tabular
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular using uv..."
+uv pip install numpy pandas scikit-learn autogluon.tabular
+
+echo "Conda environment setup complete."
+```

@@ -1,0 +1,157 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-4/79235980f285c36790bd/attempt-1/mlzero/node_1:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.multimodal if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import os
+import numpy as np
+import pandas as pd
+import warnings
+import tempfile
+import shutil
+
+# AutoGluon imports
+from autogluon.multimodal import MultiModalPredictor
+
+# Suppress warnings from AutoGluon and other libraries to keep logs clean
+warnings.filterwarnings('ignore')
+
+# Set a global NumPy seed for general reproducibility, though AutoGluon handles its own seed internally.
+np.random.seed(42)
+
+class ModelWrapper:
+    """
+    A wrapper class for AutoGluon's MultiModalPredictor, providing a scikit-learn-like
+    fit/predict interface for classification tasks.
+    """
+    def __init__(self, output_dir: str):
+        """
+        Initializes the ModelWrapper.
+
+        Args:
+            output_dir (str): A unique temporary directory path where AutoGluon
+                              will store its model artifacts for this specific fold.
+        """
+        self.output_dir = output_dir
+        self.predictor = None  # MultiModalPredictor instance, initialized in .fit()
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        All preprocessing and model training are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Initialize MultiModalPredictor here to ensure it's fresh for each fit call
+        # and uses the unique output_dir.
+        # The 'Class' column is the target.
+        # MultiModalPredictor automatically infers problem_type for tabular data,
+        # but we explicitly set it to 'classification' for clarity.
+        # Verbosity=0 minimizes logging output during training.
+        self.predictor = MultiModalPredictor(
+            label='Class',
+            path=self.output_dir,  # Use the unique temporary directory for this fold
+            problem_type='classification',
+            verbosity=0
+        )
+
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor.fit()
+        train_data = X.copy()
+        train_data['Class'] = y
+
+        # Set a time limit for each fold's training.
+        # The total shared deadline is 3390 seconds for 10 folds.
+        # Setting 300 seconds per fold allows for 3000 seconds of training,
+        # leaving 390 seconds for overhead (data loading, model initialization, etc.).
+        time_limit_per_fold = 300
+
+        # Fit the predictor.
+        # Pass seed=42 to the fit method for reproducibility, as per requirements.
+        # AutoGluon MultiModal can handle purely tabular data and will leverage
+        # its internal tabular modeling capabilities. No explicit hyperparameters
+        # are set, relying on AutoGluon's optimized presets as suggested by the prompt.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=time_limit_per_fold,
+            seed=42,
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions on new data.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: A 1-dimensional NumPy array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # MultiModalPredictor.predict returns a pandas Series by default.
+        predictions = self.predictor.predict(X)
+
+        # Convert the predictions to a 1-dimensional NumPy array as required.
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for model artifacts when the
+        ModelWrapper instance is garbage collected.
+        """
+        if os.path.exists(self.output_dir):
+            try:
+                shutil.rmtree(self.output_dir)
+            except OSError as e:
+                # Print a warning if cleanup fails, but do not raise an error
+                # as __del__ is called during garbage collection.
+                print(f"Warning: Could not remove temporary directory {self.output_dir}: {e}")
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> ModelWrapper:
+    """
+    Factory function to generate a new, unfitted model wrapper for classification.
+
+    This function is called for each cross-validation fold. It returns an
+    unfitted `ModelWrapper` instance, which will then be fitted and used
+    for prediction by the evaluation harness.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used
+                                for fitting within this function).
+        y_train (pd.Series): Training target (provided for context, not used
+                             for fitting within this function).
+
+    Returns:
+        ModelWrapper: An unfitted model wrapper object with `fit(X, y)` and
+                      `predict(X)` methods.
+    """
+    # Create a unique temporary directory for each model instance (i.e., each fold).
+    # This ensures "fresh artifact directories per fold" as required.
+    # The directory will be managed and cleaned up by the ModelWrapper instance.
+    output_dir = tempfile.mkdtemp(prefix="ag_mm_model_")
+    return ModelWrapper(output_dir)
+### Previous errors
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid argument, `random_state`. This parameter is not accepted by the constructor and should instead be passed to the `fit()` method for reproducibility.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` initialization. The `seed` parameter is correctly passed to the `fit()` method for controlling randomness during training.
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-4/79235980f285c36790bd/attempt-1/mlzero/node_1/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3363 seconds.

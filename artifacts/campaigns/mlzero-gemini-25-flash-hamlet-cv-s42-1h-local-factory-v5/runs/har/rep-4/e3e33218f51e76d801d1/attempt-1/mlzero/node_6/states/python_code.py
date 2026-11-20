@@ -1,0 +1,145 @@
+import pandas as pd
+import uuid
+import os
+import shutil
+from autogluon.multimodal import MultiModalPredictor
+import logging
+
+# Configure logging to suppress excessive output from AutoGluon if needed,
+# or to direct our own warnings.
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Define a wrapper class for AutoGluon MultiModalPredictor
+# This wrapper provides a scikit-learn-like API (fit/predict)
+# and handles AutoGluon-specific requirements like unique artifact paths
+# and time limits per training fold.
+class AutoGluonMMWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to conform to a scikit-learn-like
+    API for classification tasks.
+    """
+    def __init__(self, label_column_name: str, random_state: int = 42):
+        """
+        Initializes the wrapper.
+
+        Args:
+            label_column_name (str): The name of the target column.
+            random_state (int): Seed for reproducibility of stochastic processes.
+        """
+        self.label_column_name = label_column_name
+        self.random_state = random_state
+        self.predictor = None
+        self.model_path = None # Stores the path to the model's artifacts for cleanup
+
+    def fit(self, X: pd.DataFrame, y: pd.Series, time_limit: int = 180):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        All preprocessing and model training are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+            time_limit (int): Maximum time in seconds for fitting the model.
+                              This is crucial for bounding each fold's training
+                              time within the overall deadline.
+        """
+        # Ensure y is a pandas Series with the correct name and index,
+        # aligning it with X.
+        if not isinstance(y, pd.Series):
+            y_series = pd.Series(y, name=self.label_column_name, index=X.index)
+        else:
+            y_series = y.rename(self.label_column_name)
+
+        # Combine features (X) and target (y) into a single DataFrame
+        # as required by MultiModalPredictor.fit().
+        train_data = pd.concat([X, y_series], axis=1)
+
+        # Create a unique temporary directory for this fold's model artifacts.
+        # This ensures that each fold's training is isolated and uses fresh
+        # artifact storage, preventing data leakage or conflicts.
+        # Using a more robust path construction with os.path.join
+        self.model_path = os.path.join(os.getcwd(), f"autogluon_mm_model_{uuid.uuid4().hex}")
+        os.makedirs(self.model_path, exist_ok=True)
+        logger.info(f"Created model artifact directory: {self.model_path}")
+
+        # Initialize MultiModalPredictor.
+        # - `label`: Specifies the target column.
+        # - `problem_type`: Explicitly set to "classification".
+        # - `path`: Directs AutoGluon to store artifacts in our unique temporary directory.
+        # - `verbosity`: Set to 1 to show minimal progress updates during training.
+        # FIX: Removed `random_state` from constructor as per previous error message.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column_name,
+            problem_type="classification",
+            path=self.model_path,
+            verbosity=1
+        )
+
+        # Fit the predictor.
+        # The `time_limit` parameter is critical for managing the total
+        # training time across all cross-validation folds.
+        # FIX: Pass `random_state` via `hyperparameters={"env.seed": ...}`
+        # as suggested by the previous error message.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=time_limit,
+            hyperparameters={
+                "env.seed": self.random_state,
+                # For purely tabular data, AutoGluon MultiModal will automatically
+                # leverage its internal tabular models. No specific image/text
+                # hyperparameters are needed here unless we want to customize.
+                # The problem statement implies presets are configured, so we don't
+                # need to specify them explicitly unless overriding.
+            }
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions on new data.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        
+        # MultiModalPredictor.predict() directly returns class labels for
+        # classification tasks.
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Destructor to clean up the temporary model directory created during fit.
+        This helps manage disk space, especially during cross-validation.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+                logger.info(f"Cleaned up model artifact directory: {self.model_path}")
+            except OSError as e:
+                # Log a warning if cleanup fails, but do not block execution.
+                logger.warning(f"Could not remove model directory {self.model_path}: {e}")
+
+# The factory function required by the evaluation harness.
+# It returns a fresh, unfitted model wrapper.
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMMWrapper:
+    """
+    Factory function to create an unfitted AutoGluon MultiModal classification model.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used for schema inference, not fitting).
+        y_train (pd.Series): Training target labels (used for schema inference, not fitting).
+
+    Returns:
+        AutoGluonMMWrapper: An unfitted model wrapper instance ready for training.
+    """
+    # The target column name is 'Class' as specified in the problem description.
+    label_column_name = 'Class'
+    # Return a new, unfitted instance of our wrapper.
+    return AutoGluonMMWrapper(label_column_name=label_column_name, random_state=42)

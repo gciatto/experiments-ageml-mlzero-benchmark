@@ -1,0 +1,42 @@
+Selected Tutorials After Reranking:
+==================================================
+
+1. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-essentials.md
+   Retrieval Score: 0.8454
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial covers AutoGluon's TabularPredictor for automated machine learning on tabular data. It demonstrates implementation of quick model training with minimal c...
+------------------------------
+
+2. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-indepth.md
+   Retrieval Score: 0.8109
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon TabularPredictor for machine learning tasks, covering hyperparameter tuning with search spaces for neural networks and gradient bo...
+------------------------------
+
+3. Title: Condensed: ```
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-feature-engineering.md
+   Retrieval Score: 0.7855
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial explains AutoGluon's automatic feature engineering capabilities for tabular data. It covers type-specific processing: numerical columns remain unchanged, categ...
+------------------------------
+
+4. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-custom-metric.md
+   Retrieval Score: 0.7217
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates how to create and use custom evaluation metrics in AutoGluon, focusing on what makes them better for model optimization. It covers the imple...
+------------------------------
+
+5. Title: Condensed: ```
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-kaggle.md
+   Retrieval Score: 0.7585
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial demonstrates how to use AutoGluon for fraud detection in the IEEE Fraud detection competition. AutoGluon's TabularPredictor can be used to train a model for bi...
+------------------------------

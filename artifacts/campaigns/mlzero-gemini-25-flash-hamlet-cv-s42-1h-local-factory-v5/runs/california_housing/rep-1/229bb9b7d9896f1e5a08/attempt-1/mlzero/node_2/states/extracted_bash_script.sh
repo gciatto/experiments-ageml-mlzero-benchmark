@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Define the target environment path
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-1/229bb9b7d9896f1e5a08/attempt-1/mlzero/node_2/conda_env"
+PYTHON_VERSION="3.11"
+
+# Define paths to requirement files
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_ML="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+echo "Creating conda environment at $ENV_DIR with Python $PYTHON_VERSION..."
+# Create the conda environment non-interactively
+conda create -p "$ENV_DIR" python="$PYTHON_VERSION" -y
+
+# Define paths to executables within the new environment
+PYTHON_BIN="$ENV_DIR/bin/python"
+PIP_BIN="$ENV_DIR/bin/pip"
+
+# Verify Python executable exists
+if [ ! -f "$PYTHON_BIN" ]; then
+    echo "Error: Python executable not found at $PYTHON_BIN. Conda environment creation might have failed."
+    exit 1
+fi
+
+echo "Installing uv into the environment..."
+# Install uv using the environment's pip
+"$PIP_BIN" install uv
+
+# Define path to uv executable within the new environment
+UV_BIN="$ENV_DIR/bin/uv"
+
+# Verify uv executable exists
+if [ ! -f "$UV_BIN" ]; then
+    echo "Error: uv executable not found at $UV_BIN. uv installation might have failed."
+    exit 1
+fi
+
+echo "Installing required packages from requirements.txt files using uv..."
+# Install packages from specified requirement files using uv
+"$UV_BIN" pip install -r "$REQUIREMENTS_ML" --prerelease=allow -r "$REQUIREMENTS_COMMON"
+
+echo "Installing numpy, pandas, scikit-learn, and autogluon.tabular..."
+# Install additional core packages and the selected ML library (autogluon.tabular)
+"$UV_BIN" pip install numpy pandas scikit-learn autogluon.tabular
+
+echo "Conda environment setup complete at $ENV_DIR."

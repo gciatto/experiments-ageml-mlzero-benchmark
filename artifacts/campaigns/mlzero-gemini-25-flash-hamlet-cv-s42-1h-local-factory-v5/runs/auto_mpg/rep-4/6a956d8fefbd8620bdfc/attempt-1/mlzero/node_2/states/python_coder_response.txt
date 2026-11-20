@@ -1,0 +1,112 @@
+```python
+import os
+import uuid
+import pandas as pd
+import numpy as np
+from autogluon.multimodal import MultiModalPredictor
+from autogluon.core.utils.utils import set_seed
+
+# Module-level initialization
+# Set a global random seed for reproducibility across AutoGluon components.
+# This affects various internal operations like data splitting, model initialization, etc.
+GLOBAL_SEED = 42
+set_seed(GLOBAL_SEED)
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self, target_column_name: str, seed: int = GLOBAL_SEED):
+        """
+        Initializes the AutoGluon MultiModalPredictor.
+
+        Args:
+            target_column_name (str): The name of the target column.
+            seed (int): Random seed for reproducibility.
+        """
+        self.seed = seed
+        # Ensure a fresh artifact directory for each model instance/fold.
+        # The path is relative to the current working directory where the factory is run.
+        # Using uuid ensures uniqueness across different folds and runs.
+        self.model_path = f"./automm_model_{uuid.uuid4().hex}"
+        
+        # Initialize MultiModalPredictor for regression task.
+        # 'eval_metric' is set to 'rmse' as specified by the task.
+        # 'problem_type' is explicitly set to 'regression'.
+        self.predictor = MultiModalPredictor(
+            label=target_column_name,
+            problem_type='regression',
+            eval_metric='rmse',
+            path=self.model_path
+        )
+        self.is_fitted = False
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target.
+        """
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor.
+        # The target column name is already set during initialization.
+        train_data = pd.concat([X, y], axis=1)
+
+        # Fit the predictor.
+        # The 'time_limit' parameter is crucial for ensuring all ten fits finish
+        # within the shared deadline. Given a total deadline of 2654 seconds
+        # for ten folds, an average of ~265 seconds per fold is available.
+        # Setting 'time_limit' to 180 seconds provides a buffer for overhead
+        # like data loading, model initialization, and prediction.
+        # Randomness is controlled by the module-level set_seed.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=180, # seconds per fold
+            # Hyperparameters can be tuned here if needed.
+            # For this tabular regression task, MultiModalPredictor will
+            # automatically infer appropriate models and settings.
+            # Example: to explicitly use CPU if GPUs are not desired or available:
+            # hyperparameters={'env.num_gpus': 0}
+        )
+        self.is_fitted = True
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to predict on.
+
+        Returns:
+            np.ndarray: A 1-dimensional array of predicted continuous values.
+        """
+        if not self.is_fitted:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+
+        predictions = self.predictor.predict(X)
+        
+        # Ensure the output is a 1-dimensional numpy array of floats,
+        # as required by the prediction output format.
+        return predictions.to_numpy().flatten().astype(float)
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMultiModalWrapper:
+    """
+    Factory function to build a new, unfitted AutoGluon MultiModal model wrapper.
+
+    This function is called by the evaluation harness for each fold to obtain
+    a fresh model instance.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used to infer target column name).
+        y_train (pd.Series): Training target (used to infer target column name).
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper with fit/predict methods.
+    """
+    # The target column name is dynamically derived from the y_train Series.
+    target_column_name = y_train.name
+    return AutoGluonMultiModalWrapper(target_column_name=target_column_name)
+
+```

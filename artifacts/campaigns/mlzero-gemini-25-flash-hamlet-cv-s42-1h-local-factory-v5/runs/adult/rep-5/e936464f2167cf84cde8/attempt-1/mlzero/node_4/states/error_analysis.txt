@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function cannot be found in the `autogluon.common.utils.utils` module. This is likely due to an API change in the installed beta version of AutoGluon, where the function has been moved to a different module or removed entirely.
+
+SUGGESTED_FIX: Remove the problematic import statement for `set_seed`. Then, consult the official AutoGluon documentation or source code for the installed version (`1.6.4b20260930`) to determine the correct way to set the global random seed for `MultiModalPredictor`, potentially by passing a `random_seed` argument to its constructor or `fit` method, or by importing `set_seed` from an alternative `autogluon.core.utils` or `autogluon.common.utils.random` module.

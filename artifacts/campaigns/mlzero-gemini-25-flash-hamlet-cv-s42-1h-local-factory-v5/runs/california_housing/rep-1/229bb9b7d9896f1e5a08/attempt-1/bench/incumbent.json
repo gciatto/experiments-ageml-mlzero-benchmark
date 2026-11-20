@@ -1,0 +1,11 @@
+{
+  "node_id": 10,
+  "selected_by": "best_validation_score",
+  "native_validation_score": -64785.75267989202,
+  "node_folder": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-1/229bb9b7d9896f1e5a08/attempt-1/mlzero/node_10",
+  "output_folder": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-1/229bb9b7d9896f1e5a08/attempt-1/mlzero/node_10/output",
+  "export_status": "present",
+  "tool": "autogluon.multimodal",
+  "time_step": 10,
+  "committed_at": 1795144966.1720586
+}

@@ -1,0 +1,2 @@
+Error: Conda base installation not found at /opt/conda.
+Please ensure Conda is installed or adjust CONDA_BASE_PATH in this script.

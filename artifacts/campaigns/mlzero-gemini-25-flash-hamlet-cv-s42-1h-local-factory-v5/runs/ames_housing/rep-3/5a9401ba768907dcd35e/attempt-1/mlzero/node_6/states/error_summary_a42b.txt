@@ -1,0 +1,1 @@
+The provided execution results are incomplete. They only show the environment setup and package installation, but lack any output from the actual model training, prediction, or cross-validation evaluation. Consequently, no validation score can be extracted, and the functional success of the model cannot be confirmed from these logs.

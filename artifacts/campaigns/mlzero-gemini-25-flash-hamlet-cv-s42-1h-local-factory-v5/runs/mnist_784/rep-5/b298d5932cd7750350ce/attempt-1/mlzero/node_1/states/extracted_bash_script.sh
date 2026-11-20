@@ -1,0 +1,47 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define environment and file paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/b298d5932cd7750350ce/attempt-1/mlzero/node_1/conda_env"
+PYTHON_VERSION="3.11"
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting Conda environment setup for AutoGluon Tabular module..."
+
+# 1. Create the Conda environment
+echo "Creating conda environment at $CONDA_ENV_PATH with Python $PYTHON_VERSION..."
+conda create --prefix "$CONDA_ENV_PATH" python="$PYTHON_VERSION" --yes || { echo "ERROR: Failed to create conda environment at $CONDA_ENV_PATH." >&2; exit 1; }
+echo "Conda environment created successfully."
+
+# 2. Activate the environment
+echo "Activating the conda environment..."
+# Ensure conda is initialized for the current shell
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh" || { echo "ERROR: Failed to source conda.sh. Is Conda installed and configured?" >&2; exit 1; }
+else
+    echo "ERROR: conda.sh not found. Please ensure Conda is installed and initialized correctly." >&2; exit 1;
+fi
+conda activate "$CONDA_ENV_PATH" || { echo "ERROR: Failed to activate conda environment $CONDA_ENV_PATH." >&2; exit 1; }
+echo "Conda environment activated."
+
+# 3. Install uv
+echo "Installing uv into the environment..."
+pip install uv || { echo "ERROR: Failed to install uv." >&2; exit 1; }
+echo "uv installed successfully."
+
+# 4. Install required packages from requirements files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQUIREMENTS_FILE" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_FILE" \
+    || { echo "ERROR: Failed to install packages from requirements files using uv." >&2; exit 1; }
+echo "Packages from requirements files installed successfully."
+
+# 5. Install numpy, pandas, scikit-learn (if not already satisfied by dependencies)
+echo "Ensuring numpy, pandas, scikit-learn are installed..."
+uv pip install numpy pandas scikit-learn || { echo "ERROR: Failed to install numpy, pandas, scikit-learn using uv." >&2; exit 1; }
+echo "numpy, pandas, scikit-learn ensured."
+
+echo "Conda environment setup complete for AutoGluon Tabular module."

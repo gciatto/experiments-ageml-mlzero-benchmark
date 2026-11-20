@@ -1,0 +1,151 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv"
+
+File Size: 7.45 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv"
+MAX_OUTPUT_LEN = 768
+output_parts = []
+
+def append_output(text):
+    """Appends text to output_parts, ensuring total length does not exceed MAX_OUTPUT_LEN."""
+    global output_parts
+    # Calculate current length including potential newlines
+    current_len = sum(len(s) for s in output_parts) + len(output_parts) 
+    
+    # Check if adding the new text (plus its newline) would exceed the limit
+    if current_len + len(text) + 1 > MAX_OUTPUT_LEN: 
+        remaining_len = MAX_OUTPUT_LEN - current_len - 4 # -4 for "...\n"
+        if remaining_len > 0:
+            output_parts.append(text[:remaining_len] + "...")
+        else:
+            output_parts.append("...") # Just indicate truncation
+        raise StopIteration # Signal to stop further processing
+    output_parts.append(text)
+
+try:
+    append_output(f"Analyzing: {os.path.basename(file_path)}")
+    df = pd.read_csv(file_path)
+
+    append_output(f"Shape: {df.shape}")
+
+    columns = df.columns.tolist()
+    col_display_list = []
+    if len(columns) > 20:
+        col_display_list = columns[:10] + ["..."] + columns[-10:]
+    else:
+        col_display_list = columns
+    
+    col_str = f"Columns: {', '.join(map(str, col_display_list))}"
+    if len(col_str) > 200: # Truncate column list string if too long
+        col_str = col_str[:197] + "..."
+    append_output(col_str)
+
+    append_output("\nFirst 3 rows:")
+    
+    df_head = df.head(3)
+    
+    # Determine which columns to display for the head table
+    cols_to_show_for_head_names = [] # For header row, includes "..."
+    actual_cols_for_head_names = [] # For data selection, no "..."
+    
+    if len(columns) > 6: # If more than 6 columns, show first 3 and last 3
+        cols_to_show_for_head_names = columns[:3] + ["..."] + columns[-3:]
+        actual_cols_for_head_names = columns[:3] + columns[-3:]
+    else:
+        cols_to_show_for_head_names = columns
+        actual_cols_for_head_names = columns
+
+    # Print header row, limiting column name length
+    header_row = "|".join([str(col)[:8].ljust(8) for col in cols_to_show_for_head_names])
+    append_output(header_row)
+    append_output("-" * len(header_row))
+
+    # Print data rows, limiting cell content length
+    for index, row in df_head.iterrows():
+        row_values = []
+        for col_name in actual_cols_for_head_names:
+            val = str(row[col_name])
+            row_values.append(val[:8].ljust(8))
+        append_output("|".join(row_values))
+
+except (pd.errors.EmptyDataError, pd.errors.ParserError, FileNotFoundError, UnicodeDecodeError, StopIteration) as e:
+    if isinstance(e, StopIteration):
+        pass # Output already truncated and added to buffer
+    else:
+        output_parts = [] # Clear any partial output from CSV attempt
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read(MAX_OUTPUT_LEN)
+                append_output(f"File could not be parsed as CSV. Displaying first {MAX_OUTPUT_LEN} characters as text:\n{content}")
+        except UnicodeDecodeError:
+            append_output(f"File is likely binary or non-UTF-8 text. Basic info:\nPath: {file_path}\nSize: {os.path.getsize(file_path)} bytes")
+        except FileNotFoundError:
+            append_output(f"Error: File not found at {file_path}")
+        except Exception as text_e:
+            append_output(f"An unexpected error occurred while reading as text: {text_e}")
+
+print("\n".join(output_parts))
+
+## Execution Results
+### Standard Output (stdout)
+
+Analyzing: data.csv
+Shape: (2600, 501)
+Columns: V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, ..., V492, V493, V494, V495, V496, V497, V498, V499, V500, Class
+
+First 3 rows:
+V1      |V2      |V3      |...     |V499    |V500    |Class   
+--------------------------------------------------------------
+485.0   |477.0   |537.0   |475.0   |496.0   |2.0     
+483.0   |458.0   |460.0   |510.0   |517.0   |2.0     
+487.0   |542.0   |499.0   |499.0   |498.0   |2.0     
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

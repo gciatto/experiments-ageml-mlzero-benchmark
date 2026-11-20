@@ -1,0 +1,60 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define environment and file paths
+# The base directory for the conda environment, as specified in the prompt.
+ENV_BASE_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-4/cb5a172aed04c3314d56/attempt-1/mlzero/node_12"
+CONDA_ENV_PATH="${ENV_BASE_PATH}/conda_env"
+COMMON_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQ_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting conda environment setup for AutoGluonTabularModel at node_12..."
+echo "Environment path: ${CONDA_ENV_PATH}"
+
+# Check if conda is available and initialize it for the current shell session.
+# This makes 'conda activate' available.
+if ! command -v conda &> /dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Conda is installed and in your PATH."
+    exit 1
+fi
+
+# Initialize conda for the current shell session if not already done.
+# This is crucial for 'conda activate' to work.
+# The check for 'conda info --base' ensures we use the correct conda installation.
+CONDA_BASE=$(conda info --base 2>/dev/null || true)
+if [ -n "$CONDA_BASE" ] && [ -f "$CONDA_BASE/etc/profile.d/conda.sh" ]; then
+    source "$CONDA_BASE/etc/profile.d/conda.sh"
+else
+    echo "Error: conda initialization script not found at expected location: $CONDA_BASE/etc/profile.d/conda.sh"
+    echo "Cannot activate environment. Please check your conda installation."
+    exit 1
+fi
+
+# Remove existing environment if it exists to ensure a clean slate.
+# Using 'conda env list' and 'grep -q' is more robust for checking conda environments.
+# The -p flag with conda env remove is for path-based environments.
+if conda env list | grep -q "${CONDA_ENV_PATH}"; then
+    echo "Removing existing conda environment at ${CONDA_ENV_PATH}..."
+    conda env remove -p "${CONDA_ENV_PATH}" -y
+fi
+
+echo "Creating conda environment with Python 3.11 at ${CONDA_ENV_PATH}..."
+conda create -p "${CONDA_ENV_PATH}" python=3.11 -y
+
+echo "Activating conda environment: ${CONDA_ENV_PATH}"
+conda activate "${CONDA_ENV_PATH}"
+
+echo "Installing uv..."
+# Install uv using the pip from the newly activated conda environment.
+pip install uv
+
+echo "Installing required packages from requirement files using uv..."
+# Install packages from the specified requirement files.
+# The order is important as specified in the prompt: autogluon.tabular requirements first, then common.
+# uv will efficiently resolve dependencies and install only what's needed,
+# without upgrading or reinstalling packages already at the correct version.
+uv pip install -r "${AUTOGLUON_TABULAR_REQ_FILE}" --prerelease=allow -r "${COMMON_REQ_FILE}"
+
+echo "Conda environment setup complete for node_12."
+```

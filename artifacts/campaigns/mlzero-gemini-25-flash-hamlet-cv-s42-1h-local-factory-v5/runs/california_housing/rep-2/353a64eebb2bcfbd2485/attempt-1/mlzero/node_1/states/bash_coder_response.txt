@@ -1,0 +1,71 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define environment and file paths
+ENV_BASE_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/353a64eebb2bcfbd2485/attempt-1/mlzero/node_1"
+ENV_PATH="$ENV_BASE_PATH/conda_env"
+PYTHON_VERSION="3.11"
+
+REQ_FILE_ML="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+REQ_FILE_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script..."
+echo "Conda environment path: $ENV_PATH"
+echo "Python version: $PYTHON_VERSION"
+
+# Ensure conda is initialized for the current shell session
+# This is crucial for 'conda activate' to work correctly in a non-interactive script.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "ERROR: conda.sh not found. Is Conda installed and initialized in the environment?" >&2
+    exit 1
+fi
+
+# Remove existing environment if it exists to ensure a clean install
+if conda env list | grep -q "$ENV_PATH"; then
+    echo "Removing existing conda environment at $ENV_PATH..."
+    conda env remove -p "$ENV_PATH" -y
+fi
+# Also remove the directory directly in case conda's internal records are inconsistent
+if [ -d "$ENV_PATH" ]; then
+    echo "Removing existing environment directory at $ENV_PATH..."
+    rm -rf "$ENV_PATH"
+fi
+
+# Create the conda environment with the specified Python version
+echo "Creating conda environment with Python $PYTHON_VERSION at $ENV_PATH..."
+conda create -p "$ENV_PATH" python="$PYTHON_VERSION" -y
+
+# Activate the newly created environment
+echo "Activating conda environment: $ENV_PATH"
+conda activate "$ENV_PATH"
+
+# Verify environment activation
+if [[ "$CONDA_PREFIX" != "$ENV_PATH" ]]; then
+    echo "ERROR: Failed to activate conda environment. CONDA_PREFIX is '$CONDA_PREFIX', expected '$ENV_PATH'" >&2
+    exit 1
+fi
+echo "Conda environment activated successfully. Python interpreter: $(which python)"
+
+# Install uv using the environment's pip
+echo "Installing uv into the activated environment..."
+pip install uv
+
+# Install all required packages using uv
+# This includes explicit packages (numpy, pandas, scikit-learn, autogluon.tabular)
+# and packages from the specified requirements files.
+echo "Installing required packages (numpy, pandas, scikit-learn, autogluon.tabular, and from requirements files) using uv pip install..."
+uv pip install \
+    numpy \
+    pandas \
+    scikit-learn \
+    autogluon.tabular \
+    -r "$REQ_FILE_ML" \
+    --prerelease=allow \
+    -r "$REQ_FILE_COMMON"
+
+echo "Installation complete for the conda environment at $ENV_PATH."
+echo "To use this environment, activate it with: conda activate $ENV_PATH"
+```

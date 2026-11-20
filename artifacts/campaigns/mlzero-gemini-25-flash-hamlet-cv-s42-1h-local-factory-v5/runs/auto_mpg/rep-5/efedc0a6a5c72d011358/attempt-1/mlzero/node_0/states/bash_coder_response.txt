@@ -1,0 +1,51 @@
+```bash
+#!/bin/bash
+set -e
+
+# Define environment and requirements paths
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-5/efedc0a6a5c72d011358/attempt-1/mlzero/node_0/conda_env"
+COMMON_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+# --- Conda Initialization (Crucial for non-interactive scripts) ---
+# Find the base conda installation path
+CONDA_BASE=$(conda info --base 2>/dev/null)
+if [ -z "$CONDA_BASE" ]; then
+    echo "Error: Could not find conda base installation. Is conda installed and in PATH?"
+    exit 1
+fi
+
+# Source the conda initialization script to make 'conda' command and 'conda activate' function available
+source "$CONDA_BASE/etc/profile.d/conda.sh"
+# -----------------------------------------------------------------
+
+# Remove existing environment if it exists to ensure a clean installation
+if [ -d "$ENV_DIR" ]; then
+    echo "Removing existing conda environment at $ENV_DIR..."
+    conda env remove --prefix "$ENV_DIR" -y || true # Use || true to prevent script failure if env doesn't exist or has minor issues
+    rm -rf "$ENV_DIR" # Ensure directory is completely removed
+fi
+
+# Create a new conda environment with Python 3.11
+echo "Creating conda environment at $ENV_DIR with Python 3.11..."
+conda create --prefix "$ENV_DIR" python=3.11 -y
+
+# Activate the newly created environment
+echo "Activating conda environment: $ENV_DIR"
+conda activate "$ENV_DIR"
+
+# Install uv using the environment's pip
+echo "Installing uv..."
+python -m pip install uv
+
+# Install required packages using uv
+echo "Installing required packages with uv from:"
+echo "  - $AUTOGLUON_TABULAR_REQUIREMENTS_PATH"
+echo "  - $COMMON_REQUIREMENTS_PATH"
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQUIREMENTS_PATH" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_PATH"
+
+echo "Conda environment setup complete at $ENV_DIR."
+```

@@ -1,0 +1,1 @@
+The execution results only show the environment setup and package installation. There is no output from the actual model training (`fit`) or prediction (`predict`) phases, nor any final validation score. This prevents a complete evaluation of the model's functionality and performance. The full execution trace of the model's lifecycle is missing.

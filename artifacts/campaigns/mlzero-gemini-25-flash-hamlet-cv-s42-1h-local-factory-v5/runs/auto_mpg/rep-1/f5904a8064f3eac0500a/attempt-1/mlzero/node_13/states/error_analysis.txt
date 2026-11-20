@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The AutoGluon `TabularPredictor.fit` method failed because the specified `fast_inference` preset is not a valid option for the installed AutoGluon version (1.6.3). The error message explicitly lists the available presets, none of which match `fast_inference`.
+SUGGESTED_FIX: Modify the `AutoGluonModelWrapper.fit` method to use a valid preset from the list provided in the error message, such as 'good_quality' or 'medium_quality', instead of 'fast_inference'. This will resolve the `ValueError` and allow AutoGluon to proceed with model training.

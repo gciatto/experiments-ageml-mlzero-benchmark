@@ -1,0 +1,106 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv"
+
+File Size: 52.94 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv"
+
+try:
+    # Read CSV file
+    # low_memory=False is used to prevent mixed type warnings for large files,
+    # which can happen when pandas tries to guess dtypes from chunks.
+    df = pd.read_csv(file_path, low_memory=False)
+
+    # Prepare column names string
+    columns = df.columns.tolist()
+    col_output = ""
+    if len(columns) > 20:
+        col_output = f"Columns: {columns[:10]} ... {columns[-10:]}"
+    else:
+        col_output = f"Columns: {columns}"
+    
+    # Add a newline for separation from the head, and print
+    col_output_str = col_output + "\n"
+    print(col_output_str, end='') # Use end='' to avoid an extra newline if the string itself ends with one.
+
+    # Calculate remaining characters for the head display
+    remaining_chars = 768 - len(col_output_str)
+
+    if remaining_chars > 0:
+        # Display first 2 rows with truncated cell content, limiting to first 5 columns
+        # This is to ensure the output stays within the character limit.
+        display_df = df.head(2)
+        if len(display_df.columns) > 5:
+            display_df = display_df.iloc[:, :5] # Limit to first 5 columns for display
+
+        truncated_head = display_df.apply(
+            lambda x: x.astype(str).apply(
+                lambda y: y[:50] + '...' if len(y) > 50 else y
+            )
+        )
+        
+        head_str = truncated_head.to_string(index=False)
+        print(head_str[:remaining_chars]) # Truncate head if needed to fit remaining_chars
+
+except Exception:
+    # Fallback for non-tabular or unreadable files (e.g., parsing error, file not found)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(content)
+    except Exception:
+        # If even reading as text fails (e.g., binary file, permission error)
+        print(f"Could not read file: {file_path}")
+
+## Execution Results
+### Standard Output (stdout)
+
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

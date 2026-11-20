@@ -1,0 +1,25 @@
+```python
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/evaluate_cv.py"
+
+try:
+    # Attempt to read the file as a text file
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read(768)  # Read up to 768 characters
+        print(content)
+except FileNotFoundError:
+    print(f"Error: File not found at {file_path}")
+except UnicodeDecodeError:
+    # If UTF-8 decoding fails, try reading as binary
+    try:
+        with open(file_path, 'rb') as f:
+            content = f.read(768)
+            # Decode bytes to a printable string, replacing unprintable characters
+            print(f"Binary content (first {len(content)} bytes):\n{content.decode('latin-1', errors='replace')}")
+    except Exception as e:
+        print(f"Error reading file as binary: {e}")
+except Exception as e:
+    print(f"Error reading file: {e}")
+
+```

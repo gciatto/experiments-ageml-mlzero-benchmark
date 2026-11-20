@@ -1,0 +1,159 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-1/b94fca9f26a3228d15f1/attempt-1/mlzero/node_2:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import numpy as np
+import os
+import logging
+
+# AutoGluon imports
+from autogluon.tabular import TabularPredictor
+
+# Configure basic logging for the module.
+# This helps in debugging if AutoGluon or other parts of the code emit logs.
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Module-level constants.
+# The total remaining time is 3295 seconds for 10 fits.
+# Setting a time limit of 300 seconds (5 minutes) per fit ensures that
+# 10 fits will take at most 3000 seconds, leaving a buffer for overhead.
+DEFAULT_TIME_LIMIT_SECONDS = 300
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self, target_column_name: str, problem_type: str):
+        """
+        Initializes the wrapper with target column name and problem type.
+        The actual AutoGluon predictor is initialized and fitted in the .fit() method.
+
+        Args:
+            target_column_name (str): The name of the target column.
+            problem_type (str): The type of the machine learning problem (e.g., 'binary', 'multiclass').
+        """
+        self.target_column_name = target_column_name
+        self.problem_type = problem_type
+        self.predictor = None
+        # AutoGluon will save its models to this path.
+        # The harness guarantees "fresh artifact directories per fold",
+        # so a simple relative path like "AutogluonModels" will be unique
+        # for each fold's execution.
+        self.model_path = "AutogluonModels"
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model.
+        All preprocessing and model fitting happens here, using only the provided X and y.
+
+        Args:
+            X (pd.DataFrame): Training features for the current fold.
+            y (pd.Series): Training target for the current fold.
+        """
+        logging.info(f"Starting AutoGluon fit for target '{self.target_column_name}' with problem type '{self.problem_type}'.")
+        logging.info(f"AutoGluon model artifacts will be saved to: {os.path.abspath(self.model_path)}")
+
+        # Combine features and target into a single DataFrame for AutoGluon.
+        # AutoGluon expects the target column to be present in the training data.
+        train_data = pd.concat([X, y], axis=1)
+
+        # Initialize TabularPredictor.
+        # The 'path' argument is crucial for AutoGluon to store its artifacts.
+        # The 'seed' argument is not valid for the constructor, as per previous errors.
+        self.predictor = TabularPredictor(
+            label=self.target_column_name,
+            problem_type=self.problem_type,
+            path=self.model_path,
+            verbosity=2 # Set verbosity to 2 for INFO level output from AutoGluon
+        )
+
+        # Fit the predictor.
+        # Use random_state for reproducibility and time_limit to bound execution time.
+        # All learned preprocessing (e.g., feature engineering, scaling) is handled
+        # internally by AutoGluon during this fit call, using only `train_data`.
+        self.predictor.fit(
+            train_data,
+            random_state=42, # Seed for reproducibility across runs
+            time_limit=DEFAULT_TIME_LIMIT_SECONDS, # Bound the fitting time
+            presets='best_quality', # Use a robust preset for better performance
+        )
+        logging.info("AutoGluon fit completed.")
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+        logging.info("Making predictions with AutoGluon model.")
+        return self.predictor.predict(X)
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted AutoGluon model wrapper.
+    This function is called by the evaluation harness for each fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features. Used to infer target column name and problem type.
+                                This data is NOT used for fitting here, only for metadata.
+        y_train (pd.Series): Training target. Used to infer target column name and problem type.
+                             This data is NOT used for fitting here, only for metadata.
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper with fit() and predict() methods.
+    """
+    logging.info("build_model called: Initializing AutoGluonTabularWrapper.")
+
+    # Infer the target column name from y_train Series name.
+    target_column_name = y_train.name
+    if target_column_name is None:
+        # Fallback if y_train has no name. This might happen if y_train was created
+        # without explicitly setting a name.
+        target_column_name = "Class" # Default to 'Class' as per problem description
+        logging.warning(f"y_train Series has no name. Assuming target column name is '{target_column_name}'.")
+
+    # Infer problem type (binary or multiclass classification) based on unique values in y_train.
+    num_unique_classes = y_train.nunique()
+    if num_unique_classes == 2:
+        problem_type = 'binary'
+        logging.info(f"Inferred problem type: {problem_type} (2 unique classes).")
+    elif num_unique_classes > 2:
+        problem_type = 'multiclass'
+        logging.info(f"Inferred problem type: {problem_type} ({num_unique_classes} unique classes).")
+    else:
+        raise ValueError(f"Invalid number of unique classes in y_train: {num_unique_classes}. "
+                         "Must be >= 2 for classification tasks.")
+
+    # Return a fresh, unfitted instance of our wrapper.
+    # The actual AutoGluon predictor will be initialized and fitted when .fit() is called.
+    return AutoGluonTabularWrapper(target_column_name=target_column_name, problem_type=problem_type)
+### Previous errors
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid keyword argument, `seed`. The `seed` parameter is not a recognized argument for initializing `TabularPredictor` instances, as indicated by the `ValueError` and the list of valid keyword arguments.
+SUGGESTED_FIX: Remove the `seed` argument from the `TabularPredictor` constructor call within the `AutoGluonTabularWrapper`'s `fit` method. If reproducibility for AutoGluon's internal processes is desired, pass a `random_state` argument to the `predictor.fit()` method instead.
+
+ERROR_SUMMARY: The conda environment failed to activate because the `activate` script was not found at the specified path, indicating an issue with the environment creation. This prevented `numpy` and other necessary packages from being installed into the intended environment, leading to a `ModuleNotFoundError` when the evaluation script attempted to import `numpy`.
+SUGGESTED_FIX: Inspect the output of the `conda create` command for any errors or warnings to diagnose why the environment's `activate` script was not generated or found. Verify that the `CONDA_ENV_PATH` is correct and that the `conda` installation is functional and has sufficient disk space and permissions.
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-1/b94fca9f26a3228d15f1/attempt-1/mlzero/node_2/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3269 seconds.

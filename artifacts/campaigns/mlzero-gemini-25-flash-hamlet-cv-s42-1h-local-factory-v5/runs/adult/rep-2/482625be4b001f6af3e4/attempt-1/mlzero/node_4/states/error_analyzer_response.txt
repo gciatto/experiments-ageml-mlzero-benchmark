@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor received an invalid keyword argument, `random_state`. This parameter is not recognized by the constructor, leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor. Instead, pass the `seed` argument with the desired value (e.g., `seed=RANDOM_SEED`) to the `predictor.fit()` method for reproducibility.

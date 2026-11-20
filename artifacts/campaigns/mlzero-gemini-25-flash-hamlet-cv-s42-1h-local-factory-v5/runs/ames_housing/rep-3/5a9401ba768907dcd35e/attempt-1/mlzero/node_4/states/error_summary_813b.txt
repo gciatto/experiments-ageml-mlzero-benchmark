@@ -1,0 +1,1 @@
+The execution failed during the Conda environment setup. Specifically, a `CondaError: Run 'conda init' before 'conda activate'` was encountered, indicating that the Conda environment was not properly initialized before activation was attempted. Additionally, an invalid `conda shell` command was used. This prevented the Python code from being executed.

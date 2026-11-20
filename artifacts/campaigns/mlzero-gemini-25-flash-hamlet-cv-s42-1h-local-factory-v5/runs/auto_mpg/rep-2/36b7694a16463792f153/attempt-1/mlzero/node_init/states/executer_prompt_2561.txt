@@ -1,0 +1,184 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json"
+
+File Size: 0.06 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json"
+
+output_buffer = []
+max_output_chars = 768
+
+def add_to_buffer(text):
+    global output_buffer
+    output_buffer.append(text)
+
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    try:
+        data = json.loads(content)
+        
+        # Check if it's a list of dictionaries suitable for DataFrame
+        if isinstance(data, list) and all(isinstance(item, dict) for item in data):
+            df = pd.DataFrame(data)
+            
+            # Column names
+            cols = df.columns.tolist()
+            if len(cols) > 20:
+                col_display = cols[:10] + ['...'] + cols[-10:]
+            else:
+                col_display = cols
+            add_to_buffer(f"Columns: {', '.join(map(str, col_display))}\n")
+            
+            # First 2-3 rows with truncated cell content
+            df_display = df.head(3).copy()
+            for col in df_display.columns:
+                # Ensure content is string before truncating
+                df_display[col] = df_display[col].astype(str).apply(lambda x: (x[:47] + '...') if len(x) > 50 else x)
+            
+            # Use to_string to avoid index and control output
+            df_string = df_display.to_string(index=False)
+            add_to_buffer(df_string)
+
+        else:
+            # Not a list of dicts, or a single dict, or other JSON structure
+            # Pretty print the JSON, which will be truncated by the final print statement
+            json_str = json.dumps(data, indent=2)
+            add_to_buffer("JSON Content (truncated):\n")
+            add_to_buffer(json_str)
+
+    except json.JSONDecodeError:
+        # Not a valid JSON, treat as text file
+        add_to_buffer("File content (first 768 chars):\n")
+        add_to_buffer(content) # Will be truncated by the final print statement
+
+except Exception as e:
+    # General error during file reading or initial processing
+    add_to_buffer(f"Could not read file: {e}\n")
+    add_to_buffer(f"File path: {file_path}\n")
+    try:
+        add_to_buffer(f"File size: {os.path.getsize(file_path)} bytes\n")
+    except OSError:
+        add_to_buffer("File size: N/A (could not get size)\n")
+
+final_output = "".join(output_buffer)
+print(final_output[:max_output_chars])
+
+## Execution Results
+### Standard Output (stdout)
+
+JSON Content (truncated):
+{
+  "cv_folds": [
+    {
+      "train": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+     
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

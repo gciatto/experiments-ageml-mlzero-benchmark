@@ -1,0 +1,153 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/cv_contract.json"
+
+File Size: 0.40 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import pandas as pd
+import json
+from io import StringIO
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/cv_contract.json"
+
+try:
+    df = pd.read_json(file_path)
+
+    if isinstance(df, pd.DataFrame) and not df.empty:
+        output_lines = []
+
+        columns = df.columns.tolist()
+        if len(columns) > 20:
+            cols_display = columns[:10] + ["..."] + columns[-10:]
+        else:
+            cols_display = columns
+        output_lines.append(f"Columns: {', '.join(map(str, cols_display))}")
+
+        buffer = StringIO()
+        df.head(3).to_string(buffer, max_colwidth=50, index=False)
+        output_lines.append(buffer.getvalue())
+        
+        final_output = "\n".join(output_lines)
+        print(final_output[:768])
+
+    else:
+        raise ValueError("Pandas could not interpret JSON as a useful tabular DataFrame or it's empty.")
+
+except Exception as e:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(content)
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+    except Exception as e_text:
+        print(f"Error reading file as text: {e_text}")
+
+## Execution Results
+### Standard Output (stdout)
+
+{
+  "cv_folds": [
+    {
+      "train": [
+        211,
+        212,
+        214,
+        215,
+        220,
+        221,
+        223,
+        224,
+        225,
+        228,
+        232,
+        234,
+        235,
+        239,
+        242,
+        243,
+        244,
+        247,
+        248,
+        249,
+        250,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        261,
+        263,
+        268,
+        269,
+        270,
+        279,
+        280,
+        282,
+        289,
+        294,
+        296,
+        297,
+        299,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        306,
+        307,
+        308,
+        309,
+        310,
+        311,
+        312,
+        313,
+        314,
+        315,
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

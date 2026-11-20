@@ -1,0 +1,140 @@
+```python
+import pandas as pd
+import numpy as np
+import uuid
+from pathlib import Path
+from autogluon.multimodal import MultiModalPredictor
+import logging
+import shutil
+
+# Configure logging to suppress excessive output from AutoGluon and its dependencies.
+# This helps keep the console output clean during evaluation.
+logging.basicConfig(level=logging.WARNING)
+logging.getLogger('autogluon').setLevel(logging.WARNING)
+logging.getLogger('lightning').setLevel(logging.WARNING)
+logging.getLogger('transformers').setLevel(logging.WARNING)
+logging.getLogger('torch').setLevel(logging.WARNING)
+logging.getLogger('mmdet').setLevel(logging.WARNING)
+logging.getLogger('mmcv').setLevel(logging.WARNING)
+
+# Module-level constants
+GLOBAL_SEED = 42
+# Total time for 10 folds is 3056 seconds.
+# To ensure all ten fits finish within the deadline, we allocate a conservative
+# time limit per fold. 250 seconds per fold * 10 folds = 2500 seconds,
+# leaving 556 seconds for overall setup, teardown, and other overhead.
+TIME_LIMIT_PER_FOLD = 250
+
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self, problem_type: str, random_seed: int, time_limit_per_fit: int):
+        """
+        Initializes the wrapper. The actual MultiModalPredictor is initialized
+        and fitted within the `fit` method to ensure a fresh instance per fold.
+
+        Args:
+            problem_type (str): The type of machine learning problem (e.g., 'classification').
+            random_seed (int): Seed for reproducibility.
+            time_limit_per_fit (int): Maximum time in seconds allowed for each fit call.
+        """
+        self.problem_type = problem_type
+        self.random_seed = random_seed
+        self.time_limit_per_fit = time_limit_per_fit
+        self.predictor: MultiModalPredictor = None
+        self.label_column_name: str = None
+        self.artifact_path: Path = None
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor using the provided training data.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training labels.
+        """
+        self.label_column_name = y.name
+        if self.label_column_name is None:
+            # If y is an unnamed Series, give it a default name
+            self.label_column_name = "target"
+            y = y.rename(self.label_column_name)
+
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor
+        train_data = pd.concat([X, y], axis=1)
+
+        # Create a unique path for artifacts for this fold.
+        # This ensures fresh artifact directories per fold and avoids conflicts.
+        self.artifact_path = Path(f"./autogluon_artifacts_{uuid.uuid4().hex}")
+        self.artifact_path.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
+
+        # Initialize MultiModalPredictor.
+        # Using 'fast_inference' preset to prioritize speed, which is crucial
+        # for completing all ten folds within the shared deadline.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column_name,
+            problem_type=self.problem_type,
+            path=str(self.artifact_path),
+        )
+
+        # Fit the predictor.
+        # The `seed` argument in `fit` ensures reproducibility for this specific run.
+        # `hyperparameters={"env.log_level": "warning"}` helps suppress verbose output.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=self.time_limit_per_fit,
+            presets='fast_inference',
+            seed=self.random_seed,
+            hyperparameters={"env.log_level": "warning"}
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions on new data using the fitted MultiModalPredictor.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: A 1D array of predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # MultiModalPredictor.predict returns a pandas Series, convert to 1D numpy array.
+        predictions = self.predictor.predict(X)
+        return predictions.to_numpy()
+
+    def __del__(self):
+        """
+        Clean up the artifact directory when the wrapper object is deleted.
+        This helps manage disk space, especially in environments with many folds.
+        """
+        if self.artifact_path and self.artifact_path.exists():
+            try:
+                shutil.rmtree(self.artifact_path)
+            except OSError as e:
+                logging.warning(f"Error removing artifact directory {self.artifact_path}: {e}")
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMultiModalWrapper:
+    """
+    Factory function to build a fresh, unfitted AutoGluon MultiModal classification model wrapper.
+
+    Args:
+        X_train (pd.DataFrame): Training features (provided for context, not used for fitting here).
+        y_train (pd.Series): Training labels (provided for context, not used for fitting here).
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper with `fit(X,y)` and `predict(X)` methods.
+    """
+    # The task is classification, as specified in the problem description.
+    problem_type = 'classification'
+    return AutoGluonMultiModalWrapper(
+        problem_type=problem_type,
+        random_seed=GLOBAL_SEED,
+        time_limit_per_fit=TIME_LIMIT_PER_FOLD
+    )
+```

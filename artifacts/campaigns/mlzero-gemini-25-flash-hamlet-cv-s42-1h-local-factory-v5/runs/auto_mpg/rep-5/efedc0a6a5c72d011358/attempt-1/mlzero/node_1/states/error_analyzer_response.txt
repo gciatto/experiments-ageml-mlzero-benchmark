@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ImportError` indicates that the `set_random_seed` function cannot be found within the `autogluon.core.utils.utils` module. This is due to an API change or refactoring in the installed AutoGluon version (1.6.4b20260930), where the function's location has likely been moved or renamed.
+SUGGESTED_FIX: Review the official AutoGluon documentation or source code for version 1.6.4b20260930 to identify the current and correct module path for the `set_random_seed` function. Update the import statement in your `model_factory.py` to reflect this new location.

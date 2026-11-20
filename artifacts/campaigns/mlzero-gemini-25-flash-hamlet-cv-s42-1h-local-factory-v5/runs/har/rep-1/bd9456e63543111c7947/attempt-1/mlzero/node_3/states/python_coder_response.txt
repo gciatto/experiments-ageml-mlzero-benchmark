@@ -1,0 +1,152 @@
+```python
+import pandas as pd
+import numpy as np
+import random
+import os
+import uuid
+import shutil
+from autogluon.multimodal import MultiModalPredictor
+import logging
+
+# Suppress AutoGluon/PyTorch logging to avoid excessive output during evaluation.
+# This helps keep the output clean and focused on potential errors or results.
+logging.getLogger("autogluon").setLevel(logging.WARNING)
+logging.getLogger("pytorch_lightning").setLevel(logging.WARNING)
+logging.getLogger("transformers").setLevel(logging.WARNING)
+logging.getLogger("mmdet").setLevel(logging.WARNING)
+logging.getLogger("torch").setLevel(logging.WARNING)
+
+
+# Set global seeds for reproducibility.
+# AutoGluon MultiModal uses PyTorch internally, so setting torch seed is also good practice.
+SEED = 42
+np.random.seed(SEED)
+random.seed(SEED)
+try:
+    import torch
+    torch.manual_seed(SEED)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(SEED)
+except ImportError:
+    # torch might not be installed or needed for all AutoGluon backends,
+    # so we handle the case where it's not available.
+    pass
+
+class AutoGluonMMWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to conform to the fit/predict interface.
+    This class handles the lifecycle of the MultiModalPredictor, including
+    creating unique artifact directories per fold and cleaning them up.
+    """
+    def __init__(self, label_column: str):
+        self.label_column = label_column
+        self.predictor = None
+        self.model_path = None
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        All learned preprocessing and model fitting are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target.
+        """
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor.
+        # Ensure a copy to avoid modifying the original DataFrame if it's a view.
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Create a unique path for the model artifacts for this fold.
+        # This ensures "fresh artifact directories per fold" as required.
+        # Using /tmp is standard for temporary files.
+        self.model_path = os.path.join("/tmp", f"autogluon_mm_model_{uuid.uuid4().hex}")
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # Initialize MultiModalPredictor.
+        # problem_type is explicitly set to 'classification' as per task description.
+        # path is set to the unique directory for this fold's artifacts.
+        # verbosity=0 is used to suppress excessive output during training.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            problem_type='classification',
+            path=self.model_path,
+            verbosity=0, # Suppress excessive output
+        )
+
+        # Fit the predictor with a time limit.
+        # The time_limit is set conservatively to ensure all 10 folds finish
+        # within the total shared deadline. 100 seconds per fold for 10 folds
+        # is 1000 seconds, which leaves ample time for overhead within the
+        # remaining 1313 seconds total.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=100,  # seconds, adjusted for 10-fold CV within 1313s total
+            # The prompt states "Hyperparameter tuning is unnecessary because the presets is already configured."
+            # Relying on AutoGluon's default presets for MultiModalPredictor.
+            hyperparameters={"env.num_gpus": -1}, # Use all available GPUs if any
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Predicts class labels for the given features.
+
+        Args:
+            X (pd.DataFrame): Features for prediction.
+
+        Returns:
+            pd.Series: Predicted class labels for the 'Class' column.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+
+        # MultiModalPredictor.predict(X) directly returns the predicted class labels
+        # for classification tasks.
+        predictions = self.predictor.predict(X)
+        return predictions
+
+    def __del__(self):
+        """
+        Clean up the model directory when the object is garbage collected.
+        This is a best-effort cleanup. The harness might also clean up /tmp.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError:
+                # Ignore errors during cleanup, as the directory might already be removed
+                # or there might be permission issues in some environments.
+                pass
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMMWrapper:
+    """
+    Factory function to build a new, unfitted AutoGluon MultiModal model wrapper.
+
+    This function is called once per fold by the evaluation harness.
+    It returns a fresh instance of the model wrapper, ready to be fitted.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used to infer column names, not for fitting).
+        y_train (pd.Series): Training target (used to infer the label column name).
+
+    Returns:
+        AutoGluonMMWrapper: An unfitted model wrapper with fit() and predict() methods.
+    """
+    # The label column name is typically the name of the y_train Series.
+    # The task description specifies the target column as 'Class'.
+    label_column = y_train.name
+    if label_column is None:
+        # Fallback if y_train is a Series without a name, or a DataFrame with one column.
+        # This scenario is less likely given the contract, but good to be robust.
+        if isinstance(y_train, pd.Series):
+            label_column = "target"  # Default name if not explicitly set
+        elif isinstance(y_train, pd.DataFrame) and y_train.shape[1] == 1:
+            label_column = y_train.columns[0]
+        else:
+            raise ValueError("Could not determine label column name from y_train.")
+
+    return AutoGluonMMWrapper(label_column)
+```

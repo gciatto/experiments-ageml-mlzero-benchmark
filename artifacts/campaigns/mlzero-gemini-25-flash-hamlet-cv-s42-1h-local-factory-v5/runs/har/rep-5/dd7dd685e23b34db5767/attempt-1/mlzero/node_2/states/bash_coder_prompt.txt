@@ -1,0 +1,130 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-5/dd7dd685e23b34db5767/attempt-1/mlzero/node_2:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import numpy as np
+from autogluon.tabular import TabularPredictor
+from sklearn.base import BaseEstimator, ClassifierMixin
+import tempfile
+import logging
+
+# Set up basic logging to avoid AutoGluon's verbose output cluttering the console
+# and potentially slowing down I/O or causing issues in the evaluation environment.
+# AutoGluon's verbosity=0 handles most of its internal logging, but this catches
+# anything else or general Python logging.
+logging.basicConfig(level=logging.WARNING)
+
+# Global seed for reproducibility across all folds and internal AutoGluon processes.
+SEED = 42
+np.random.seed(SEED) # For any numpy operations that might be used outside AG
+
+class AutoGluonModelWrapper(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper for AutoGluon TabularPredictor to conform to the scikit-learn API.
+    This class handles the lifecycle of the AutoGluon model, including creating
+    and cleaning up temporary directories for its artifacts.
+    """
+    def __init__(self, target_column_name: str):
+        self.target_column_name = target_column_name
+        self.predictor = None
+        # Stores the TemporaryDirectory object. Its __del__ or garbage collection
+        # will handle cleanup of the directory.
+        self._temp_dir_obj = None
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor.
+        All preprocessing and model fitting happens here, using only the provided
+        training data (X and y) for the current fold.
+        """
+        # Combine X and y into a single DataFrame for AutoGluon.
+        # Ensure y has the correct name for AutoGluon to identify the target column.
+        # The evaluation harness ensures y.name is correctly set to the target column name.
+        y.name = self.target_column_name
+        train_data = pd.concat([X, y], axis=1)
+
+        # Create a temporary directory for AutoGluon artifacts for this specific fold.
+        # This ensures that each fold's training is isolated and does not interfere
+        # with other folds, fulfilling the "fresh artifact directories per fold" requirement.
+        self._temp_dir_obj = tempfile.TemporaryDirectory()
+        ag_path = self._temp_dir_obj.name
+
+        # Initialize and fit the TabularPredictor.
+        # - label: Specifies the target column.
+        # - eval_metric: Set to 'balanced_accuracy' as per the task description.
+        # - path: Directs AutoGluon to save its models and data in the temporary directory.
+        # - verbosity=0: Suppresses AutoGluon's extensive console output during fit.
+        self.predictor = TabularPredictor(
+            label=self.target_column_name,
+            eval_metric='balanced_accuracy',
+            path=ag_path,
+            verbosity=0
+        )
+
+        # Fit the predictor.
+        # - time_limit: Crucial for ensuring all ten fits complete within the shared deadline.
+        #               100 seconds per fold leaves a buffer for data loading and other overhead.
+        # - presets: 'medium_quality_fast_inference' offers a good balance between
+        #            model performance and training speed, suitable for time-constrained tasks.
+        # - random_state: Ensures reproducibility of AutoGluon's internal processes.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=100, # Approximately 100 seconds per fold
+            presets='medium_quality_fast_inference',
+            random_state=SEED
+        )
+
+        return self
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call fit() first.")
+
+        # AutoGluon expects a DataFrame for prediction.
+        predictions = self.predictor.predict(X)
+        # Return predictions as a numpy array, which is typically expected by
+        # scikit-learn compatible evaluators.
+        return predictions.values
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to create a new, unfitted model wrapper.
+    This function is called once per fold by the evaluation harness.
+    It should not perform any fitting or data processing itself.
+    """
+    # Infer the target column name from y_train.
+    # The evaluation harness is expected to provide y_train with its name attribute
+    # correctly set to the target column name (e.g., 'Class').
+    target_column_name = y_train.name
+    if target_column_name is None:
+        # Fallback: If for some reason y_train.name is not set, default to 'Class'
+        # as specified in the problem description. This makes the factory more robust.
+        target_column_name = 'Class'
+        logging.warning(f"y_train Series has no name. Defaulting target_column_name to '{target_column_name}'.")
+
+    # Return a fresh, unfitted instance of our AutoGluon model wrapper.
+    return AutoGluonModelWrapper(target_column_name=target_column_name)
+### Previous errors
+ERROR_SUMMARY: The `numpy` package was not successfully installed or made discoverable within the created conda environment, despite an explicit `uv pip install numpy` command. This led to a `ModuleNotFoundError` when the evaluation script attempted to import it.
+SUGGESTED_FIX: Modify the bash script to install `numpy` using `pip` directly (e.g., `"$PIP_BIN" install numpy`) before installing other packages with `uv`. Alternatively, ensure `numpy` is explicitly listed in one of the requirements files (`REQUIREMENTS_COMMON` or `REQUIREMENTS_AUTOGLUON_TABULAR`) to ensure `uv` handles it as a primary dependency.
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-5/dd7dd685e23b34db5767/attempt-1/mlzero/node_2/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 1138 seconds.

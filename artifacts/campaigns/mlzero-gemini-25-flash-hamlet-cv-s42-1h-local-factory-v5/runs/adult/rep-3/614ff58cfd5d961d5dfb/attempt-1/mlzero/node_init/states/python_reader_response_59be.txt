@@ -1,0 +1,36 @@
+```python
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv"
+
+try:
+    # Attempt to read the file as a CSV
+    df = pd.read_csv(file_path)
+
+    # Display column names
+    columns = df.columns.tolist()
+    if len(columns) > 20:
+        cols_display = columns[:10] + ['...'] + columns[-10:]
+        print(f"Columns: {', '.join(cols_display)}")
+    else:
+        print(f"Columns: {', '.join(columns)}")
+
+    # Show first 2 rows with truncated cell content (50 chars) and no index
+    print("\nFirst 2 rows:")
+    # Using to_string with max_colwidth and index=False provides concise, formatted output
+    print(df.head(2).to_string(index=False, max_colwidth=50))
+
+except (FileNotFoundError, pd.errors.ParserError, Exception) as e:
+    # If CSV reading fails (e.g., file not found, parsing error, or other pandas issues),
+    # treat it as a text file.
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)  # Read up to 768 characters
+            print(f"File could not be parsed as CSV or found. Displaying as text:\n{content}")
+    except Exception:
+        # If even reading as text fails (e.g., binary file, encoding error),
+        # provide basic file information.
+        print(f"Could not read file as text or CSV. Basic file info:\nPath: {file_path}\nSize: {os.path.getsize(file_path)} bytes")
+
+```

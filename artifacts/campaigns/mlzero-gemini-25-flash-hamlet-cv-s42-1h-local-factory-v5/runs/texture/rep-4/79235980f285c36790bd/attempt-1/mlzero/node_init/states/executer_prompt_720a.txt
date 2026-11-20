@@ -1,0 +1,91 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/data.csv"
+
+File Size: 1.45 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/data.csv"
+
+try:
+    # Attempt to read as a tabular file (CSV)
+    df = pd.read_csv(file_path)
+
+    # Display column names
+    columns = df.columns.tolist()
+    if len(columns) > 20:
+        cols_display = columns[:10] + ['...'] + columns[-10:]
+        print(f"Columns ({len(columns)} total): {', '.join(cols_display)}")
+    else:
+        print(f"Columns ({len(columns)} total): {', '.join(columns)}")
+
+    # Show first 3 rows with truncated cell content
+    print("\nFirst 3 rows:")
+    print(df.head(3).to_string(index=False, max_colwidth=50))
+
+except Exception as e:
+    # If reading as CSV fails, treat it as a text file
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(768) # Read up to 768 characters
+            print(f"Could not parse as tabular data ({type(e).__name__}: {e}). Displaying first 768 characters as text:\n")
+            print(content)
+    except Exception as text_e:
+        print(f"Could not open file as text either: {text_e}")
+
+## Execution Results
+### Standard Output (stdout)
+
+Columns (41 total): V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, ..., V32, V33, V34, V35, V36, V37, V38, V39, V40, Class
+
+First 3 rows:
+    V1     V2     V3     V4     V5     V6     V7     V8     V9    V10    V11    V12    V13    V14    V15    V16    V17    V18    V19    V20    V21    V22    V23    V24    V25    V26    V27    V28    V29    V30    V31    V32    V33    V34    V35    V36    V37    V38    V39    V40  Class
+-1.223 -0.798 -0.867 -0.639 -0.545 -0.412 -0.795 -0.629 -0.547 -0.868 -1.223 -0.879 -0.747 -0.818 -0.671 -0.718 -0.991 -0.778 -0.759 -0.892 -1.223 -0.899 -0.987 -0.750 -0.699 -0.566 -0.911 -0.786 -0.700 -1.015 -1.223 -0.766 -0.555 -0.714 -0.545 -0.587 -0.871 -0.620 -0.568 -0.607      5
+-1.410 -1.029 -1.013 -0.895 -0.762 -0.676 -1.043 -0.851 -0.775 -1.037 -1.410 -1.083 -0.894 -1.015 -0.825 -0.829 -1.172 -0.941 -0.891 -1.010 -1.410 -1.081 -1.094 -0.932 -0.808 -0.681 -1.071 -0.899 -0.812 -1.074 -1.410 -0.919 -0.770 -0.847 -0.663 -0.723 -1.013 -0.748 -0.698 -0.817      5
+-1.107 -0.649 -0.629 -0.492 -0.367 -0.298 -0.682 -0.478 -0.395 -0.681 -1.107 -0.718 -0.533 -0.671 -0.496 -0.533 -0.849 -0.603 -0.575 -0.673 -1.107 -0.839 -0.853 -0.700 -0.596 -0.443 -0.829 -0.680 -0.595 -0.870 -1.107 -0.692 -0.445 -0.588 -0.371 -0.368 -0.746 -0.457 -0.379 -0.469      5
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

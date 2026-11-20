@@ -1,0 +1,17 @@
+Best Run Summary
+================
+Linked to: node_0
+Reason: best validation score (0.1009)
+Tool used: autogluon.multimodal
+Symlink created at: best_run
+
+Validation Score Summary:
+Node 0 (autogluon.multimodal): 0.1009285180347799 (BEST)
+
+Best score: 0.1009 from node 0 using autogluon.multimodal
+
+Tool Usage Summary:
+==================
+Available tools: autogluon.multimodal, autogluon.tabular, machine learning
+Tools used: autogluon.multimodal
+Tools not used: machine learning, autogluon.tabular

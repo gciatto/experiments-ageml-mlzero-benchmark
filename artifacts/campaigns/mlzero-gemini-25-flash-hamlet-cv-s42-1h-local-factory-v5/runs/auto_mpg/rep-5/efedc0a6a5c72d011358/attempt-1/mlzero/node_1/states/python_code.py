@@ -1,0 +1,133 @@
+import pandas as pd
+import numpy as np
+import os
+import uuid
+from autogluon.multimodal import MultiModalPredictor
+from autogluon.core.utils.utils import set_random_seed
+
+# Set global random seed for reproducibility.
+# This should be called once at the module level to affect all subsequent operations.
+SEED = 42
+set_random_seed(SEED)
+
+# Define the problem type as specified in the task.
+PROBLEM_TYPE = 'regression'
+
+# Define a default target column name. This is used as a fallback if the y_train Series
+# passed to build_model does not have a name attribute. The task description specifies
+# 'class' as the target column.
+DEFAULT_TARGET_COLUMN_NAME = 'class'
+
+class AutoGluonMultiModalRegressionWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    build_model/fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self, problem_type: str, time_limit: int, label_column_name: str):
+        """
+        Initializes the wrapper with problem type, time limit, and the target column name.
+
+        Args:
+            problem_type (str): The type of machine learning problem (e.g., 'regression').
+            time_limit (int): The maximum time in seconds allowed for fitting the model.
+            label_column_name (str): The name of the target column.
+        """
+        self.predictor = None
+        self.problem_type = problem_type
+        self.time_limit = time_limit
+        self.output_path = None
+        self.label_column_name = label_column_name
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+        All preprocessing and model training are performed within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target values.
+        """
+        # Combine features and target into a single DataFrame required by MultiModalPredictor.
+        # The target column is added to X under the determined label_column_name.
+        train_data = X.copy()
+        train_data[self.label_column_name] = y
+
+        # Create a unique output path for model artifacts for each fold.
+        # This is crucial for ensuring "fresh artifact directories per fold"
+        # and preventing data leakage or conflicts across different folds.
+        self.output_path = f"./autogluon_multimodal_model_{uuid.uuid4().hex}"
+        
+        # Initialize MultiModalPredictor.
+        # The 'path' parameter directs where model artifacts and logs are stored.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column_name,
+            problem_type=self.problem_type,
+            path=self.output_path,
+            # verbosity=0, # Uncomment to reduce log output if needed during evaluation
+        )
+
+        # Fit the predictor with a specified time limit.
+        # The time_limit is critical for bounding each fit operation
+        # to ensure all ten folds complete within the shared deadline.
+        # AutoGluon MultiModal handles internal preprocessing (e.g., feature type detection,
+        # normalization, encoding) based solely on `train_data` provided here.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=self.time_limit,
+            # The problem statement indicates presets are already configured,
+            # so we rely on AutoGluon's default quality presets for efficiency.
+            # For regression, 'medium_quality' or 'high_quality' could be explored
+            # if more time is available, but defaults are safer for strict deadlines.
+            # presets='medium_quality', 
+        )
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            np.ndarray: A 1-dimensional array of numerical predictions.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() before .predict().")
+        
+        # Make predictions. AutoGluon MultiModalPredictor expects a DataFrame as input.
+        predictions = self.predictor.predict(X)
+        
+        # Ensure the output is a 1-dimensional numpy array, as required by the contract.
+        return predictions.to_numpy() if isinstance(predictions, pd.Series) else np.asarray(predictions)
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonMultiModalRegressionWrapper:
+    """
+    Factory function to create a new, unfitted model wrapper instance.
+    This function is called once per fold by the evaluation harness.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This is provided to infer metadata
+                                (like column names) but not for fitting the model at this stage.
+        y_train (pd.Series): Training target. Used to determine the target column name.
+
+    Returns:
+        AutoGluonMultiModalRegressionWrapper: An unfitted model wrapper instance,
+                                              ready for its .fit() method to be called.
+    """
+    # Determine the label column name from the provided y_train Series.
+    # If y_train has a name, use it; otherwise, fall back to the default.
+    label_column_name = y_train.name if y_train.name is not None else DEFAULT_TARGET_COLUMN_NAME
+
+    # Calculate a conservative time limit per fold for fitting.
+    # The total shared deadline is 3400 seconds for 10 folds.
+    # Allocating 300 seconds per fold for fitting leaves 400 seconds for overall overhead
+    # (e.g., module loading, build_model calls, data loading, evaluation).
+    time_limit_per_fold = 300 
+    
+    # Return a new, unfitted instance of our wrapper.
+    return AutoGluonMultiModalRegressionWrapper(
+        problem_type=PROBLEM_TYPE,
+        time_limit=time_limit_per_fold,
+        label_column_name=label_column_name
+    )

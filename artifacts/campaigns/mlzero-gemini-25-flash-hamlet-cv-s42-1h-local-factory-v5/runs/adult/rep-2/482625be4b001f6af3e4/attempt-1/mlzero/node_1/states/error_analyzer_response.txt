@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The AutoGluon `TabularPredictor.fit()` method failed because the specified `presets='medium_quality_fast_inference'` is not a valid preset for the installed AutoGluon version (1.6.3). The error message explicitly lists the available presets, none of which match the requested one.
+SUGGESTED_FIX: Modify the `presets` argument in the `predictor.fit()` call within the `AutoGluonTabularModel.fit` method. Replace `'medium_quality_fast_inference'` with one of the valid presets listed in the error message, such as `'medium_quality'` or `'high_quality'`.

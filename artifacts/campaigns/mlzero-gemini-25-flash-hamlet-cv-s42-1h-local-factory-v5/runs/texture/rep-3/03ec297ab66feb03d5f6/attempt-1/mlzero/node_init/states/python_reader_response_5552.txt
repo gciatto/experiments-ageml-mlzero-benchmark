@@ -1,0 +1,56 @@
+```python
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json"
+
+output_buffer = []
+
+def add_to_buffer(content):
+    output_buffer.append(str(content))
+
+try:
+    df = pd.read_json(file_path)
+
+    if not df.empty:
+        columns = df.columns.tolist()
+        if len(columns) > 20:
+            add_to_buffer("Columns (first 10 and last 10):")
+            add_to_buffer(columns[:10] + ['...'] + columns[-10:])
+        else:
+            add_to_buffer("Columns:")
+            add_to_buffer(columns)
+
+        add_to_buffer("\nFirst 3 rows:")
+        
+        df_head = df.head(3).copy()
+
+        for col in df_head.columns:
+            df_head[col] = df_head[col].astype(str).apply(
+                lambda x: (x[:50] + '...') if len(x) > 50 else x
+            )
+        
+        add_to_buffer(df_head.to_string(index=False))
+
+    else:
+        add_to_buffer("JSON file read as an empty DataFrame. Displaying as text.")
+        raise ValueError("Empty DataFrame")
+
+except (pd.errors.EmptyDataError, ValueError, json.JSONDecodeError, pd.errors.ParserError, FileNotFoundError) as e:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            add_to_buffer("File content (first 768 characters):")
+            add_to_buffer(content)
+    except Exception as text_e:
+        add_to_buffer(f"Could not read file as text: {text_e}")
+except Exception as e:
+    add_to_buffer(f"An unexpected error occurred: {e}")
+
+final_output = "\n".join(output_buffer)
+if len(final_output) > 768:
+    final_output = final_output[:765] + "..."
+
+print(final_output)
+```

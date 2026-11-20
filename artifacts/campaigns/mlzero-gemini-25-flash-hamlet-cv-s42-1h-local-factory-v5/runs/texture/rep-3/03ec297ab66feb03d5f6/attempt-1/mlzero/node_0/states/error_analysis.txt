@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ValueError` indicates that `random_seed` is an invalid keyword argument for the `TabularPredictor` constructor. The `TabularPredictor`'s `__init__` method does not accept a `random_seed` parameter, leading to the error during initialization.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `TabularPredictor` constructor call. Instead, pass the `random_seed` parameter directly to the `predictor.fit()` method to ensure reproducibility during the training process.

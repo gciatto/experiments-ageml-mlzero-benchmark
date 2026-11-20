@@ -1,0 +1,31 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-2/482625be4b001f6af3e4/attempt-1/mlzero/node_2/conda_env"
+COMMON_REQUIREMENTS="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQUIREMENTS="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+# Create conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 --yes || { echo "ERROR: Failed to create conda environment."; exit 1; }
+
+# Activate the environment
+echo "Activating conda environment..."
+source "$(conda info --base)/etc/profile.d/conda.sh" || { echo "ERROR: Failed to initialize conda shell."; exit 1; }
+conda activate "$CONDA_ENV_PATH" || { echo "ERROR: Failed to activate conda environment."; exit 1; }
+
+# Install uv
+echo "Installing uv into the environment..."
+pip install uv || { echo "ERROR: Failed to install uv."; exit 1; }
+
+# Install required packages from requirements files using uv
+echo "Installing packages from requirements files using uv..."
+uv pip install -r "$MULTIMODAL_REQUIREMENTS" --prerelease=allow -r "$COMMON_REQUIREMENTS" || { echo "ERROR: Failed to install packages from requirements files."; exit 1; }
+
+# Install numpy, pandas, scikit-learn
+echo "Installing numpy, pandas, scikit-learn into the environment..."
+pip install numpy pandas scikit-learn || { echo "ERROR: Failed to install numpy, pandas, scikit-learn."; exit 1; }
+
+echo "Conda environment setup complete at $CONDA_ENV_PATH."
+```

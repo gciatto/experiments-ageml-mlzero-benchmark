@@ -1,0 +1,6 @@
+Columns: ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'class']
+
+First 2 rows (truncated to 50 chars per cell, max 3 columns):
+age workclass   fnlwgt
+ 25   Private 226802.0
+ 38   Private  89814.0

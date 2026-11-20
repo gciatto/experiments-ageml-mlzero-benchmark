@@ -1,0 +1,65 @@
+```python
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/data.csv"
+output_buffer = []
+
+def add_to_buffer(text):
+    output_buffer.append(str(text))
+
+try:
+    # Attempt to read as a tabular file (CSV)
+    df = pd.read_csv(file_path)
+
+    # Display column names
+    columns = df.columns.tolist()
+    col_display_limit = 10 # Display first and last 10 if more than 20 total
+    if len(columns) > col_display_limit * 2:
+        col_str = str(columns[:col_display_limit] + ['...'] + columns[-col_display_limit:])
+    else:
+        col_str = str(columns)
+
+    # Truncate the column string representation if it's too long for the output limit
+    if len(col_str) > 200: # Heuristic limit for column string representation
+        col_str = str(columns[:5]) + f", ... ({len(columns)-5} more columns)"
+    add_to_buffer(f"Columns: {col_str}")
+
+    # Show first 2 rows with truncated cell content (50 chars)
+    add_to_buffer("\nFirst 2 rows:")
+    head_str = df.head(2).to_string(index=False, max_colwidth=50)
+    
+    # Truncate the head string if it's too long for the output limit
+    if len(head_str) > 500: # Heuristic limit for head string representation
+        head_str = head_str[:500] + "\n... (truncated)"
+    add_to_buffer(head_str)
+
+except Exception as e:
+    # If pandas fails, treat as a text file
+    add_to_buffer(f"Could not read as tabular (Error: {type(e).__name__}). Attempting to read as text file.")
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(700) # Read up to 700 characters to leave room for other messages
+            add_to_buffer("\nFirst few lines (up to 700 chars):\n")
+            add_to_buffer(content)
+            if len(content) == 700:
+                add_to_buffer("\n... (truncated)")
+    except Exception as text_e:
+        add_to_buffer(f"Could not read as text file either (Error: {type(text_e).__name__}).")
+        # Fallback for truly unreadable or binary files
+        if os.path.exists(file_path):
+            try:
+                file_size = os.path.getsize(file_path)
+                add_to_buffer(f"File exists but could not be read. Size: {file_size} bytes.")
+            except OSError:
+                add_to_buffer("File exists but could not determine size.")
+        else:
+            add_to_buffer("File not found.")
+
+# Join the buffer and print, ensuring total output is under 768 characters
+final_output = "\n".join(output_buffer)
+if len(final_output) > 768:
+    final_output = final_output[:765] + "..." # Truncate if still too long
+
+print(final_output)
+```

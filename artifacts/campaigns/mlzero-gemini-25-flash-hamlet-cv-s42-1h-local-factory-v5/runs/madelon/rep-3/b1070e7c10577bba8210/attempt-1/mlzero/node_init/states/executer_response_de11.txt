@@ -1,0 +1,3 @@
+DECISION: FIX
+ERROR_SUMMARY: Cell content in the first 3 rows is truncated to 8 characters, but the requirement was 50 characters. The column names in the header for the first 3 rows are also truncated to 8 characters.
+VALIDATION_SCORE: None

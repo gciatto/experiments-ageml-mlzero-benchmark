@@ -1,0 +1,144 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+The data science task is **classification**.
+
+*   **Problem Type**: Classification.
+*   **Input Format**: Tabular data, where `X` represents features and `y` represents the target column named `Class`.
+*   **Prediction Output Format**: Discrete class labels, corresponding to the values found in the `Class` column.
+*   **Evaluation Metric**: Balanced accuracy (higher is better).
+
+**Methodology Constraints**:
+The task requires training models using a 10-fold cross-validation setup, with predefined folds specified in `cv_contract.json`. There is no independent test set. Models must be returned by `build_model(X_train, y_train)` as new, unfitted objects with `fit(X,y)` and `predict(X)` methods. All preprocessing must be internal to the model and fitted only on the training data for each fold. Stochastic models must use `random_state/seed 42`. No external data, services, or unstated assumptions are permitted.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/README.md
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (text):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+       ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was called with an unrecognized `seed` keyword argument. The AutoGluon library's `fit` method does not accept a `seed` parameter directly; instead, reproducibility is typically controlled by passing `random_state` to the `TabularPredictor` constructor.
+SUGGESTED_FIX: Remove the `seed` argument from the `predictor.fit()` method call. Instead, pass the `seed` value as `random_state` to the `TabularPredictor` constructor when initializing the predictor object.
+
+ERROR_SUMMARY: The `MultiModalPredictor` constructor received an unexpected `random_state` keyword argument, leading to a `TypeError`. The `random_state` parameter is not a valid argument for the `MultiModalPredictor`'s initialization method in the AutoGluon version being used.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor call. To ensure reproducibility, pass the `random_state` value as a hyperparameter, specifically `env.seed`, within the `hyperparameters` dictionary to the `predictor.fit()` method.
+
+ERROR_SUMMARY: The `conda create` command failed to properly initialize the conda environment at the specified path, resulting in the absence of the `bin/activate` script. This prevented the environment from being activated, causing subsequent `uv pip install` commands to install packages into an incorrect or default environment, leading to a `ModuleNotFoundError` for `numpy` when the Python script executed.
+SUGGESTED_FIX: Add a check after the `conda create` command to verify its successful completion and the existence of the `bin/activate` script within the specified environment path. Ensure the `conda` executable is correctly configured and has the necessary permissions to create environments.
+
+Available Tutorials:
+1. Title: Condensed: ```python
+   Summary: This tutorial covers AutoGluon's TabularPredictor for automated machine learning on tabular data. It demonstrates implementation of quick model training with minimal code, automated handling of data preprocessing, and model deployment. Key functionalities include: loading tabular data, training multiple models simultaneously, making predictions, evaluating performance, and saving/loading models. The tutorial explains different performance presets (from "medium" to "extreme"), feature importance analysis, and optimization strategies for classification and regression tasks. AutoGluon automatically handles missing values, feature engineering, and model selection, making it valuable for rapid prototyping and production-quality predictive modeling with just a few lines of code.
+2. Title: Condensed: ```python
+   Summary: This tutorial demonstrates AutoGluon TabularPredictor for machine learning tasks, covering hyperparameter tuning with search spaces for neural networks and gradient boosting models, model ensembling through stacking/bagging, and decision threshold calibration for binary classification. It explains inference optimization techniques including model persistence, inference speed constraints, ensemble reduction, and model distillation. The tutorial provides practical code examples for accelerating predictions (up to 160x speedup), managing memory usage, and evaluating model performance. Key functionalities include feature importance analysis, loading/saving predictors, making batch and single-instance predictions, and optimizing deployment with techniques like refit_full, persist, and infer_limit parameters.
+3. Title: Condensed: Installation
+   Summary: This tutorial demonstrates implementing foundation models for tabular data using AutoGluon. It covers three key models: Mitra (for small datasets with zero-shot and fine-tuning capabilities), TabICL (leveraging in-context learning for limited data), and TabPFNv2 (utilizing prior knowledge for small datasets). The code shows how to prepare data, train individual models for classification and regression tasks, and create ensembles combining multiple foundation models. Developers can learn to implement these specialized tabular models with different configurations, evaluate their performance, and handle both classification and regression problems with small to medium-sized datasets.
+4. Title: Condensed: ```python
+   Summary: AutoGluon Tabular predictor deployment tutorial provides a guide to AutoGluon TabularPredictor deployment
+5. Title: Condensed: ```python
+   Summary: This tutorial demonstrates AutoGluon's MultilabelPredictor implementation for predicting multiple target columns simultaneously. It covers creating a custom class that manages multiple TabularPredictors, with methods for training, prediction, evaluation, and model persistence. Key features include handling different problem types (regression, classification) for each target, optional correlation consideration between labels during prediction, and customizable evaluation metrics. The code helps with multi-target machine learning tasks, offering flexibility in how predictions are generated and evaluated. The implementation provides a clean API for training multiple models with a single interface while maintaining individual model access.
+6. Title: Condensed: ```python
+   Summary: This tutorial demonstrates how to implement custom models in AutoGluon by extending the AbstractModel class, specifically creating a custom RandomForest implementation. It covers preprocessing with label encoding, dynamic model selection based on problem type, and proper integration with AutoGluon's ecosystem. Key functionalities include custom model training, feature preprocessing, model saving/loading, bagged ensembles for improved performance, and hyperparameter tuning using search spaces. The tutorial helps with tasks like implementing custom ML algorithms within AutoGluon, integrating models with TabularPredictor, and optimizing model performance through bagging and hyperparameter optimization.
+7. Title: Condensed: ```
+   Summary: This tutorial explains AutoGluon's automatic feature engineering capabilities for tabular data. It covers type-specific processing: numerical columns remain unchanged, categorical columns are integer-encoded, datetime columns are converted to numerical values with extracted temporal features (year, month, day, weekday), and text columns use either n-gram encoding or Transformer networks with MultiModal. The tutorial demonstrates how to implement custom feature generation pipelines using PipelineFeatureGenerator, CategoryFeatureGenerator, and IdentityFeatureGenerator classes, with examples of limiting categorical values and handling specific data types. It also addresses missing value handling and provides tips for customizing the feature engineering process.
+8. Title: Condensed: ```
+   Summary: This tutorial demonstrates how to use AutoGluon for fraud detection in the IEEE Fraud detection competition. AutoGluon's TabularPredictor can be used to train a model for binary classification with minimal code. It shows how to use TabularPredictor for binary classification with TabularPredictor for binary classification with TabularPredictor for binary classification.
+9. Title: Condensed: ```python
+   Summary: This tutorial demonstrates how to create and use custom evaluation metrics in AutoGluon, focusing on what makes them better for model optimization. It covers the implementation of custom metrics for classification, regression, and probability-based tasks, with examples of accuracy, ROC AUC, and MSE. The metrics are defined using make_scorer and can be used for model evaluation and comparison.
+10. Title: Condensed: ```python
+   Summary: This tutorial demonstrates how to prevent AutoGluon from dropping specific features during preprocessing. It covers three key techniques: (1) creating custom models with the `drop_unique=False` parameter to preserve single-value features, (2) implementing a `CustomFeatureGeneratorWithUserOverride` that uses `IdentityFeatureGenerator` to bypass preprocessing for tagged features, and (3) tagging features with special types like 'user_override' to control their processing. These methods are valuable for maintaining important features in machine learning pipelines, ensuring model interpretability, and handling domain-specific features that shouldn't undergo standard transformations.
+11. Title: Condensed: ```python
+   Summary: This tutorial demonstrates using AutoGluon Multimodal for multimodal classification on the PetFinder dataset. It covers: (1) implementing multimodal machine learning with images and tabular data, including proper image path handling and feature metadata configuration; (2) solving pet adoption prediction tasks by integrating different data types; and (3) key functionalities including data preparation for multimodal inputs, configuring feature metadata to identify image columns, creating appropriate hyperparameter configurations, and training a TabularPredictor that automatically handles mixed data types. The tutorial showcases how to process image paths, configure models for multimodal inputs, and evaluate performance on test data.
+12. Title: Condensed: ```python
+   Summary: This tutorial explains GPU acceleration in AutoGluon, covering basic GPU allocation with `num_gpus` parameter, model-specific GPU assignment using hyperparameters dictionary, and multi-modal configuration retrieval. It details special installation requirements for GPU-enabled LightGBM and demonstrates advanced resource allocation techniques to control CPU/GPU usage at predictor, ensemble, and individual model levels. The tutorial helps with optimizing machine learning workflows by efficiently distributing computational resources across different models and training processes, particularly useful for implementing parallel hyperparameter optimization with controlled resource allocation for tabular, multimodal, and gradient-boosted models.
+13. Title: Condensed: ```python
+   Summary: " "Tabular: "Tabular: "Tabular Hypersc 'Hypersc 'Hypertuning 1.Hat 'Hypertuning 'Hypertuning 'Hyperturf: "Hypertuning 'Hyperparred 'Hyperparcel: "Hypertuner: "Hyperturf: "Hypertuner: "Hypertuner: "Hyperturf: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hypertuner: "Hyperparameter Tuning"
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

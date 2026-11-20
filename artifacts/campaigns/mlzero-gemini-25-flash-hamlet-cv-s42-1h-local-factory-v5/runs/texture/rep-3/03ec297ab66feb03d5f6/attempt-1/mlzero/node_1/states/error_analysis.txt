@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The AutoGluon `TabularPredictor.fit` method failed because the specified `presets` string, 'medium_quality_faster_inference', is not a valid option for the installed AutoGluon version. The error message explicitly lists the available presets, none of which match the provided string.
+SUGGESTED_FIX: Modify the `presets` argument in the `TabularPredictor.fit` call to use one of the valid preset strings listed in the error message, such as 'medium_quality'. Ensure the chosen preset is compatible with the installed AutoGluon version.

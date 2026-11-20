@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an unsupported `random_state` argument. The installed version of AutoGluon does not accept `random_state` directly during its initialization, leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor call. To ensure reproducibility, import `set_seed` from `autogluon.common.utils.utils` and call `set_seed(RANDOM_SEED)` before initializing the `TabularPredictor` or before calling its `fit` method.

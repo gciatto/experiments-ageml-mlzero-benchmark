@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` class constructor was called with an unsupported keyword argument `random_state`. This argument is not part of the `MultiModalPredictor`'s initialization signature.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor call. Ensure global random seeds are set for `random` and `numpy` if reproducibility is required, as AutoGluon often relies on these.

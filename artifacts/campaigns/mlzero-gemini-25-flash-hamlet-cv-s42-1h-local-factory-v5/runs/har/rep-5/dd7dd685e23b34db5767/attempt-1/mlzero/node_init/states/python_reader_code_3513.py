@@ -1,0 +1,50 @@
+import pandas as pd
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv"
+
+try:
+    # Read CSV file
+    # low_memory=False is used to prevent mixed type warnings for large files,
+    # which can happen when pandas tries to guess dtypes from chunks.
+    df = pd.read_csv(file_path, low_memory=False)
+
+    # Prepare column names string
+    columns = df.columns.tolist()
+    col_output = ""
+    if len(columns) > 20:
+        col_output = f"Columns: {columns[:10]} ... {columns[-10:]}"
+    else:
+        col_output = f"Columns: {columns}"
+    
+    # Add a newline for separation from the head, and print
+    col_output_str = col_output + "\n"
+    print(col_output_str, end='') # Use end='' to avoid an extra newline if the string itself ends with one.
+
+    # Calculate remaining characters for the head display
+    remaining_chars = 768 - len(col_output_str)
+
+    if remaining_chars > 0:
+        # Display first 2 rows with truncated cell content, limiting to first 5 columns
+        # This is to ensure the output stays within the character limit.
+        display_df = df.head(2)
+        if len(display_df.columns) > 5:
+            display_df = display_df.iloc[:, :5] # Limit to first 5 columns for display
+
+        truncated_head = display_df.apply(
+            lambda x: x.astype(str).apply(
+                lambda y: y[:50] + '...' if len(y) > 50 else y
+            )
+        )
+        
+        head_str = truncated_head.to_string(index=False)
+        print(head_str[:remaining_chars]) # Truncate head if needed to fit remaining_chars
+
+except Exception:
+    # Fallback for non-tabular or unreadable files (e.g., parsing error, file not found)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(content)
+    except Exception:
+        # If even reading as text fails (e.g., binary file, permission error)
+        print(f"Could not read file: {file_path}")

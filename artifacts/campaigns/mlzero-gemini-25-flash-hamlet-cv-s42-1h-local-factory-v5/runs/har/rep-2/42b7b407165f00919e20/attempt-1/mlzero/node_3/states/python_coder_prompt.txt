@@ -1,0 +1,304 @@
+Generate a SELF-CONTAINED Python factory MODULE using machine learning.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+The data science task is **classification**.
+
+**Input Format:**
+Tabular data, sourced from `data.csv` (an AGE-ML exported CSV). The `build_model` function receives `X_train` (features) and `y_train` (target). The target column is named `Class`.
+
+**Prediction Output Format:**
+Class labels, as the output of the `predict(X)` method, for the classification task. The performance metric is `balanced_accuracy`.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: har
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other to
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (first 768 chars):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        10...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+In the bash script, install all necessary packages.
+### Native debug/evolution context
+### Previous Code to Improve
+```python
+import os
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+import uuid
+import logging
+
+# Set the global random seed for AutoGluon reproducibility.
+# This must be done at the module level, before any AutoGluon components are initialized.
+# As per previous errors, 'seed' is not accepted in TabularPredictor.fit() and
+# 'random_state' is not accepted in MultiModalPredictor constructor.
+# For TabularPredictor, AG_TABULAR_RANDOM_SEED environment variable is the correct
+# way to ensure global reproducibility.
+os.environ['AG_TABULAR_RANDOM_SEED'] = '42'
+
+# Optional: Configure logging to control AutoGluon's verbosity.
+# By default, AutoGluon can be quite verbose. Setting to WARNING or ERROR can reduce output.
+# For this task, it's often fine to let it log, but if excessive output causes issues,
+# uncommenting and adjusting the level below can be helpful.
+# logging.basicConfig(level=logging.WARNING)
+
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the harness.
+    """
+    def __init__(self, unique_model_path: str, eval_metric: str, time_limit: int):
+        """
+        Initializes the AutoGluonTabularWrapper.
+
+        Args:
+            unique_model_path (str): A unique file system path where AutoGluon
+                                     will store its models and artifacts for this instance.
+                                     This ensures isolation between different folds.
+            eval_metric (str): The evaluation metric AutoGluon should optimize for.
+            time_limit (int): The maximum time in seconds AutoGluon should spend fitting.
+        """
+        self.model_path = unique_model_path
+        self.predictor = None
+        self.eval_metric = eval_metric
+        self.time_limit = time_limit
+        # The target column name is explicitly 'Class' as per the problem description.
+        self.label_column = 'Class'
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor using the provided training data.
+        All learned preprocessing is fitted within this method, using only
+        the training rows provided for the current fold.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Ensure the unique model path exists before AutoGluon tries to write to it.
+        os.makedirs(self.model_path, exist_ok=True)
+
+        # AutoGluon's TabularPredictor expects features and target combined
+        # into a single DataFrame.
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Initialize TabularPredictor.
+        # The 'path' argument ensures artifacts are stored in the unique directory
+        # created for this specific model instance (fold).
+        self.predictor = TabularPredictor(
+            label=self.label_column,
+            path=self.model_path,
+            eval_metric=self.eval_metric,
+            # verbosity=0 # Uncomment to suppress AutoGluon output during fit
+        )
+
+        # Fit the predictor.
+        # 'time_limit' is crucial for managing execution time per fold, ensuring
+        # all ten fits finish within the shared deadline.
+        # 'presets='best_quality'' aims for high performance.
+        # The global random seed is already set via the AG_TABULAR_RANDOM_SEED
+        # environment variable at the module level.
+        self.predictor.fit(
+            train_data,
+            time_limit=self.time_limit,
+            presets='best_quality',
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Generates predictions for the given input features.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's predict method expects a DataFrame.
+        predictions = self.predictor.predict(X)
+        return predictions
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted AutoGluon model wrapper.
+
+    This function is called by the harness for each cross-validation fold.
+    It returns an unfitted model instance that exposes `fit(X,y)` and `predict(X)` methods.
+
+    Args:
+        X_train (pd.DataFrame): Training features for the current fold.
+                                (Provided by harness, not used for fitting here).
+        y_train (pd.Series): Training target for the current fold.
+                             (Provided by harness, not used for fitting here).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper instance ready for training.
+    """
+    # Generate a unique path for AutoGluon artifacts for this specific model instance (fold).
+    # This ensures that each fold's model training artifacts are isolated and do not
+    # interfere with other folds or previous runs.
+    # The 'autogluon_model_artifacts' directory will be created in the current working directory
+    # where the model_factory.py is executed.
+    unique_model_path = os.path.join("autogluon_model_artifacts", str(uuid.uuid4()))
+
+    # The total remaining search time is 3033 seconds for ALL ten fits.
+    # For 10 folds, this is roughly 300 seconds per fold.
+    # Setting time_limit to 270 seconds allows for some overhead and ensures
+    # all fits can complete within the shared deadline.
+    time_limit_per_fold = 270 # seconds
+
+    # Instantiate the wrapper. The actual AutoGluon predictor will be initialized
+    # and fitted within the wrapper's .fit() method when called by the harness.
+    return AutoGluonTabularWrapper(
+        unique_model_path=unique_model_path,
+        eval_metric='balanced_accuracy',
+        time_limit=time_limit_per_fold
+    )
+```
+Please prioritize model architecture improvements and training optimization to enhance performance. Feature engineering may also be applied but with lower priority.
+
+### Previous errors
+ERROR_SUMMARY: The `TabularPredictor.fit()` method was invoked with an unsupported keyword argument, 'seed'. AutoGluon's `fit()` method does not accept a direct 'seed' parameter for global reproducibility.
+SUGGESTED_FIX: Remove the `seed=self.seed` argument from the `self.predictor.fit()` call within the `AutoGluonTabularWrapper.fit` method. AutoGluon's global random seed is already correctly configured via the `AG_TABULAR_RANDOM_SEED` environment variable.
+
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unexpected `random_state` keyword argument. The `autogluon.multimodal.MultiModalPredictor` class does not accept a `random_state` parameter during initialization.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor call. If reproducibility is desired, pass a `seed` argument to the `predictor.fit()` method instead.
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+# Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+# Intro to Use Machine Learning or Deep Learning algorithms
+
+You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-2/42b7b407165f00919e20/attempt-1/mlzero/node_3/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 232 seconds.

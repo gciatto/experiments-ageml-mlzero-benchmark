@@ -1,0 +1,748 @@
+Generate a SELF-CONTAINED Python factory MODULE using autogluon.tabular.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+This data science task is a **classification** problem.
+
+**Input Format:** Tabular data provided as a CSV file (`data.csv`). Each instance consists of 561 numerical features (columns `V1` through `V561`). The model's `fit` and `predict` methods will receive this data, likely as a Pandas DataFrame or similar structure.
+
+**Prediction Output Format:** For each input instance, the model must predict a single class label, corresponding to the `Class` column in the original dataset.
+
+The task involves a ten-fold cross-validation benchmark, with no independent test set. The evaluation metric is `balanced_accuracy`.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Column Names:
+Total: 562. First 10: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10'], Last 10: ['V553', 'V554', 'V555', 'V556', 'V557', 'V558', 'V559', 'V560', 'V561', 'Class']
+
+First 3 Rows:
+      V1        V2        V3        V4        V5        V6        V7        V8        V9       V10       V11       V12      V13      V14      V15       V16       V17       V18       V19       V20       V21       V22       V23       V24       V25      V26       V27      V28       V29      V30       V31      V32       V33      V34       V35       V36       V37       V38       V39      V40      V41       V42      V43       V44       V45       V46       V47       V48       V49      V50       V51      V52      V53       V54      V55       V56      V57       V...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: har
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other to
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (first 768 chars):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        10...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+try to use presets="extreme"
+Do not manually split a validation set from the training data - AutoGluon Tabular automatically handles internal validation and reports validation scores, so simply pass the full training data to the fit() method.
+AutoGluon Tabular requires converting multiple label columns into either a single combined label for mutually exclusive cases or training separate predictors for each label in non-exclusive scenarios.
+### Native debug/evolution context
+
+### Previous errors
+
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial covers AutoGluon's TabularPredictor for automated machine learning on tabular data. It demonstrates implementation of quick model training with minimal code, automated handling of data preprocessing, and model deployment. Key functionalities include: loading tabular data, training multiple models simultaneously, making predictions, evaluating performance, and saving/loading models. The tutorial explains different performance presets (from "medium" to "extreme"), feature importance analysis, and optimization strategies for classification and regression tasks. AutoGluon automatically handles missing values, feature engineering, and model selection, making it valuable for rapid prototyping and production-quality predictive modeling with just a few lines of code.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon TabularPredictor Quick Start
+
+## Setup and Installation
+
+```python
+!pip install autogluon.tabular[all]
+from autogluon.tabular import TabularDataset, TabularPredictor
+```
+
+## Loading Data
+
+```python
+# Load data (TabularDataset is essentially a Pandas DataFrame)
+train_data = TabularDataset('https://autogluon.s3.amazonaws.com/datasets/Inc/train.csv')
+train_data = train_data.sample(n=500, random_state=0)  # Subsample for demo
+
+# Identify the target column
+label = 'class'
+print(f"Unique classes: {list(train_data[label].unique())}")
+```
+
+**Important:** AutoGluon works with raw data - avoid preprocessing like missing value imputation or one-hot-encoding as AutoGluon handles these automatically.
+
+## Training
+
+```python
+# Initialize and fit in one line
+predictor = TabularPredictor(label=label).fit(train_data)
+```
+
+## Prediction
+
+```python
+# Load test data
+test_data = TabularDataset('https://autogluon.s3.amazonaws.com/datasets/Inc/test.csv')
+
+# Make predictions
+y_pred = predictor.predict(test_data)
+y_pred_proba = predictor.predict_proba(test_data)  # For probability predictions
+```
+
+## Evaluation
+
+```python
+# Evaluate overall performance
+predictor.evaluate(test_data)
+
+# Evaluate individual models
+predictor.leaderboard(test_data)
+```
+
+## Saving and Loading
+
+```python
+# The predictor is automatically saved during training
+predictor_path = predictor.path
+
+# Load the predictor in a new session
+predictor = TabularPredictor.load(predictor_path)
+```
+
+⚠️ **WARNING:** `TabularPredictor.load()` uses the `pickle` module which can be insecure. Only load data from trusted sources.
+
+## Minimal Usage
+
+For your own datasets, you can use just two lines of code:
+
+```python
+from autogluon.tabular import TabularPredictor
+predictor = TabularPredictor(label='your_target_column').fit(train_data='your_data.csv')
+```
+
+Note: This simple call is intended for prototyping. For better performance, specify the `presets` parameter to `fit()` and the `eval_metric` parameter to `TabularPredictor()`.
+
+# AutoGluon Tabular Fit Process and Presets
+
+## Understanding the `fit()` Process
+
+AutoGluon automatically handles binary classification problems, inferring feature types and addressing common issues like missing data and feature scaling:
+
+```python
+print("AutoGluon infers problem type is: ", predictor.problem_type)
+print("AutoGluon identified the following types of features:")
+print(predictor.feature_metadata)
+```
+
+During training:
+- AutoGluon automatically splits data into training/validation sets when not specified
+- Trains multiple models of various types (neural networks, tree ensembles, etc.)
+- Automatically tunes hyperparameters to maximize validation performance
+- Parallelizes training across multiple threads using Ray
+- Creates model ensembles to improve predictive performance
+
+## Data Transformation and Feature Importance
+
+View the transformed data in AutoGluon's internal representation:
+
+```python
+test_data_transform = predictor.transform_features(test_data)
+test_data_transform.head()
+```
+
+Analyze feature importance to understand model decisions:
+
+```python
+predictor.feature_importance(test_data)
+```
+
+The `importance` column estimates how much the evaluation metric would drop if the feature were removed.
+
+## Working with Models
+
+By default, AutoGluon predicts with the best-performing model:
+
+```python
+predictor.model_best  # View the best model
+predictor.model_names()  # List all trained models
+```
+
+Specify a particular model for predictions:
+```python
+predictor.predict(test_data, model='LightGBM')
+```
+
+## Presets for Different Use Cases
+
+| Preset | Model Quality | Use Cases | Fit Time | Inference Time | Disk Usage |
+|--------|---------------|-----------|----------|----------------|------------|
+| extreme | Far better than best on datasets <30K samples | Cutting edge with tabular foundation models (TabPFNv2, TabICL, Mitra, TabM). Requires GPU. | 4x+ | 32x+ | 8x+ |
+| best | State-of-the-art | For serious usage, competition-winning quality | 16x+ | 32x+ | 16x+ |
+| high | Better than good | Powerful, portable solution with fast inference | 16x+ | 4x | 2x |
+| good | Stronger than other AutoML frameworks | Fast inference for large-scale/edge deployment | 16x | 2x | 0.1x |
+| medium | Competitive with top AutoML frameworks | Initial prototyping, baseline performance | 1x | 1x | 1x |
+
+**Recommended workflow:**
+1. Start with `medium` preset for initial prototyping
+2. Move to `best` preset with at least 16x the time limit for production-quality models
+3. Try `extreme` preset on GPU for small datasets (<30K samples)
+4. Consider `high` or `good` presets if inference speed or model size are critical
+
+For GPU users, install additional dependencies with: `pip install autogluon[tabarena]`
+
+# Maximizing Predictive Performance
+
+For best predictive accuracy with AutoGluon, use this approach:
+
+```python
+time_limit = 60  # set to maximum time you're willing to wait (in seconds)
+metric = 'roc_auc'  # specify your evaluation metric
+predictor = TabularPredictor(label, eval_metric=metric).fit(train_data, time_limit=time_limit, presets='best')
+```
+
+```python
+predictor.leaderboard(test_data)
+```
+
+## Key Strategies for Maximum Accuracy
+
+- Use `presets='best'` to enable powerful model ensembles with stacking/bagging
+  - Default is `'medium'` (less accurate but faster)
+  - For faster deployment with lower accuracy: `presets=['good', 'optimize_for_deployment']`
+
+- Specify `eval_metric` based on your evaluation needs:
+  - Classification: `'f1'`, `'roc_auc'`, `'log_loss'`
+  - Regression: `'mean_absolute_error'`, `'median_absolute_error'`
+  - Custom metrics are supported (see [Adding a custom me
+...(truncated)
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon TabularPredictor for machine learning tasks, covering hyperparameter tuning with search spaces for neural networks and gradient boosting models, model ensembling through stacking/bagging, and decision threshold calibration for binary classification. It explains inference optimization techniques including model persistence, inference speed constraints, ensemble reduction, and model distillation. The tutorial provides practical code examples for accelerating predictions (up to 160x speedup), managing memory usage, and evaluating model performance. Key functionalities include feature importance analysis, loading/saving predictors, making batch and single-instance predictions, and optimizing deployment with techniques like refit_full, persist, and infer_limit parameters.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon TabularPredictor Tutorial: Hyperparameter Tuning and Model Ensembling
+
+## Setup and Data Loading
+
+```python
+!pip install autogluon.tabular[all]
+
+from autogluon.tabular import TabularDataset, TabularPredictor
+import numpy as np
+
+# Load and sample data
+train_data = TabularDataset('https://autogluon.s3.amazonaws.com/datasets/Inc/train.csv')
+train_data = train_data.sample(n=1000, random_state=0)  # subsample for faster demo
+
+label = 'occupation'
+test_data = TabularDataset('https://autogluon.s3.amazonaws.com/datasets/Inc/test.csv')
+test_data_nolabel = test_data.drop(columns=[label])
+
+metric = 'accuracy'  # evaluation metric
+```
+
+## Hyperparameter Tuning
+
+> **Note: AutoGluon typically achieves best performance without hyperparameter tuning by simply using `presets="best_quality"`**
+
+```python
+from autogluon.common import space
+
+# Define hyperparameter search spaces
+nn_options = {
+    'num_epochs': 10,
+    'learning_rate': space.Real(1e-4, 1e-2, default=5e-4, log=True),
+    'activation': space.Categorical('relu', 'softrelu', 'tanh'),
+    'dropout_prob': space.Real(0.0, 0.5, default=0.1),
+}
+
+gbm_options = {
+    'num_boost_round': 100,
+    'num_leaves': space.Int(lower=26, upper=66, default=36),
+}
+
+hyperparameters = {
+    'GBM': gbm_options,
+    'NN_TORCH': nn_options,  # Comment out if errors on Mac OSX
+}
+
+# HPO configuration
+hyperparameter_tune_kwargs = {
+    'num_trials': 5,
+    'scheduler': 'local',
+    'searcher': 'auto',
+}
+
+# Train with hyperparameter tuning
+predictor = TabularPredictor(label=label, eval_metric=metric).fit(
+    train_data,
+    time_limit=2*60,  # 2 minutes
+    hyperparameters=hyperparameters,
+    hyperparameter_tune_kwargs=hyperparameter_tune_kwargs,
+)
+
+# Predict and evaluate
+y_pred = predictor.predict(test_data_nolabel)
+perf = predictor.evaluate(test_data, auxiliary_metrics=False)
+
+# View training summary
+results = predictor.fit_summary()
+```
+
+## Model Ensembling with Stacking/Bagging
+
+```python
+# Switch to binary classification task
+label = 'class'
+test_data_nolabel = test_data.drop(columns=[label])
+y_test = test_data[label]
+save_path = 'agModels-predictClass'
+
+# Train with bagging and stacking
+predictor = TabularPredictor(label=label, eval_metric=metric).fit(
+    train_data,
+    num_bag_folds=5,     # k-fold bagging
+    num_bag_sets=1,      # number of bagging iterations
+    num_stack_levels=1,  # number of stacking levels
+    # Reduced hyperparameters for quick demo only
+    hyperparameters={'NN_TORCH': {'num_epochs': 2}, 'GBM': {'num_boost_round': 20}},
+)
+```
+
+**Important Notes:**
+- Don't provide `tuning_data` when using stacking/bagging - AutoGluon will intelligently split the data
+- Increasing `num_bag_sets` may improve accuracy but significantly increases training time and resource usage
+- Use `auto_stack` parameter (part of `best_quality` preset) to let AutoGluon automatically select optimal stacking/bagging values
+
+# Decision Threshold Calibration in TabularPredictor
+
+## Initial Setup and Training
+
+```python
+predictor = TabularPredictor(label=label, eval_metric='balanced_accuracy', path=save_path).fit(
+    train_data, auto_stack=True,
+    calibrate_decision_threshold=False,  # Disabled for demonstration
+    hyperparameters={'FASTAI': {'num_epochs': 10}, 'GBM': {'num_boost_round': 200}}  # For quick demo only
+)
+predictor.leaderboard(test_data)
+```
+
+> **Note**: Stacking/bagging often produces better accuracy than hyperparameter-tuning alone. Consider using `presets='best_quality'` which sets `auto_stack=True`.
+
+## Decision Threshold Calibration
+
+For binary classification, adjusting the prediction threshold can significantly improve metrics like `f1` and `balanced_accuracy`.
+
+### Basic Calibration Example
+
+```python
+# Evaluate before calibration
+print(f'Prior to calibration (predictor.decision_threshold={predictor.decision_threshold}):')
+scores = predictor.evaluate(test_data)
+
+# Calibrate and set new threshold
+calibrated_decision_threshold = predictor.calibrate_decision_threshold()
+predictor.set_decision_threshold(calibrated_decision_threshold)
+
+# Evaluate after calibration
+print(f'After calibration (predictor.decision_threshold={predictor.decision_threshold}):')
+scores_calibrated = predictor.evaluate(test_data)
+```
+
+### Calibration Trade-offs
+
+Calibrating for one metric (like "balanced_accuracy") may improve that metric but harm others (like "accuracy"). This represents a performance trade-off between different metrics.
+
+### Calibrating for Specific Metrics
+
+```python
+predictor.set_decision_threshold(0.5)  # Reset threshold
+for metric_name in ['f1', 'balanced_accuracy', 'mcc']:
+    # Get baseline score
+    metric_score = predictor.evaluate(test_data, silent=True)[metric_name]
+    
+    # Calibrate for specific metric
+    calibrated_decision_threshold = predictor.calibrate_decision_threshold(metric=metric_name, verbose=False)
+    
+    # Evaluate with calibrated threshold
+    metric_score_calibrated = predictor.evaluate(
+        test_data, decision_threshold=calibrated_decision_threshold, silent=True
+    )[metric_name]
+    
+    print(f'decision_threshold={calibrated_decision_threshold:.3f}\t| metric="{metric_name}"'
+          f'\n\ttest_score uncalibrated: {metric_score:.4f}'
+          f'\n\ttest_score   calibrated: {metric_score_calibrated:.4f}'
+          f'\n\ttest_score        delta: {metric_score_calibrated-metric_score:.4f}')
+```
+
+### Best Practices
+
+- Use `calibrate_decision_threshold=True` during fitting to automatically calibrate
+- The default `calibrate_decision_threshold="auto"` applies calibration when beneficial
+- Custom thresholds can be used during prediction:
+  
+...(truncated)
+
+
+### Condensed: ```
+# Condensed: ```
+
+Summary: This tutorial demonstrates how to use AutoGluon for fraud detection in the IEEE Fraud detection competition. AutoGluon's TabularPredictor can be used to train a model for binary classification with minimal code. It shows how to use TabularPredictor for binary classification with TabularPredictor for binary classification with TabularPredictor for binary classification.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# AutoGluon for Kaggle Competitions: IEEE Fraud Detection
+
+## Data Setup and Preparation
+
+```python
+import pandas as pd
+import numpy as np
+from autogluon.tabular import TabularPredictor
+
+directory = '~/IEEEfraud/'
+label = 'isFraud'
+eval_metric = 'roc_auc'
+save_path = directory + 'AutoGluonModels/'
+
+# Load and merge data
+train_identity = pd.read_csv(directory+'train_identity.csv')
+train_transaction = pd.read_csv(directory+'train_transaction.csv')
+train_data = pd.merge(train_transaction, train_identity, on='TransactionID', how='left')
+```
+
+## Training the Model
+
+```python
+# Train with best quality preset
+predictor = TabularPredictor(label=label, eval_metric=eval_metric, path=save_path, verbosity=3).fit(
+    train_data, presets='best_quality', time_limit=3600
+)
+
+results = predictor.fit_summary()
+```
+
+## Making Predictions
+
+```python
+# Load and merge test data
+test_identity = pd.read_csv(directory+'test_identity.csv')
+test_transaction = pd.read_csv(directory+'test_transaction.csv')
+test_data = pd.merge(test_transaction, test_identity, on='TransactionID', how='left')
+
+# Get prediction probabilities for positive class
+y_predproba = predictor.predict_proba(test_data, as_multiclass=False)
+```
+
+## Important: Verify Prediction Class Labels
+
+```python
+# For binary classification
+predictor.positive_class
+
+# For multiclass classification
+predictor.class_labels  # classes correspond to columns of predict_proba() output
+```
+
+## Creating Submission File
+
+```python
+submission = pd.read_csv(directory+'sample_submission.csv')
+submission['isFraud'] = y_predproba
+submission.to_csv(directory+'my_submission.csv', index=False)
+```
+
+## Performance Optimization Tips
+
+- Specify the appropriate evaluation metric from the competition
+- For time-based data, reserve recent examples as validation data
+- Use `presets='best_quality'` and focus on feature engineering
+- Advanced options: `num_bag_folds`, `num_stack_levels`, `num_bag_sets`, `hyperparameter_tune_kwargs`, `hyperparameters`, `refit_full`
+
+## Submission Command
+
+```
+kaggle competitions submit -c ieee-fraud-detection -f sample_submission.csv -m "my first submission"
+```
+
+
+### Condensed: ```
+# Condensed: ```
+
+Summary: This tutorial explains AutoGluon's automatic feature engineering capabilities for tabular data. It covers type-specific processing: numerical columns remain unchanged, categorical columns are integer-encoded, datetime columns are converted to numerical values with extracted temporal features (year, month, day, weekday), and text columns use either n-gram encoding or Transformer networks with MultiModal. The tutorial demonstrates how to implement custom feature generation pipelines using PipelineFeatureGenerator, CategoryFeatureGenerator, and IdentityFeatureGenerator classes, with examples of limiting categorical values and handling specific data types. It also addresses missing value handling and provides tips for customizing the feature engineering process.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# Automatic Feature Engineering in AutoGluon
+
+## Feature Processing by Data Type
+
+### Numerical Columns
+- No automated feature engineering for integer and floating point columns
+
+### Categorical Columns
+- Mapped to monotonically increasing integers for model compatibility
+
+### Datetime Columns
+- Converted to numerical Pandas datetime values
+- Extracted features: `[year, month, day, dayofweek]` by default
+- Missing/invalid values replaced with mean
+- Note: Pandas datetime has min/max limits that may affect extreme dates
+
+### Text Columns
+- With MultiModal option: processed using Transformer neural networks
+- Without MultiModal:
+  - N-gram feature generation (creates "n-hot" encoded columns)
+  - Special features (word counts, character counts, etc.)
+
+## Additional Processing
+- Single-value columns are dropped
+- Duplicate columns are removed
+
+## Implementation Example
+
+```python
+# Basic usage
+predictor = TabularPredictor(label='class', problem_type='multiclass').fit(train_data)
+
+# Custom feature generator
+from autogluon.features.generators import PipelineFeatureGenerator, CategoryFeatureGenerator, IdentityFeatureGenerator
+from autogluon.common.features.types import R_INT, R_FLOAT
+
+mypipeline = PipelineFeatureGenerator(
+    generators = [[        
+        CategoryFeatureGenerator(maximum_num_cat=10),  # Limit categorical values
+        IdentityFeatureGenerator(infer_features_in_args=dict(valid_raw_types=[R_INT, R_FLOAT])),
+    ]]
+)
+
+# Use custom feature generator with predictor
+predictor = TabularPredictor(label='label')
+predictor.fit(df, hyperparameters={'GBM': {}}, feature_generator=mypipeline)
+```
+
+## Missing Value Handling
+- Datetime columns: missing values replaced with mean
+- Other columns: NaN values preserved
+
+## Customization Tips
+- Use `PipelineFeatureGenerator` for custom pipelines
+- Configure individual generators with parameters like `maximum_num_cat`
+- For categorical recognition, explicitly set column type: `df["col"] = df["col"].astype("category")`
+
+
+### Condensed: ```python
+# Condensed: ```python
+
+Summary: This tutorial demonstrates how to create and use custom evaluation metrics in AutoGluon, focusing on what makes them better for model optimization. It covers the implementation of custom metrics for classification, regression, and probability-based tasks, with examples of accuracy, ROC AUC, and MSE. The metrics are defined using make_scorer and can be used for model evaluation and comparison.
+
+*This is a condensed version that preserves essential implementation details and context.*
+
+# Custom Metrics in AutoGluon
+
+## Setup
+```python
+!pip install autogluon.tabular[all]
+import numpy as np
+from autogluon.core.metrics import make_scorer
+import sklearn.metrics
+```
+
+## Important: Ensuring Metric is Serializable
+Custom metrics must be defined in a separate Python file and imported to be pickled properly. If not serializable, you'll get `_pickle.PicklingError: Can't pickle` errors when using parallel training.
+
+**Best Practice:** Create a file like `my_metrics.py` with your metric definitions, then import with `from my_metrics import ag_accuracy_scorer`.
+
+## Creating Custom Metrics
+
+### Custom Accuracy Metric
+```python
+ag_accuracy_scorer = make_scorer(
+    name='accuracy',
+    score_func=sklearn.metrics.accuracy_score,
+    optimum=1,
+    greater_is_better=True,
+    needs_class=True
+)
+```
+
+### Custom Mean Squared Error Metric
+```python
+ag_mean_squared_error_scorer = make_scorer(
+    name='mean_squared_error',
+    score_func=sklearn.metrics.mean_squared_error,
+    optimum=0,
+    greater_is_better=False
+)
+```
+
+### Custom Function Example
+```python
+def mse_func(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    return ((y_true - y_pred) ** 2).mean()
+
+ag_mean_squared_error_custom_scorer = make_scorer(
+    name='mean_squared_error',
+    score_func=mse_func,
+    optimum=0,
+    greater_is_better=False
+)
+```
+
+### Custom ROC AUC Metric
+```python
+ag_roc_auc_scorer = make_scorer(
+    name='roc_auc',
+    score_func=sklearn.metrics.roc_auc_score,
+    optimum=1,
+    greater_is_better=True,
+    needs_threshold=True
+)
+```
+
+## Key Parameters for `make_scorer`
+- `name`: Name for the scorer (used in logs)
+- `score_func`: The function to wrap
+- `optimum`: Best possible value from the original metric
+- `greater_is_better`: Whether higher values are better
+- `needs_*`: Specify the type of predictions required:
+  - `needs_pred`: For regression metrics (default if no others specified)
+  - `needs_proba`: For probability estimates
+  - `needs_class`: For classification predictions
+  - `needs_threshold`: For continuous decision certainty (binary classification)
+  - `needs_quantile`: For quantile regression
+
+## Using Custom Metrics in TabularPredictor
+
+### With leaderboard
+```python
+predictor = TabularPredictor(label=label).fit(train_data, hyperparameters='toy')
+predictor.leaderboard(test_data, extra_metrics=[ag_roc_auc_scorer, ag_accuracy_scorer])
+```
+
+### As evaluation metric
+```python
+predictor_custom = TabularPredictor(label=label, eval_metric=ag_roc_auc_scorer).fit(train_data, hyperparameters='toy')
+predictor_custom.leaderboard(test_data)
+```
+
+## Important Notes
+- AutoGluon Scorers always report scores in `greater_is_better=True` form internally
+- For metrics where `greater_is_better=False`, AutoGluon flips the value
+- Error is calculated as `sign * optimum - score` where `sign=1` if `greater_is_better=True`, else `sign=-1`
+- Error is always in `lower_is_better` format (0 = perfect prediction)
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-3/053ecb30e95bae230b78/attempt-1/mlzero/node_0/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3215 seconds.

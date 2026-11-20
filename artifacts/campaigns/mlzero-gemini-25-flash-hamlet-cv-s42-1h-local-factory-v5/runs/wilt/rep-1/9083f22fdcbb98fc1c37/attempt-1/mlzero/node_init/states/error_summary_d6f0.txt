@@ -1,0 +1,1 @@
+FutureWarning: `DataFrame.applymap` has been deprecated. Use `DataFrame.map` instead for applying a function element-wise to a DataFrame.

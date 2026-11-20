@@ -1,0 +1,147 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import tempfile
+import shutil
+import logging
+from autogluon.multimodal import MultiModalPredictor
+
+# Configure logging to suppress excessive AutoGluon output if desired.
+# For this task, we'll keep it simple and rely on AutoGluon's default logging
+# behavior, which might be verbose but provides useful information.
+# If needed, uncomment and adjust the following line:
+# logging.basicConfig(level=logging.WARNING)
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon's MultiModalPredictor to conform to the
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self, target_column_name: str = "class"):
+        """
+        Initializes the wrapper. The MultiModalPredictor itself is initialized
+        during the fit method to ensure a fresh, unfitted state for each fold.
+
+        Args:
+            target_column_name (str): The name of the target column in the dataset.
+                                      Defaults to "class" as specified in the task.
+        """
+        self.target_column_name = target_column_name
+        self.predictor: MultiModalPredictor = None
+        self.temp_path: str = None # Path for AutoGluon's temporary artifacts
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        All learned preprocessing and model fitting occur within this method,
+        using only the provided training data (X, y).
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training labels.
+        """
+        # Create a unique temporary directory for AutoGluon artifacts for this fold.
+        # This ensures fresh artifact directories per fold and prevents interference.
+        self.temp_path = tempfile.mkdtemp()
+
+        # Ensure y has a name for concatenation; use the specified target_column_name
+        # if it doesn't have one. This is crucial for MultiModalPredictor.
+        if y.name is None:
+            y.name = self.target_column_name
+        
+        # Combine features and labels into a single DataFrame, which is the expected
+        # input format for MultiModalPredictor's fit method.
+        train_data = pd.concat([X, y], axis=1)
+
+        # Initialize MultiModalPredictor with task-specific parameters:
+        # - label: The name of the target column.
+        # - problem_type: "multiclass" for integer class labels in a classification task.
+        # - eval_metric: "balanced_accuracy" as specified in the task requirements.
+        # - path: The temporary directory for model artifacts, ensuring isolation per fold.
+        # - seed: 42 for reproducibility across runs.
+        self.predictor = MultiModalPredictor(
+            label=self.target_column_name,
+            problem_type="multiclass",
+            eval_metric="balanced_accuracy",
+            path=self.temp_path,
+            seed=42,
+        )
+
+        # Fit the predictor with a time limit to ensure all ten fits finish
+        # inside the remaining shared deadline.
+        # The total shared deadline is 1611 seconds for 10 folds.
+        # A conservative estimate of 120 seconds per fold is used (10 * 120 = 1200 seconds total for fitting),
+        # leaving ample time for overhead.
+        time_limit_per_fold = 120 # seconds
+
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=time_limit_per_fold,
+            # For purely numerical data, MultiModalPredictor will automatically
+            # leverage its tabular capabilities. No specific hyperparameters
+            # are provided to allow AutoGluon to use its default robust settings
+            # and optimize within the given time limit.
+        )
+
+        # Clean up the temporary directory immediately after fitting.
+        # The trained model is now loaded in self.predictor's memory,
+        # and the artifacts on disk are no longer needed for this instance.
+        if os.path.exists(self.temp_path):
+            shutil.rmtree(self.temp_path)
+            self.temp_path = None # Clear the path reference
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Makes predictions using the fitted model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: A 1-dimensional NumPy array of predicted integer class labels,
+                        with its length matching the number of input samples.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # Get class predictions from the fitted MultiModalPredictor.
+        predictions = self.predictor.predict(X)
+        
+        # Ensure the output is a 1-dimensional NumPy array of integer class labels,
+        # as required by the prediction output format. AutoGluon's predict method
+        # typically returns a pandas Series, so we convert it.
+        return predictions.to_numpy().astype(int)
+
+    def __del__(self):
+        """
+        Destructor to ensure cleanup of temporary directories if the object
+        is garbage collected and the path still exists (e.g., if fit failed
+        before cleanup or if the object was not explicitly destroyed).
+        """
+        if self.temp_path and os.path.exists(self.temp_path):
+            shutil.rmtree(self.temp_path)
+            self.temp_path = None
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series):
+    """
+    Factory function to build and return a fresh, unfitted model wrapper.
+    This function is called by the evaluation harness for each fold.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This argument is provided by the
+                                harness but is not used for fitting within this function.
+                                It can be used to infer metadata if needed.
+        y_train (pd.Series): Training labels. Used to infer the target column name.
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper instance with
+                                    `fit(X,y)` and `predict(X)` methods.
+    """
+    # The target column name is explicitly given as 'class' in the problem description.
+    target_column_name = 'class'
+    return AutoGluonMultiModalWrapper(target_column_name=target_column_name)
+
+```

@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The code attempts to call `autogluon.core.set_seed`, but this function has been removed in the installed version of AutoGluon (1.6.4b20260930). This results in an `AttributeError` because the `autogluon.core` module no longer contains this attribute.
+SUGGESTED_FIX: Remove the line `ag.set_seed(self.random_seed)` from the `fit` method of the `AutoGluonModelWrapper` class. This function is deprecated and no longer exists in the current AutoGluon version.

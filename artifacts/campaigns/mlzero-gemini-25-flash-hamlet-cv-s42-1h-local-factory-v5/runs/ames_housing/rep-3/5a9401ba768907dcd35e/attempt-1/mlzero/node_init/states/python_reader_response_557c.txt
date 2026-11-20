@@ -1,0 +1,64 @@
+```python
+import json
+import pandas as pd
+import io
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/cv_contract.json"
+
+output_buffer = io.StringIO()
+
+def print_to_buffer(text):
+    """Helper to write text to a buffer, ensuring newlines."""
+    output_buffer.write(text + '\n')
+
+try:
+    # Attempt to read the file as a pandas DataFrame (tabular data)
+    df = pd.read_json(file_path)
+
+    # If successful, apply tabular display rules
+    
+    # Display column names
+    cols = df.columns.tolist()
+    if len(cols) > 20:
+        col_display = cols[:10] + ['...'] + cols[-10:]
+    else:
+        col_display = cols
+    print_to_buffer(f"Columns: {', '.join(map(str, col_display))}")
+
+    # Show first 2-3 rows with truncated cell content
+    def truncate_cell_content(cell):
+        s = str(cell)
+        return s[:50] + '...' if len(s) > 50 else s
+
+    # Apply truncation to all cells in the head of the DataFrame
+    truncated_df = df.head(3).applymap(truncate_cell_content)
+    # Use to_string(index=False) to avoid displaying the DataFrame index
+    print_to_buffer(truncated_df.to_string(index=False))
+
+except Exception:
+    # If pandas.read_json fails (e.g., not a simple tabular JSON, or malformed)
+    # Fallback to treating it as a generic text/JSON file
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+        
+        # Try to parse as generic JSON
+        data = json.loads(content)
+        # Pretty-print the JSON content
+        json_str = json.dumps(data, indent=2)
+        print_to_buffer(json_str)
+
+    except Exception:
+        # If not even valid JSON, treat as plain text
+        try:
+            with open(file_path, 'r') as f:
+                # Read only up to 768 characters for text files
+                content = f.read(768)
+                print_to_buffer(content)
+        except Exception as e_text:
+            print_to_buffer(f"Could not read file: {e_text}")
+
+# Retrieve the collected output and truncate it to 768 characters
+final_output = output_buffer.getvalue()
+print(final_output[:768])
+```

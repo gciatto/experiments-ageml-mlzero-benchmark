@@ -1,0 +1,46 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define the target conda environment path
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-4/79235980f285c36790bd/attempt-1/mlzero/node_0/conda_env"
+
+# Define paths to the requirements files
+AUTOGLUON_TABULAR_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluon Tabular module."
+echo "Target conda environment: $CONDA_ENV_PATH"
+
+# Ensure the parent directory for the conda environment exists
+mkdir -p "$(dirname "$CONDA_ENV_PATH")"
+
+# Create a new conda environment with Python 3.11 at the specified path
+echo "Creating conda environment with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 -y
+
+# Initialize conda for the current shell session to make 'conda activate' available
+echo "Initializing conda..."
+source "$(conda info --base)/etc/profile.d/conda.sh"
+
+# Activate the newly created environment
+echo "Activating conda environment: $CONDA_ENV_PATH"
+conda activate "$CONDA_ENV_PATH"
+
+# Install uv, a fast Python package installer and resolver
+echo "Installing uv into the environment..."
+pip install uv
+
+# Install required packages from the specified requirements files using uv
+# The order of -r flags and --prerelease=allow is maintained as specified in the prompt.
+# uv will only install/upgrade packages if necessary to satisfy the requirements,
+# ensuring autogluon.tabular is not reinstalled if already at the correct version.
+echo "Installing required packages from requirements files using uv..."
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQ_PATH" \
+    --prerelease=allow \
+    -r "$COMMON_REQ_PATH"
+
+echo "Conda environment setup complete at $CONDA_ENV_PATH"
+echo "All specified packages, including numpy, pandas, scikit-learn, and autogluon.tabular, are installed."
+```

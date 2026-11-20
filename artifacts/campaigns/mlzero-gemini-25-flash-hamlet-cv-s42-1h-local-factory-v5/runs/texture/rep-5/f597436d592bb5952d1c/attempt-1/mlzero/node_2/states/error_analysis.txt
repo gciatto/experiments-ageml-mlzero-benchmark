@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unsupported `random_state` keyword argument. The `MultiModalPredictor` class does not accept `random_state` during initialization, leading to a `TypeError`.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor. Instead, pass the `random_state` value as the `seed` argument to the `predictor.fit()` method for reproducibility.

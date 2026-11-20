@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function, previously located in `autogluon.core.utils.utils`, has been removed or moved in the installed AutoGluon version `1.6.4b20260930`. This is an API change, likely due to deprecation in newer AutoGluon releases.
+SUGGESTED_FIX: Remove the `from autogluon.core.utils.utils import set_seed` line and the `set_seed(self.seed)` call. Reintroduce the `random_state=self.seed` argument to the `TabularPredictor` constructor, as this is the standard and recommended way to set the seed for AutoGluon models.

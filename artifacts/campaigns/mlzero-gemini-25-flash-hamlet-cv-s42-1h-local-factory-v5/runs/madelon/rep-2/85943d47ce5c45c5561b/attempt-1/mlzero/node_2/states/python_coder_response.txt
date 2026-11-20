@@ -1,0 +1,138 @@
+```python
+import pandas as pd
+import numpy as np
+import os
+import uuid
+import tempfile
+
+# AutoGluon MultiModal
+from autogluon.multimodal import MultiModalPredictor
+
+# Set a global seed for reproducibility where possible.
+# AutoGluon MultiModal's seed argument handles internal randomness.
+GLOBAL_SEED = 42
+
+class AutoGluonMMWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, problem_type, seed, output_dir_base, time_limit_per_fit):
+        """
+        Initializes the wrapper.
+
+        Args:
+            problem_type (str): The type of problem ('binary' or 'multiclass').
+            seed (int): Random seed for reproducibility.
+            output_dir_base (str): Base directory for storing model artifacts.
+                                   Each fit call will create a unique subdirectory here.
+            time_limit_per_fit (int): Maximum time in seconds allowed for each fit call.
+        """
+        self.problem_type = problem_type
+        self.seed = seed
+        self.output_dir_base = output_dir_base
+        self.time_limit_per_fit = time_limit_per_fit
+        self.predictor = None
+        self.fold_model_path = None # Path where the model for the current fold is saved
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Create a unique output directory for this fold's fit.
+        # This ensures "fresh artifact directories per fold" as required.
+        self.fold_model_path = os.path.join(self.output_dir_base, f"automm_fold_{uuid.uuid4().hex}")
+        os.makedirs(self.fold_model_path, exist_ok=True)
+
+        # Combine X and y into a single DataFrame for AutoGluon.
+        # The target column is named 'Class' as per the problem description.
+        train_data = X.copy()
+        train_data['Class'] = y
+
+        # Initialize MultiModalPredictor.
+        # 'balanced_accuracy' is specified as the metric.
+        # 'medium_quality' preset is chosen for faster training, crucial for the time limit.
+        # 'time_limit' is set to ensure each fit finishes within the shared deadline.
+        self.predictor = MultiModalPredictor(
+            label='Class',
+            problem_type=self.problem_type,
+            path=self.fold_model_path, # Model artifacts will be saved here
+            eval_metric='balanced_accuracy',
+            seed=self.seed,
+        )
+
+        # Fit the predictor.
+        # Custom hyperparameters are added to further constrain training time,
+        # especially by reducing the maximum number of epochs.
+        self.predictor.fit(
+            train_data=train_data,
+            presets='medium_quality',
+            time_limit=self.time_limit_per_fit,
+            hyperparameters={
+                "optimization.max_epochs": 5, # Reduce epochs for faster training
+                "optimization.batch_size": 64, # A reasonable batch size for tabular data
+            }
+        )
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon MultiModalPredictor's predict method expects a DataFrame
+        # and returns a Series/DataFrame. Convert to a numpy array as required by the harness.
+        predictions = self.predictor.predict(X)
+        return predictions.values
+
+def build_model(X_train, y_train):
+    """
+    Factory function to create a new, unfitted model wrapper for AutoGluon MultiModal.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used to infer problem type).
+        y_train (pd.Series): Training target labels (used to infer problem type).
+
+    Returns:
+        AutoGluonMMWrapper: An unfitted model wrapper instance.
+    """
+    # Determine problem type based on the number of unique classes in y_train.
+    # This is crucial for AutoGluon to configure the correct loss function and metrics.
+    num_classes = y_train.nunique()
+    if num_classes == 2:
+        problem_type = 'binary'
+    else:
+        problem_type = 'multiclass'
+
+    # Create a base temporary directory for all folds of this model factory instance.
+    # This directory will contain subdirectories for each fold's model artifacts.
+    # Using mkdtemp ensures a unique base path for each build_model call,
+    # preventing conflicts across different runs or instances.
+    temp_dir_base = tempfile.mkdtemp(prefix="automm_factory_")
+
+    # The total remaining search time is 253 seconds for ten-fold evaluation.
+    # To ensure all ten fits complete within the deadline, we allocate a conservative
+    # time limit per fit. 10 folds * 15 seconds/fold = 150 seconds, leaving
+    # over 100 seconds for overhead (e.g., data loading, model initialization, evaluation).
+    # The Madelon dataset is relatively small (2600 rows), so 15 seconds per fit
+    # should be achievable with the 'medium_quality' preset and reduced epochs.
+    time_limit_per_fit = 15 # seconds
+
+    return AutoGluonMMWrapper(
+        problem_type=problem_type,
+        seed=GLOBAL_SEED,
+        output_dir_base=temp_dir_base,
+        time_limit_per_fit=time_limit_per_fit
+    )
+```

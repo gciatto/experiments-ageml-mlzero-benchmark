@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function, previously available in `autogluon.common.utils.utils`, has been moved or removed in the installed AutoGluon version (1.6.4b). The current code attempts to import and use this non-existent function, leading to the failure.
+SUGGESTED_FIX: Remove the import statement for `set_seed` from `autogluon.common.utils.utils` and the subsequent call to `set_seed`. Instead, ensure reproducibility by setting `numpy.random.seed(42)` and `random.seed(42)` at the module level.

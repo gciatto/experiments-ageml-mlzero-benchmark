@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unexpected `random_state` keyword argument. The `autogluon.multimodal.MultiModalPredictor` class does not accept a `random_state` parameter during initialization.
+SUGGESTED_FIX: Remove the `random_state` argument from the `MultiModalPredictor` constructor call. If reproducibility is desired, pass a `seed` argument to the `predictor.fit()` method instead.

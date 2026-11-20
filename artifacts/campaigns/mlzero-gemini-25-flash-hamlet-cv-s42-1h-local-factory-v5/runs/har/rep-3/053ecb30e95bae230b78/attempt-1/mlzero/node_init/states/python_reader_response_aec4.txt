@@ -1,0 +1,87 @@
+```python
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json"
+output_parts = []
+MAX_OUTPUT_CHARS = 768
+TRUNCATE_CELL_CHARS = 50
+MAX_DISPLAY_COLS_FOR_ROWS = 10 # Limit columns displayed in rows to keep output concise
+
+try:
+    # Attempt to read as a JSON file that can be converted to a DataFrame
+    df = pd.read_json(file_path)
+
+    # Check if it's a DataFrame and has columns (i.e., not an empty or malformed JSON that pandas still parses)
+    if not df.empty and not df.columns.empty:
+        # Tabular file analysis
+        all_columns = df.columns.tolist()
+        num_all_columns = len(all_columns)
+
+        # Prepare column names for display (first/last 10 if > 20)
+        display_column_names = []
+        if num_all_columns > 20:
+            display_column_names.extend(all_columns[:10])
+            display_column_names.append("...")
+            display_column_names.extend(all_columns[-10:])
+        else:
+            display_column_names.extend(all_columns)
+        output_parts.append(f"Columns: {', '.join(display_column_names)}\n")
+
+        # Prepare columns for row data display (limit to first MAX_DISPLAY_COLS_FOR_ROWS)
+        columns_for_row_display = all_columns[:MAX_DISPLAY_COLS_FOR_ROWS]
+        if num_all_columns > MAX_DISPLAY_COLS_FOR_ROWS:
+            output_parts.append(f"First {MAX_DISPLAY_COLS_FOR_ROWS} columns of first 3 rows:\n")
+        else:
+            output_parts.append("First 3 rows:\n")
+
+        # Show first 2-3 rows with truncated cell content
+        for i in range(min(3, len(df))):
+            row_data_parts = []
+            for col_name in columns_for_row_display:
+                value = str(df.iloc[i][col_name])
+                truncated_value = f"{value[:TRUNCATE_CELL_CHARS]}{'...' if len(value) > TRUNCATE_CELL_CHARS else ''}"
+                row_data_parts.append(f"{col_name}: {truncated_value}")
+            output_parts.append(f"Row {i}: {', '.join(row_data_parts)}\n")
+
+    else:
+        # If pandas read it but it's empty or not structured like a typical DataFrame,
+        # or if it's a single complex JSON object not easily flattened,
+        # fall back to text display.
+        raise ValueError("JSON not directly tabular or empty.")
+
+except (ValueError, pd.errors.EmptyDataError, pd.errors.ParserError, json.JSONDecodeError) as e:
+    # If pandas failed to read it as a DataFrame, or if the custom check failed,
+    # treat it as a text file.
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(MAX_OUTPUT_CHARS)
+            output_parts.append("File content (first 768 chars):\n")
+            output_parts.append(content)
+            if len(content) == MAX_OUTPUT_CHARS:
+                output_parts.append("...") # Indicate truncation
+            output_parts.append("\n")
+    except Exception as text_read_error:
+        output_parts.append(f"Could not read file as text: {text_read_error}\n")
+        output_parts.append("File might be binary or corrupted.\n")
+
+except Exception as e:
+    # Catch any other unexpected errors
+    output_parts.append(f"An unexpected error occurred: {e}\n")
+    output_parts.append("Attempting to read as text.\n")
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(MAX_OUTPUT_CHARS)
+            output_parts.append("File content (first 768 chars):\n")
+            output_parts.append(content)
+            if len(content) == MAX_OUTPUT_CHARS:
+                output_parts.append("...")
+            output_parts.append("\n")
+    except Exception as text_read_error:
+        output_parts.append(f"Could not read file as text: {text_read_error}\n")
+        output_parts.append("File might be binary or corrupted.\n")
+
+final_output = "".join(output_parts)
+print(final_output[:MAX_OUTPUT_CHARS])
+```

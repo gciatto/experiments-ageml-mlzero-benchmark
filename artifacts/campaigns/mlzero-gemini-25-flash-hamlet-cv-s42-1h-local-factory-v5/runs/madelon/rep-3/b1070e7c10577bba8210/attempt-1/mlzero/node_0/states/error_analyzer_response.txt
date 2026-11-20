@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor received an invalid `seed` argument. The `seed` parameter is not accepted by the `TabularPredictor`'s `__init__` method, but rather by its `fit` method.
+SUGGESTED_FIX: Remove the `seed` argument from the `TabularPredictor` constructor call. Instead, pass the `seed` argument to the `predictor.fit()` method to ensure reproducibility during the training process.

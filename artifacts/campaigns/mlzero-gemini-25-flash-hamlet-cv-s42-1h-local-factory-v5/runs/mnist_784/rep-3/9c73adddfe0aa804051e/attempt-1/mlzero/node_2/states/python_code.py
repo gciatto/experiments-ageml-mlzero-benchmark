@@ -1,0 +1,108 @@
+import pandas as pd
+import numpy as np
+import random
+import os
+import tempfile
+import shutil
+from autogluon.multimodal import MultiModalPredictor
+
+# Set global seed for reproducibility across the module
+SEED = 42
+np.random.seed(SEED)
+random.seed(SEED)
+
+class AutoGluonMultiModalWrapper:
+    """
+    A wrapper class for AutoGluon MultiModalPredictor to conform to the
+    fit/predict interface required by the harness.
+    """
+    def __init__(self):
+        self.predictor = None
+        self.model_path = None  # To store the path for the predictor artifacts
+        self.label_column = 'class'  # The target column name as specified in the task
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target variable.
+        """
+        # Combine X and y into a single DataFrame as required by MultiModalPredictor.
+        # The target column 'class' is renamed to ensure consistency.
+        train_data = pd.concat([X, y.rename(self.label_column)], axis=1)
+
+        # Create a unique temporary directory for model artifacts for this fold.
+        # This ensures fresh artifacts per fold and avoids conflicts between folds.
+        self.model_path = tempfile.mkdtemp()
+
+        # Initialize MultiModalPredictor.
+        # AutoGluon MultiModal automatically infers the problem type (classification)
+        # and handles the tabular data modality.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            path=self.model_path,
+            # verbosity=0, # Uncomment to reduce log output if needed
+        )
+
+        # Fit the predictor.
+        # The total shared deadline is 177 seconds for 10 folds, averaging ~17.7 seconds per fold.
+        # We set a time_limit of 12 seconds per fold for fitting to allow for
+        # data preparation, model loading, and prediction overhead.
+        # 'fast_training' preset is chosen to prioritize speed given the tight deadline.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=12,  # seconds per fold for fitting
+            seed=SEED,
+            presets='fast_training',  # Prioritize faster training over highest quality
+        )
+
+    def predict(self, X):
+        """
+        Makes predictions using the fitted AutoGluon MultiModalPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features to make predictions on.
+
+        Returns:
+            np.ndarray: Predicted class labels as a 1-dimensional array.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit() first.")
+
+        # MultiModalPredictor.predict returns a Series or DataFrame,
+        # convert it to a numpy array as required by the output format.
+        predictions = self.predictor.predict(X).to_numpy()
+        return predictions
+
+    def __del__(self):
+        """
+        Clean up the temporary directory created for model artifacts.
+        This is a best-effort attempt to clean up resources.
+        """
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except OSError as e:
+                # Log the error if cleanup fails, but do not block execution.
+                print(f"Error removing temporary directory {self.model_path}: {e}")
+
+
+def build_model(X_train, y_train):
+    """
+    Factory function to build a new, unfitted model wrapper.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used for schema inference by the harness,
+                                not for fitting within this function).
+        y_train (pd.Series): Training target (used for label inference by the harness,
+                              not for fitting within this function).
+
+    Returns:
+        AutoGluonMultiModalWrapper: An unfitted model wrapper instance ready for training.
+    """
+    # X_train and y_train are provided here by the harness for potential schema/label inference,
+    # but the wrapper itself is returned unfitted.
+    # The actual fitting will happen inside the wrapper's .fit() method when called by the harness.
+    return AutoGluonMultiModalWrapper()

@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor received an unexpected `seed` keyword argument. This parameter is not part of the `__init__` method's signature in the installed version of `autogluon.multimodal`, leading to a `TypeError`.
+SUGGESTED_FIX: Remove the `seed` argument from the `MultiModalPredictor` constructor call. If reproducibility is required, consider setting a global random seed using `autogluon.core.utils.utils.set_random_seed(42)` before initializing the predictor, or check if `seed` can be passed as a hyperparameter to the `fit` method.

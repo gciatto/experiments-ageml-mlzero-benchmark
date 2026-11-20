@@ -1,0 +1,48 @@
+```bash
+#!/bin/bash
+# Exit immediately if a command exits with a non-zero status.
+# Treat unset variables as an error.
+# The pipefail option ensures that a pipeline's return status is the exit status of the last command that returned a non-zero status.
+set -euo pipefail
+
+# Define the full path for the new conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-3/03ec297ab66feb03d5f6/attempt-1/mlzero/node_0/conda_env"
+
+# Define paths to the requirements files
+REQ_FILE_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_FILE_AUTOGLUON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# Ensure conda is initialized for the current shell session.
+# This is crucial for non-interactive scripts where conda might not be fully sourced.
+# It finds the base conda installation and sources its profile.
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Is Conda installed and initialized in your environment?" >&2
+    exit 1
+fi
+
+# Create the conda environment with Python 3.11
+echo "Creating conda environment at '$CONDA_ENV_PATH' with Python 3.11..."
+# The -y flag automatically answers yes to prompts.
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y
+
+# Activate the newly created environment
+echo "Activating conda environment '$CONDA_ENV_PATH'..."
+conda activate "$CONDA_ENV_PATH"
+
+# Install uv using pip within the activated environment
+echo "Installing 'uv' into the environment..."
+pip install uv
+
+# Install required packages using uv, specifying both requirements files
+# and allowing prerelease versions as per instructions.
+# This command will install numpy, pandas, scikit-learn, autogluon.tabular,
+# and their dependencies as specified in the requirements files.
+echo "Installing packages from requirements files using 'uv pip install'..."
+uv pip install -r "$REQ_FILE_AUTOGLUON" --prerelease=allow -r "$REQ_FILE_COMMON"
+
+echo "--- Conda Environment Setup Complete ---"
+```

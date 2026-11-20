@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` class in AutoGluon does not have a static method named `set_seed`. The code attempts to call `TabularPredictor.set_seed(SEED)`, which results in an `AttributeError`.
+SUGGESTED_FIX: Replace the incorrect `TabularPredictor.set_seed(SEED)` call with the appropriate AutoGluon utility function for setting the global random seed. You will need to import `set_random_seed` from `autogluon.core.utils.utils` and then call `set_random_seed(SEED)`.

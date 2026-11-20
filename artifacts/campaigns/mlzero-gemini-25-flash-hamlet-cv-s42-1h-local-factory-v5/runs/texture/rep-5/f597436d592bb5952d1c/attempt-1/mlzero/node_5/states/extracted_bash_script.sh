@@ -1,0 +1,85 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define the base directory for the environment
+# The prompt specifies node_5 for the environment path.
+BASE_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/texture/rep-5/f597436d592bb5952d1c/attempt-1/mlzero/node_5"
+CONDA_ENV_PATH="${BASE_DIR}/conda_env"
+
+# Define requirements file paths
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+
+# Ensure the base directory exists
+mkdir -p "${BASE_DIR}"
+echo "Target environment path: ${CONDA_ENV_PATH}"
+
+# --- Conda Initialization ---
+# This block ensures conda is properly initialized in the shell session.
+# It attempts to find and source the conda.sh script for robust activation.
+CONDA_SH_SCRIPT=""
+if [ -f "/opt/conda/etc/profile.d/conda.sh" ]; then
+    CONDA_SH_SCRIPT="/opt/conda/etc/profile.d/conda.sh"
+elif [ -f "/usr/local/conda/etc/profile.d/conda.sh" ]; then
+    CONDA_SH_SCRIPT="/usr/local/conda/etc/profile.d/conda.sh"
+else
+    # Fallback: search common miniconda/anaconda installation paths
+    FOUND_CONDA_SH=$(find /home/*/miniconda* /home/*/anaconda* -name "conda.sh" 2>/dev/null | head -n 1)
+    if [ -n "${FOUND_CONDA_SH}" ]; then
+        CONDA_SH_SCRIPT="${FOUND_CONDA_SH}"
+    fi
+fi
+
+if [ -f "${CONDA_SH_SCRIPT}" ]; then
+    echo "Sourcing Conda initialization script from ${CONDA_SH_SCRIPT}"
+    source "${CONDA_SH_SCRIPT}"
+    # Deactivate any active environment to ensure a clean state before creating a new one
+    conda deactivate 2>/dev/null || true
+else
+    echo "Warning: conda.sh not found in common locations. Attempting to proceed assuming Conda is in PATH."
+    # Attempt to deactivate anyway, in case conda is in PATH but not fully sourced
+    conda deactivate 2>/dev/null || true
+    if ! type "conda" > /dev/null 2>&1; then
+        echo "Error: 'conda' command not found. Please ensure Conda is installed and accessible in the PATH."
+        exit 1
+    fi
+fi
+
+# Remove existing environment if it exists to ensure a clean slate
+if [ -d "${CONDA_ENV_PATH}" ]; then
+    echo "Removing existing conda environment at ${CONDA_ENV_PATH}..."
+    conda env remove -p "${CONDA_ENV_PATH}" -y
+fi
+
+echo "Creating conda environment at ${CONDA_ENV_PATH} with Python 3.11..."
+conda create -p "${CONDA_ENV_PATH}" python=3.11 -y
+
+echo "Activating conda environment..."
+conda activate "${CONDA_ENV_PATH}"
+
+# Install core scientific packages using conda first, as per previous error analysis.
+echo "Installing numpy, pandas, and scikit-learn using conda..."
+conda install -y numpy pandas scikit-learn
+
+echo "Installing uv..."
+# Use the activated environment's pip
+pip install uv
+
+echo "Installing required packages from requirements files using uv..."
+# Check if requirements files exist
+if [ ! -f "${REQUIREMENTS_COMMON}" ]; then
+    echo "Error: Common requirements file not found at ${REQUIREMENTS_COMMON}"
+    exit 1
+fi
+if [ ! -f "${REQUIREMENTS_TABULAR}" ]; then
+    echo "Error: Tabular requirements file not found at ${REQUIREMENTS_TABULAR}"
+    exit 1
+fi
+
+# Install packages using uv. uv respects exact versions and handles dependencies.
+# The --prerelease=allow flag is included as specified.
+uv pip install -r "${REQUIREMENTS_TABULAR}" --prerelease=allow -r "${REQUIREMENTS_COMMON}"
+
+echo "--- Conda Environment Setup Complete ---"

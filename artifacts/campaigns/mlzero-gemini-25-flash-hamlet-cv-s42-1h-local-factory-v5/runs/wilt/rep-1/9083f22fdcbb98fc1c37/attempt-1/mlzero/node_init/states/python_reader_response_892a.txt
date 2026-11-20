@@ -1,0 +1,42 @@
+```python
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/data.csv"
+
+try:
+    # Attempt to read as a tabular file (CSV)
+    df = pd.read_csv(file_path)
+
+    # Display column names
+    column_names = df.columns.tolist()
+    if len(column_names) > 20:
+        print("Columns:", column_names[:10] + ['...'] + column_names[-10:])
+    else:
+        print("Columns:", column_names)
+
+    # Show first 2-3 rows with truncated cell content (50 chars)
+    # Use .to_string(index=False) to avoid additional index column
+    head_df = df.head(3)
+    # Apply truncation to each cell
+    truncated_head = head_df.applymap(lambda x: (str(x)[:50] + '...') if len(str(x)) > 50 else str(x))
+    print(truncated_head.to_string(index=False))
+
+except Exception: # Catch any error during CSV reading (e.g., FileNotFoundError, ParserError)
+    # If reading as CSV fails, treat as a text file
+    if os.path.exists(file_path):
+        try:
+            # Try reading as text
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read(768) # Read up to 768 characters
+                print("File content (first 768 chars):\n", content)
+        except UnicodeDecodeError: # If it's not valid UTF-8, try binary
+            with open(file_path, 'rb') as f:
+                content = f.read(768)
+                print("Binary file content (first 768 bytes):\n", content)
+        except Exception as text_read_error: # Other errors during text read
+            print(f"Could not read as text or binary: {text_read_error}")
+    else:
+        print(f"Error: File not found at {file_path}")
+
+```

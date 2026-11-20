@@ -1,0 +1,58 @@
+```python
+import pandas as pd
+import json
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json"
+output_lines = []
+MAX_OUTPUT_CHARS = 768
+
+try:
+    # Attempt to read as a JSON file, potentially tabular
+    df = pd.read_json(file_path)
+
+    if not df.empty:
+        # Tabular data detected
+        cols = df.columns.tolist()
+        col_display = cols
+        if len(cols) > 20:
+            col_display = cols[:10] + ['...'] + cols[-10:]
+        
+        output_lines.append(f"Columns: {col_display}")
+
+        # Show first 2-3 rows with truncated content
+        def truncate_cell(content):
+            s = str(content)
+            return s[:50] + ('...' if len(s) > 50 else '')
+
+        truncated_df_head = df.head(3).applymap(truncate_cell)
+        
+        output_lines.append("Data:")
+        # Convert to string without index
+        df_head_str = truncated_df_head.to_string(index=False)
+        output_lines.append(df_head_str)
+    else:
+        # JSON was read, but it's empty or not easily tabular (e.g., a single empty dict/list)
+        # Fallback to generic JSON load and then text display
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(MAX_OUTPUT_CHARS) # Read only up to max chars
+            output_lines.append("File content (JSON, not easily tabular):")
+            output_lines.append(content)
+
+except (ValueError, json.JSONDecodeError, pd.errors.EmptyDataError, Exception) as e:
+    # If pandas fails to read as JSON or any other error occurs, treat as a generic text file
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(MAX_OUTPUT_CHARS) # Read only up to max chars
+            output_lines.append("File content (text):")
+            output_lines.append(content)
+    except Exception as text_read_error:
+        output_lines.append(f"Could not read file: {text_read_error}")
+
+final_output = "\n".join(output_lines)
+
+# Ensure total output is under MAX_OUTPUT_CHARS
+if len(final_output) > MAX_OUTPUT_CHARS:
+    final_output = final_output[:MAX_OUTPUT_CHARS - 3] + "..."
+
+print(final_output)
+```

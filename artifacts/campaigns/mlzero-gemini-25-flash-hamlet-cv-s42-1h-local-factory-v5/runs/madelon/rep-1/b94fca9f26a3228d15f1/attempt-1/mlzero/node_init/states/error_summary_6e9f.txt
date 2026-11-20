@@ -1,0 +1,1 @@
+The total standard output exceeds the specified limit of 768 characters. The code reads 768 characters from the file, but the added header and truncation indicator push the total output length over the limit.

@@ -1,0 +1,1 @@
+The code truncated cell content to 20 characters (`pd.set_option('display.max_colwidth', 20)`) instead of the requested 50 characters for displaying the first few rows.

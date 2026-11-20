@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `ImportError` indicates that the `set_seed` function could not be found at its specified import path within the `autogluon.core.utils.utils` module. This is likely due to an API change or relocation of the function in the installed beta version of AutoGluon (1.6.4b).
+SUGGESTED_FIX: Update the import statement for `set_seed` to its correct location, which is typically `from autogluon.common.utils.utils import set_seed` in recent AutoGluon versions. Verify the exact path in the installed AutoGluon package if the common path does not resolve the issue.

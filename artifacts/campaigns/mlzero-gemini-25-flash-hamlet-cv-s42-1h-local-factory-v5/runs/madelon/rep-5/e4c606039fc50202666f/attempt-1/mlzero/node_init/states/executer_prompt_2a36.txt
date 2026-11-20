@@ -1,0 +1,101 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv"
+
+File Size: 7.45 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv"
+max_output_chars = 768
+output_parts = []
+
+try:
+    # Attempt to read as CSV
+    df = pd.read_csv(file_path)
+
+    columns = df.columns.tolist()
+    num_columns = len(columns)
+
+    # Column names output
+    col_str = f"Columns ({num_columns}): "
+    if num_columns > 20:
+        col_str += str(columns[:10] + ['...'] + columns[-10:])
+    else:
+        col_str += str(columns)
+    output_parts.append(col_str)
+
+    # First 3 rows with truncated cell content (50 chars)
+    # Use to_string with max_colwidth for truncation and no index
+    with pd.option_context('display.max_colwidth', 50):
+        head_str = df.head(3).to_string(index=False)
+    output_parts.append(head_str)
+
+except FileNotFoundError:
+    output_parts.append(f"File not found: {file_path}")
+except pd.errors.EmptyDataError:
+    output_parts.append(f"File is empty: {file_path}")
+except Exception as e: # Catch all other potential errors (ParserError, UnicodeDecodeError, etc.)
+    # Fallback to text file if pandas fails
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(max_output_chars) # Read up to max_output_chars for text
+            output_parts.append(f"Failed to parse as tabular ({type(e).__name__}: {e}). Displaying as text:\n{content}")
+    except Exception as e_text:
+        output_parts.append(f"Could not read file as text either: {e_text}")
+
+# Join all parts and truncate the final output to ensure it's under max_output_chars
+final_output = "\n".join(output_parts)
+print(final_output[:max_output_chars])
+
+## Execution Results
+### Standard Output (stdout)
+
+Columns (501): ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', '...', 'V492', 'V493', 'V494', 'V495', 'V496', 'V497', 'V498', 'V499', 'V500', 'Class']
+   V1    V2    V3    V4    V5    V6    V7    V8    V9   V10   V11   V12   V13   V14   V15   V16   V17   V18   V19   V20   V21   V22   V23   V24   V25   V26   V27   V28   V29   V30   V31   V32   V33   V34   V35   V36   V37   V38   V39   V40   V41   V42   V43   V44   V45   V46   V47   V48   V49   V50   V51   V52   V53   V54   V55   V56   V57   V58   V59   V60   V61   V62   V63   V64   V65   V66   V67   V68   V69   V70   V71   V72   V73   V74   V75   V76   V77   V78   V79   V80   V81   V82   V83   V84   V85   V86   V87   V88   V89   V90   V91   V92   V93   V94   V95   V96   V97   V98   V99  V100  V1
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

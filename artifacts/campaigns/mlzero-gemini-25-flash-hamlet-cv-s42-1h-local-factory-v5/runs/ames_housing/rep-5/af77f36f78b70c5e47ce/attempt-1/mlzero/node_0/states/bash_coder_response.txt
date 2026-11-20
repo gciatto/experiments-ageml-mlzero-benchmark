@@ -1,0 +1,52 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define the full path for the conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-5/af77f36f78b70c5e47ce/attempt-1/mlzero/node_0/conda_env"
+
+# Define paths to the requirements files
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda Environment Setup ---"
+echo "Target conda environment path: ${CONDA_ENV_PATH}"
+echo "Python version: 3.11"
+
+# 1. Remove existing environment if it exists to ensure a clean setup
+if [ -d "$CONDA_ENV_PATH" ]; then
+    echo "Removing existing conda environment at ${CONDA_ENV_PATH}..."
+    # Use 'conda env remove' for proper cleanup; '|| true' prevents script failure if env doesn't exist
+    conda env remove --prefix "$CONDA_ENV_PATH" --yes || true
+fi
+
+# 2. Create the conda environment with Python 3.11
+echo "Creating new conda environment with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 --yes
+
+echo "Conda environment created successfully."
+
+# 3. Activate the newly created environment
+# Note: 'conda activate' is a shell function. This script assumes conda is initialized
+# in the shell environment where it is executed.
+echo "Activating conda environment: ${CONDA_ENV_PATH}"
+conda activate "$CONDA_ENV_PATH"
+
+echo "Conda environment activated."
+
+# 4. Install uv into the activated environment
+echo "Installing uv into the activated environment..."
+pip install uv
+
+echo "uv installed successfully."
+
+# 5. Install required packages using uv
+echo "Installing required packages from requirements files using uv..."
+echo "Requirements files: ${REQUIREMENTS_TABULAR}, ${REQUIREMENTS_COMMON}"
+
+# Use the exact uv command specified, ensuring --prerelease=allow
+uv pip install -r "$REQUIREMENTS_TABULAR" --prerelease=allow -r "$REQUIREMENTS_COMMON"
+
+echo "Required packages installed successfully."
+echo "--- Conda Environment Setup Complete ---"
+```

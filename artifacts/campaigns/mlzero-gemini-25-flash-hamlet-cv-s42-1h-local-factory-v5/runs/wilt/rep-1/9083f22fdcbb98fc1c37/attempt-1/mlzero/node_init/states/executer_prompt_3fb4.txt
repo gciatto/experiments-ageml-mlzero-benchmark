@@ -1,0 +1,134 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json"
+
+File Size: 0.75 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import json
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json"
+
+output_lines = []
+
+def truncate_cell(content, max_chars=50):
+    s = str(content)
+    return s[:max_chars] + "..." if len(s) > max_chars else s
+
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = json.load(f)
+
+    if isinstance(content, list) and all(isinstance(item, dict) for item in content):
+        # It's a list of dictionaries, likely tabular
+        df = pd.DataFrame(content)
+
+        # Display column names
+        columns = df.columns.tolist()
+        if len(columns) > 20:
+            output_lines.append("Columns: " + ", ".join(columns[:10]) + " ... " + ", ".join(columns[-10:]))
+        else:
+            output_lines.append("Columns: " + ", ".join(columns))
+
+        # Show first 2-3 rows
+        output_lines.append("First 3 rows:")
+        
+        # Prepare header with truncation
+        header_str = " | ".join([truncate_cell(col) for col in df.columns])
+        output_lines.append(header_str)
+        output_lines.append("-" * len(header_str))
+
+        for _, row in df.head(3).iterrows():
+            truncated_row_values = [truncate_cell(row[col]) for col in df.columns]
+            output_lines.append(" | ".join(truncated_row_values))
+
+    elif isinstance(content, dict):
+        # It's a single dictionary, print keys and some values
+        output_lines.append("JSON object keys: " + ", ".join(content.keys()))
+        output_lines.append("First few values:")
+        for i, (key, value) in enumerate(content.items()):
+            if i >= 3: # Limit to 3 key-value pairs
+                break
+            output_lines.append(f"  {truncate_cell(key)}: {truncate_cell(value)}")
+    else:
+        # Fallback for other JSON structures (e.g., simple list of values, string, number, boolean)
+        output_lines.append("JSON content (first 768 chars):")
+        output_lines.append(truncate_cell(json.dumps(content), 768))
+
+except (json.JSONDecodeError, UnicodeDecodeError) as e:
+    # If JSON decoding fails or it's not UTF-8, treat as a text file
+    output_lines.append(f"Could not parse as JSON ({type(e).__name__}). Reading as text.")
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            head = f.read(768)
+            output_lines.append(head)
+    except UnicodeDecodeError:
+        # If even UTF-8 text reading fails, treat as binary
+        output_lines.append("Could not read as UTF-8 text. Reading as binary.")
+        with open(file_path, 'rb') as f:
+            head = f.read(256) # Read a smaller chunk for binary
+            output_lines.append(f"First 256 bytes (hex): {head.hex()}")
+    except Exception as e:
+        output_lines.append(f"Error reading file as text: {e}")
+except FileNotFoundError:
+    output_lines.append(f"File not found: {file_path}")
+except Exception as e:
+    output_lines.append(f"An unexpected error occurred: {e}")
+
+final_output = "\n".join(output_lines)
+print(final_output[:768])
+
+## Execution Results
+### Standard Output (stdout)
+
+JSON object keys: cv_folds, dataset_id, dataset_version, evaluation_protocol, partitions, protocol_version, row_identity, source_row_count, source_sha256, split_hashes, split_identity, split_seed, splitter, stratification, target_column, task
+First few values:
+  cv_folds: [{'train': [27, 28, 29, 30, 31, 32, 33, 34, 35, 36...
+  dataset_id: wilt
+  dataset_version: a7fbce33d5040f9bce1e3a95b9922c904293f573508ec0abe5...
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

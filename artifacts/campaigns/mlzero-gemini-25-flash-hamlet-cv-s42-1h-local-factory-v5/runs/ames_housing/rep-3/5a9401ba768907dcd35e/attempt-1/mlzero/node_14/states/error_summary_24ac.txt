@@ -1,0 +1,1 @@
+The provided execution logs only cover environment setup and package installation. There is no output indicating that the model training and evaluation (cross-validation folds) actually commenced or completed, nor are any validation scores reported. This prevents confirmation of the successful execution of the core task as per the problem description.

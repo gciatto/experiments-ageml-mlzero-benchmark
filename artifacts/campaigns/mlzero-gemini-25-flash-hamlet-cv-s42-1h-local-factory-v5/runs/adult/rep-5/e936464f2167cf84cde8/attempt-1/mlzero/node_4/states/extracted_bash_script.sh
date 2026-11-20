@@ -1,0 +1,53 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define environment path and requirements files
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/adult/rep-5/e936464f2167cf84cde8/attempt-1/mlzero/node_4/conda_env"
+PYTHON_VERSION="3.11"
+COMMON_REQUIREMENTS="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQUIREMENTS="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for AutoGluon MultiModal..."
+
+# 1. Remove existing environment if it exists to ensure a clean slate
+if [ -d "$ENV_DIR" ]; then
+    echo "Existing conda environment found at $ENV_DIR. Removing..."
+    rm -rf "$ENV_DIR" || { echo "Error: Failed to remove existing environment at $ENV_DIR."; exit 1; }
+fi
+
+# 2. Create the conda environment with the specified Python version
+echo "Creating conda environment at $ENV_DIR with Python $PYTHON_VERSION..."
+# Using -p for prefix path, which is equivalent to --prefix
+conda create -p "$ENV_DIR" python="$PYTHON_VERSION" -y || { echo "Error: Failed to create conda environment."; exit 1; }
+
+# 3. Activate the newly created environment
+# Ensure conda is initialized in the current shell session.
+# This is crucial for 'conda activate' to work in non-interactive scripts.
+# Attempt to find and source the conda initialization script.
+CONDA_BASE=$(conda info --base 2>/dev/null || true)
+if [ -z "$CONDA_BASE" ]; then
+    echo "Error: 'conda' command not found or 'conda info --base' failed. Please ensure Conda is installed and in PATH."
+    exit 1
+fi
+source "$CONDA_BASE/etc/profile.d/conda.sh" || { echo "Error: Could not source conda initialization script from $CONDA_BASE."; exit 1; }
+
+echo "Activating conda environment: $ENV_DIR"
+conda activate "$ENV_DIR" || { echo "Error: Could not activate conda environment $ENV_DIR."; exit 1; }
+
+# 4. Install uv (a fast package installer)
+echo "Installing uv into the environment..."
+pip install uv || { echo "Error: Failed to install uv."; exit 1; }
+
+# 5. Install core packages (numpy, pandas, scikit-learn) and required packages
+# from the specified requirements files using uv.
+# The --prerelease=allow flag is included as per instructions.
+# uv will handle dependencies and respect exact versions specified in requirements.txt.
+# The order of -r flags is important as specified: multimodal then common.
+echo "Installing numpy, pandas, scikit-learn, and requirements from files using uv..."
+uv pip install numpy pandas scikit-learn \
+    -r "$MULTIMODAL_REQUIREMENTS" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS" || { echo "Error: Failed to install required packages using uv."; exit 1; }
+
+echo "Installation complete for environment: $ENV_DIR"
+echo "Conda environment is ready for use."

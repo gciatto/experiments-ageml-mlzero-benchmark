@@ -1,0 +1,1 @@
+The execution failed due to a critical environment error: "Conda initialization script not found at /opt/conda/etc/profile.d/conda.sh". This indicates that the Conda environment was not properly set up, preventing the Python script from running successfully. No model training or prediction could occur.

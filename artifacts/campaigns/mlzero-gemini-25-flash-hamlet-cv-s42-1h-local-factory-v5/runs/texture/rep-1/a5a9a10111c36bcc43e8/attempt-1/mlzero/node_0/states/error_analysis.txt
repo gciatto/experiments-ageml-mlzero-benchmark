@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid argument, `random_state`. This parameter is not accepted by the `TabularPredictor` initialization method, leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_state` argument from the `TabularPredictor` constructor call. If reproducibility is desired, consider setting a global random seed using AutoGluon's `set_seed` utility or standard Python/NumPy methods before initializing the predictor.

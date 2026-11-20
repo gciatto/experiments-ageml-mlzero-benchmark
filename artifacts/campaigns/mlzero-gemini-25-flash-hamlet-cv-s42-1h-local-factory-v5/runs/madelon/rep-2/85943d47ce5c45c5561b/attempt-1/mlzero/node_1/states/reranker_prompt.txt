@@ -1,0 +1,141 @@
+
+Given the following context and list of tutorials with their summaries, select the 5 most relevant tutorials for helping with this task. Consider how well each tutorial's title and summary match the task, data, user question, and any errors.
+
+### Task Description
+The data science task is **classification**.
+
+*   **Input Format**: Tabular data consisting of 500 numerical features (columns `V1` through `V500`).
+*   **Prediction Output Format**: A single predicted class label (numerical, e.g., float or integer) for each input row, corresponding to the `Class` column.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/data.csv
+Content:
+Analyzing: data.csv
+Shape: (2600, 501)
+Columns: V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, ..., V492, V493, V494, V495, V496, V497, V498, V499, V500, Class
+
+First 3 rows:
+V1      |V2      |V3      |...     |V499    |V500    |Class   
+--------------------------------------------------------------
+485.0   |477.0   |537.0   |475.0   |496.0   |2.0     
+483.0   |458.0   |460.0   |510.0   |517.0   |2.0     
+487.0   |542.0   |499.0   |499.0   |498.0   |2.0     
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: madelon
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and othe
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/cv_contract.json
+Content:
+Could not parse as JSON/DataFrame. Attempting to read as text. Error: All arrays must be of the same length
+File Type: Text
+First few lines:
+{
+  "cv_folds": [
+    {
+      "train": [
+        211,
+        212,
+        214,
+        215,
+        220,
+        221,
+        223,
+        224,
+        225,
+        228,
+        232,
+        234,
+        235,
+        239,
+        242,
+        243,
+        244,
+        247,
+        248,
+        249,
+        250,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        261,
+        263,
+        268,
+        269,
+        270,
+        279,
+        280,
+        282,
+        289,
+        294,
+        296,
+        297,
+        299,
+        300,
+        301,
+        302,
+        303,
+        304...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+
+
+Available Tutorials:
+1. Title: Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+   Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+IMPORTANT: Respond ONLY with the numbers of the selected tutorials (up to 5) separated by commas. 
+For example: "1,3,4" or "2,5" or just "1" if only one is relevant.
+DO NOT include any other text, explanation, or formatting in your response.

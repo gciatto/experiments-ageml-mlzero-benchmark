@@ -1,0 +1,91 @@
+#!/bin/bash
+set -euo pipefail # Exit immediately if a command exits with a non-zero status, or if an unset variable is used.
+
+# Define environment and file paths
+CONDA_ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/f3676860d054e0e4d222/attempt-1/mlzero/node_4/conda_env"
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+MULTIMODAL_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+echo "--- Starting Conda environment setup for node_4 ---"
+
+# 1. Check if conda is available and initialize it
+if ! command -v conda &> /dev/null; then
+    echo "Error: conda command not found. Please ensure Anaconda or Miniconda is installed and in your PATH."
+    exit 1
+fi
+
+# Initialize conda for the current shell session if not already initialized.
+# This makes 'conda activate' available.
+if [ -z "$CONDA_SHLVL" ]; then
+    echo "Initializing conda..."
+    # Use 'conda info --base' to find the base conda installation path
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to initialize conda. Exiting."
+        exit 1
+    fi
+fi
+
+# 2. Remove existing environment if it exists to ensure a clean installation
+if [ -d "$CONDA_ENV_DIR" ]; then
+    echo "Existing environment found at $CONDA_ENV_DIR. Removing it..."
+    # Attempt to remove via conda, then forcefully remove directory
+    conda env remove -p "$CONDA_ENV_DIR" -y || true
+    rm -rf "$CONDA_ENV_DIR"
+fi
+
+# 3. Create the conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_DIR with Python 3.11..."
+conda create -p "$CONDA_ENV_DIR" python=3.11 -y
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to create conda environment. Exiting."
+    exit 1
+fi
+
+# 4. Activate the environment
+echo "Activating conda environment..."
+conda activate "$CONDA_ENV_DIR"
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to activate conda environment. Exiting."
+    exit 1
+fi
+echo "Conda environment activated: $(which python)"
+
+# 5. Install uv using the environment's pip
+echo "Installing uv into the environment..."
+pip install uv
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install uv. Exiting."
+    exit 1
+fi
+
+# 6. Install required packages from requirements files using uv
+echo "Installing packages from requirements files using uv..."
+# The --prerelease=allow flag applies to all -r arguments, allowing pre-release
+# versions if specified in the requirements, which is often needed for AutoGluon.
+# uv efficiently handles existing installations and only installs/updates if necessary.
+uv pip install \
+    -r "$MULTIMODAL_REQUIREMENTS_FILE" \
+    -r "$COMMON_REQUIREMENTS_FILE" \
+    --prerelease=allow
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install packages from requirements files. Exiting."
+    exit 1
+fi
+
+# 7. Explicitly ensure numpy, pandas, and scikit-learn are installed
+# These are fundamental libraries for the factory module and are explicitly requested.
+# uv will only install them if they are not already present or if a different version
+# is required by the factory module's dependencies.
+echo "Ensuring numpy, pandas, and scikit-learn are installed..."
+uv pip install numpy pandas scikit-learn
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install numpy, pandas, or scikit-learn. Exiting."
+    exit 1
+fi
+
+echo "--- Conda environment setup complete ---"
+echo "Environment is ready at $CONDA_ENV_DIR"
+echo "Python interpreter: $(which python)"
+echo "Installed packages (uv pip list output):"
+uv pip list

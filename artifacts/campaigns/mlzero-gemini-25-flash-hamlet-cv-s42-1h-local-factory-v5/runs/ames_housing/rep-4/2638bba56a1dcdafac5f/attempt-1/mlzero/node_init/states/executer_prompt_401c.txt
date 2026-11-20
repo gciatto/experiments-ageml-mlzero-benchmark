@@ -1,0 +1,112 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv"
+
+File Size: 0.43 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv"
+MAX_OUTPUT_CHARS = 768
+
+output_parts = []
+
+try:
+    # Attempt to read as a CSV file
+    df = pd.read_csv(file_path)
+
+    # Display column names
+    columns = df.columns.tolist()
+    if len(columns) > 20:
+        cols_display = columns[:10] + ['...'] + columns[-10:]
+        output_parts.append(f"Columns: {', '.join(cols_display)}\n")
+    else:
+        output_parts.append(f"Columns: {', '.join(columns)}\n")
+
+    # Show first 2-3 rows with truncated cell content (50 chars)
+    df_head = df.head(3).copy()
+    for col in df_head.columns:
+        # Ensure all values are strings before truncation
+        df_head[col] = df_head[col].astype(str).apply(lambda x: x[:50] + '...' if len(x) > 50 else x)
+    
+    # Convert DataFrame head to string, without index
+    # Temporarily set display options to ensure wide tables are not truncated by pandas itself
+    # before we apply the overall output truncation.
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.width', 1000):
+        rows_output = df_head.to_string(index=False)
+    output_parts.append(rows_output)
+
+    final_output = "\n".join(output_parts)
+    print(final_output[:MAX_OUTPUT_CHARS])
+
+except Exception as e:
+    # If reading as CSV fails (e.g., FileNotFoundError, pd.errors.ParserError), treat as a text file
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(MAX_OUTPUT_CHARS) # Read up to MAX_OUTPUT_CHARS
+            print(content)
+    except Exception as text_e:
+        # Fallback for any other error (e.g., binary file, permission issues)
+        error_msg = f"Could not process file: {text_e}"
+        if os.path.exists(file_path):
+            try:
+                file_size = os.path.getsize(file_path)
+                error_msg += f"\nFile is likely binary or unreadable. Size: {file_size} bytes."
+            except OSError:
+                error_msg += "\nFile exists but size could not be determined."
+        else:
+            error_msg += "\nFile not found."
+        print(error_msg[:MAX_OUTPUT_CHARS])
+
+## Execution Results
+### Standard Output (stdout)
+
+Columns: Id, MSSubClass, MSZoning, LotFrontage, LotArea, Street, Alley, LotShape, LandContour, Utilities, ..., PoolArea, PoolQC, Fence, MiscFeature, MiscVal, MoSold, YrSold, SaleType, SaleCondition, SalePrice
+
+Id MSSubClass MSZoning LotFrontage LotArea Street Alley LotShape LandContour Utilities LotConfig LandSlope Neighborhood Condition1 Condition2 BldgType HouseStyle OverallQual OverallCond YearBuilt YearRemodAdd RoofStyle RoofMatl Exterior1st Exterior2nd MasVnrType MasVnrArea ExterQual ExterCond Foundation BsmtQual BsmtCond BsmtExposure BsmtFinType1 BsmtFinSF1 BsmtFinType2 BsmtFinSF2 BsmtUnfSF TotalBsmtSF Heating HeatingQC CentralAir Electrical 1stFlrSF 2ndFlrSF LowQualFinSF GrLivArea BsmtFullBath BsmtHalfBath FullBath HalfBath BedroomAbvGr KitchenAbvGr K
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

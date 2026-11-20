@@ -1,0 +1,212 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-1/b94fca9f26a3228d15f1/attempt-1/mlzero/node_3:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.tabular if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import pandas as pd
+import os
+import tempfile
+import shutil
+import random
+import numpy as np
+
+from autogluon.tabular import TabularPredictor, TabularDataset
+from autogluon.core.utils.utils import set_seed as ag_set_seed # Alias to avoid conflict if 'set_seed' is used elsewhere
+
+# Set global seeds for reproducibility across Python's random, numpy, and AutoGluon.
+GLOBAL_SEED = 42
+random.seed(GLOBAL_SEED)
+np.random.seed(GLOBAL_SEED)
+ag_set_seed(GLOBAL_SEED) # Set AutoGluon's internal seed for reproducibility
+
+# Define a reasonable time limit for each fold's fit operation.
+# The total shared deadline is 3190 seconds for ten folds.
+# Allocating 300 seconds per fold for fitting (3000 seconds total) leaves
+# approximately 190 seconds for data loading, model initialization, prediction,
+# and other overhead across all ten folds. This is a balanced approach to
+# ensure all fits complete within the deadline.
+FIT_TIME_LIMIT_PER_FOLD = 300  # seconds
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    fit/predict interface required by the benchmark harness.
+    """
+    def __init__(self, label_column_name: str, artifact_path: str):
+        """
+        Initializes the wrapper. The AutoGluon predictor itself is not fitted here.
+
+        Args:
+            label_column_name (str): The name of the target column.
+            artifact_path (str): A unique path where AutoGluon will store its artifacts.
+        """
+        self.label_column_name = label_column_name
+        self.artifact_path = artifact_path
+        self.predictor = None
+
+        # Ensure the artifact path exists. AutoGluon will create it if it doesn't,
+        # but explicit creation here can sometimes help with permissions or early error detection.
+        os.makedirs(self.artifact_path, exist_ok=True)
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+        All learned preprocessing and model training happens within this method.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training labels.
+        """
+        # Combine X and y into a single DataFrame as required by TabularPredictor.
+        # Ensure y's name is set correctly for TabularPredictor to identify the label column.
+        y_df = y.to_frame(name=self.label_column_name)
+        train_data = pd.concat([X, y_df], axis=1)
+
+        # Initialize TabularPredictor.
+        # The problem_type (classification) is inferred automatically.
+        # The eval_metric is specified as 'balanced_accuracy' as per the task description.
+        # Removed 'seed' argument from constructor as it's not supported in this AutoGluon version.
+        self.predictor = TabularPredictor(
+            label=self.label_column_name,
+            eval_metric='balanced_accuracy',
+            path=self.artifact_path,
+            verbosity=0  # Reduce verbosity to avoid excessive logging during evaluation
+        )
+
+        # Fit the predictor.
+        # Using 'best_quality' preset for high accuracy, which includes auto_stacking
+        # and other advanced techniques.
+        # The time_limit is set to ensure each fold's fit operation completes
+        # within the overall shared deadline.
+        # Removed 'random_state' argument from fit as it's not supported in this AutoGluon version.
+        self.predictor.fit(
+            train_data=TabularDataset(train_data),
+            time_limit=FIT_TIME_LIMIT_PER_FOLD,
+            presets='best_quality',
+            # AutoGluon automatically handles internal validation splits,
+            # so there's no need to manually provide tuning_data.
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+
+        # AutoGluon's predict method returns a Series by default for classification tasks.
+        return self.predictor.predict(TabularDataset(X))
+
+    def __del__(self):
+        """
+        Cleans up the temporary directory created for AutoGluon artifacts
+        when the model wrapper object is garbage collected.
+        This is a best-effort cleanup.
+        """
+        if os.path.exists(self.artifact_path):
+            try:
+                shutil.rmtree(self.artifact_path)
+            except OSError as e:
+                # Log or handle the error if directory removal fails.
+                # This can happen if files are still in use, especially on some OS.
+                print(f"Warning: Error removing artifact directory {self.artifact_path}: {e}")
+
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted model wrapper for AutoGluon TabularPredictor.
+
+    Args:
+        X_train (pd.DataFrame): Training features. This is used to infer column names
+                                and data types if needed, but not for fitting the model.
+        y_train (pd.Series): Training labels. This is used to infer the label column name,
+                             but not for fitting the model.
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper instance with `fit(X,y)`
+                                 and `predict(X)` methods.
+    """
+    # The label column name is derived from the y_train Series name.
+    # The problem description implies the target column is 'Class'.
+    label_column_name = y_train.name
+    if label_column_name is None:
+        # Fallback if y_train Series has no name, assign a default.
+        # This should ideally not happen if the harness provides a named Series.
+        label_column_name = "target_class"
+        print(f"Warning: y_train Series has no name. Using default label '{label_column_name}'.")
+
+    # Create a unique temporary directory for AutoGluon artifacts for this specific
+    # model instance. This ensures "fresh artifact directories per fold" as required.
+    temp_dir = tempfile.mkdtemp(prefix="autogluon_model_")
+
+    # Instantiate the wrapper, which will hold the unfitted predictor.
+    # The global seed setting handles reproducibility for AutoGluon.
+    model_wrapper = AutoGluonTabularWrapper(
+        label_column_name=label_column_name,
+        artifact_path=temp_dir
+    )
+    return model_wrapper
+### Previous errors
+ERROR_SUMMARY: The `TabularPredictor` constructor was called with an invalid keyword argument, `seed`. The `seed` parameter is not a recognized argument for initializing `TabularPredictor` instances, as indicated by the `ValueError` and the list of valid keyword arguments.
+SUGGESTED_FIX: Remove the `seed` argument from the `TabularPredictor` constructor call within the `AutoGluonTabularWrapper`'s `fit` method. If reproducibility for AutoGluon's internal processes is desired, pass a `random_state` argument to the `predictor.fit()` method instead.
+
+ERROR_SUMMARY: The conda environment failed to activate because the `activate` script was not found at the specified path, indicating an issue with the environment creation. This prevented `numpy` and other necessary packages from being installed into the intended environment, leading to a `ModuleNotFoundError` when the evaluation script attempted to import `numpy`.
+SUGGESTED_FIX: Inspect the output of the `conda create` command for any errors or warnings to diagnose why the environment's `activate` script was not generated or found. Verify that the `CONDA_ENV_PATH` is correct and that the `conda` installation is functional and has sufficient disk space and permissions.
+
+ERROR_SUMMARY: The `TabularPredictor.fit` method was called with an invalid keyword argument, `random_state`. This argument is not supported by AutoGluon's `TabularPredictor.fit` method in the installed version (1.6.3), leading to a `ValueError`.
+SUGGESTED_FIX: Remove the `random_state=42` argument from the `self.predictor.fit()` method call. If reproducibility is desired, investigate alternative ways to set a seed for AutoGluon, such as passing a `seed` argument to the `TabularPredictor` constructor or using `ag_args_fit` if applicable for specific models.
+### Previous installation attempt
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# Define the full path for the conda environment
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-1/b94fca9f26a3228d15f1/attempt-1/mlzero/node_0/conda_env"
+
+# Define paths to requirements files
+COMMON_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQUIREMENTS_FILE="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda environment setup ---"
+
+# 1. Create the conda environment with Python 3.11
+# Use --yes to automatically proceed with the installation
+# Use --prefix to specify the exact installation path
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create --prefix "$CONDA_ENV_PATH" python=3.11 --yes
+
+# 2. Activate the environment
+echo "Activating conda environment..."
+# Initialize conda for the current shell session if not already done
+# This is crucial for 'conda activate' to work in non-interactive scripts
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "$CONDA_ENV_PATH"
+
+# 3. Install uv
+echo "Installing uv..."
+pip install uv
+
+# 4. Install required packages using uv
+echo "Installing required packages from $AUTOGLUON_TABULAR_REQUIREMENTS_FILE and $COMMON_REQUIREMENTS_FILE using uv..."
+uv pip install -r "$AUTOGLUON_TABULAR_REQUIREMENTS_FILE" --prerelease=allow -r "$COMMON_REQUIREMENTS_FILE"
+
+echo "--- Conda environment setup complete ---"
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-1/b94fca9f26a3228d15f1/attempt-1/mlzero/node_3/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3165 seconds.

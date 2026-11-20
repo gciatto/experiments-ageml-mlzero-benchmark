@@ -1,0 +1,63 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define environment path and Python version
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-5/dd7dd685e23b34db5767/attempt-1/mlzero/node_4/conda_env"
+PYTHON_VERSION="3.11"
+
+# Define paths to requirements files
+REQUIREMENTS_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQUIREMENTS_AUTOGLUON_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "--- Starting Conda environment setup ---"
+
+# Check if conda command is available
+if ! command -v conda &>/dev/null; then
+    echo "Error: 'conda' command not found. Please ensure Conda is installed and in your PATH." >&2
+    exit 1
+fi
+
+# Create the conda environment with the specified Python version.
+# If the environment already exists, this command will typically fail,
+# which is desired behavior due to 'set -euo pipefail'.
+echo "Creating conda environment at $CONDA_ENV_PATH with Python $PYTHON_VERSION..."
+conda create -p "$CONDA_ENV_PATH" python="$PYTHON_VERSION" -y
+
+# Define environment's python and pip executables
+PYTHON_BIN="$CONDA_ENV_PATH/bin/python"
+PIP_BIN="$CONDA_ENV_PATH/bin/pip"
+
+# Verify Python executable exists after environment creation
+if [ ! -f "$PYTHON_BIN" ]; then
+    echo "Error: Python executable not found at $PYTHON_BIN after environment creation." >&2
+    exit 1
+fi
+
+echo "Installing uv..."
+"$PIP_BIN" install uv
+
+# Define uv executable path after installation
+UV_BIN="$CONDA_ENV_PATH/bin/uv"
+
+# Verify uv executable exists after installation
+if [ ! -f "$UV_BIN" ]; then
+    echo "Error: uv executable not found at $UV_BIN after installation." >&2
+    exit 1
+fi
+
+# Install numpy, pandas, scikit-learn using the environment's pip.
+# This addresses the previous ModuleNotFoundError for numpy.
+echo "Installing numpy, pandas, scikit-learn using pip..."
+"$PIP_BIN" install numpy pandas scikit-learn
+
+echo "Installing required packages from requirements files using uv..."
+# Install packages from both requirements files using uv.
+# '--prerelease=allow' is used as specified.
+# uv by default installs exact packages and their dependencies,
+# and avoids upgrading/reinstalling if the package is already at the correct version.
+"$UV_BIN" pip install \
+    -r "$REQUIREMENTS_AUTOGLUON_TABULAR" \
+    -r "$REQUIREMENTS_COMMON" \
+    --prerelease=allow
+
+echo "--- Conda environment setup complete ---"

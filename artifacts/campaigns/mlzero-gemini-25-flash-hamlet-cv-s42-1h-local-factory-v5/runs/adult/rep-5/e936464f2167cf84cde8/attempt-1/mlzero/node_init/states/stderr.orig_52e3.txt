@@ -1,0 +1,1 @@
+<string>:36: FutureWarning: DataFrame.applymap has been deprecated. Use DataFrame.map instead.

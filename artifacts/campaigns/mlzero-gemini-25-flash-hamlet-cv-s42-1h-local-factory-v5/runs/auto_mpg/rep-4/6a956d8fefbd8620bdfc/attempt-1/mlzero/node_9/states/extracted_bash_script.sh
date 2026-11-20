@@ -1,0 +1,32 @@
+#!/bin/bash
+set -euo pipefail
+
+# Define environment and file paths
+ENV_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-4/6a956d8fefbd8620bdfc/attempt-1/mlzero/node_9/conda_env"
+PYTHON_VERSION="3.11"
+COMMON_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+ML_REQUIREMENTS_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt"
+
+# Ensure conda is initialized in the current shell session
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "Error: conda.sh not found. Is conda installed and initialized?" >&2
+    exit 1
+fi
+
+# Create the conda environment
+conda create -p "$ENV_DIR" python="$PYTHON_VERSION" -y
+
+# Activate the environment
+conda activate "$ENV_DIR"
+
+# Install uv
+pip install uv
+
+# Install required packages from requirements files and additional libraries using uv
+uv pip install \
+    -r "$ML_REQUIREMENTS_PATH" \
+    --prerelease=allow \
+    -r "$COMMON_REQUIREMENTS_PATH" \
+    numpy pandas scikit-learn autogluon.tabular

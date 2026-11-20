@@ -1,0 +1,97 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv"
+
+File Size: 52.94 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+from io import StringIO
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv"
+output_buffer = StringIO()
+
+try:
+    # Attempt to read as a CSV file
+    df = pd.read_csv(file_path)
+
+    columns = df.columns.tolist()
+    num_columns = len(columns)
+
+    output_buffer.write("Column Names:\n")
+    if num_columns > 20:
+        output_buffer.write(f"Total: {num_columns}. First 10: {columns[:10]}, Last 10: {columns[-10:]}\n")
+    else:
+        output_buffer.write(f"{columns}\n")
+
+    output_buffer.write("\nFirst 3 Rows:\n")
+    # Use to_string to format the DataFrame, truncating cell content and without index
+    df.head(3).to_string(output_buffer, index=False, max_colwidth=50)
+    output_buffer.write("\n")
+
+except Exception as e:
+    # If CSV reading fails, treat it as a text file
+    output_buffer.write(f"Could not read as CSV ({type(e).__name__}). Displaying first 768 characters as text:\n")
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read(768)
+            output_buffer.write(content)
+    except Exception as text_e:
+        output_buffer.write(f"Could not read file: {text_e}\n")
+
+# Get the full output and truncate it to 768 characters before printing
+final_output = output_buffer.getvalue()
+print(final_output[:768])
+
+## Execution Results
+### Standard Output (stdout)
+
+Column Names:
+Total: 562. First 10: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10'], Last 10: ['V553', 'V554', 'V555', 'V556', 'V557', 'V558', 'V559', 'V560', 'V561', 'Class']
+
+First 3 Rows:
+      V1        V2        V3        V4        V5        V6        V7        V8        V9       V10       V11       V12      V13      V14      V15       V16       V17       V18       V19       V20       V21       V22       V23       V24       V25      V26       V27      V28       V29      V30       V31      V32       V33      V34       V35       V36       V37       V38       V39      V40      V41       V42      V43       V44       V45       V46       V47       V48       V49      V50       V51      V52      V53       V54      V55       V56      V57       V58 
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unexpected `seed` keyword argument. The current version of AutoGluon MultiModal does not support passing a `seed` directly to its `__init__` method, leading to a `TypeError`.
+SUGGESTED_FIX: Remove the `seed=self.seed` argument from the `MultiModalPredictor` constructor call. If you need to set a seed for AutoGluon's internal operations, pass it as a hyperparameter to the `fit` method using the key `env.seed`.

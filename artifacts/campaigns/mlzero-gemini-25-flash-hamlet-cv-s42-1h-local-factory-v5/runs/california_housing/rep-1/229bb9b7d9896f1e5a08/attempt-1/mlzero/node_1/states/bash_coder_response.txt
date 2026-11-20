@@ -1,0 +1,63 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define the base directory for the experiment run
+BASE_DIR="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-1/229bb9b7d9896f1e5a08/attempt-1/mlzero/node_1"
+CONDA_ENV_PATH="${BASE_DIR}/conda_env"
+SOURCE_DIR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry"
+
+# --- Conda Environment Setup ---
+
+# Check if conda is available in the PATH
+if ! command -v conda &> /dev/null; then
+    echo "Error: Conda command not found. Please ensure Conda is installed and initialized."
+    exit 1
+fi
+
+# Ensure the parent directory for the conda environment exists
+mkdir -p "${BASE_DIR}"
+
+echo "Preparing conda environment at ${CONDA_ENV_PATH}..."
+
+# Remove existing environment directory to ensure a clean installation
+if [ -d "${CONDA_ENV_PATH}" ]; then
+    echo "Removing existing environment directory: ${CONDA_ENV_PATH}"
+    rm -rf "${CONDA_ENV_PATH}"
+fi
+
+# Create a new conda environment with Python 3.11
+echo "Creating new conda environment with Python 3.11..."
+conda create -p "${CONDA_ENV_PATH}" python=3.11 -y
+
+# Activate the environment
+# This block ensures conda is initialized for the current shell session
+# and then activates the newly created environment.
+echo "Activating environment: ${CONDA_ENV_PATH}"
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "${CONDA_ENV_PATH}"
+
+# --- Package Installation ---
+
+echo "Installing uv into the environment..."
+pip install uv
+
+echo "Installing required packages from requirements files using uv..."
+# Install packages from the specified requirements files
+# The --prerelease=allow flag is included as requested.
+# uv's default behavior for `pip install -r` is to install if not present,
+# or if a different version is present, but not to upgrade if the exact
+# version specified in requirements is already installed. This aligns with
+# the "Do NOT upgrade or reinstall autogluon.multimodal" instruction.
+uv pip install \
+    -r "${SOURCE_DIR}/autogluon.multimodal/requirements.txt" \
+    --prerelease=allow \
+    -r "${SOURCE_DIR}/_common/requirements.txt"
+
+echo "Installing numpy, pandas, and scikit-learn using uv..."
+# Install core ML libraries
+uv pip install numpy pandas scikit-learn
+
+echo "Conda environment setup and package installation complete."
+echo "Environment is located at: ${CONDA_ENV_PATH}"
+```

@@ -1,0 +1,61 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define paths
+CONDA_ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-2/ffb0a47cbef81e5b1c5d/attempt-1/mlzero/node_8/conda_env"
+COMMON_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AUTOGLUON_TABULAR_REQ_PATH="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting conda environment setup for node_8..."
+
+# 1. Create the conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create -p "$CONDA_ENV_PATH" python=3.11 -y || { echo "ERROR: Failed to create conda environment."; exit 1; }
+
+# 2. Activate the environment
+echo "Activating conda environment..."
+# Initialize conda for the current shell if not already initialized
+if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+else
+    echo "ERROR: Conda initialization script not found. Ensure conda is installed and in PATH."
+    exit 1
+fi
+
+# Check if conda command is available after sourcing
+if ! type "conda" > /dev/null 2>&1; then
+    echo "ERROR: Conda command not found after initialization. Exiting."
+    exit 1
+fi
+
+# Safely check CONDA_SHLVL for set -u
+if [ -z "${CONDA_SHLVL:-}" ]; then
+    conda activate "$CONDA_ENV_PATH" || { echo "ERROR: Failed to activate conda environment."; exit 1; }
+else
+    # If already in a conda environment, deactivate first to ensure clean activation
+    conda deactivate
+    conda activate "$CONDA_ENV_PATH" || { echo "ERROR: Failed to activate conda environment."; exit 1; }
+fi
+
+
+# 3. Install uv
+echo "Installing uv into the environment..."
+# Use the activated environment's pip
+pip install uv || { echo "ERROR: Failed to install uv."; exit 1; }
+
+# 4. Install required packages from requirements files using uv
+# uv handles exact package versions and avoids unnecessary upgrades/reinstalls by default.
+echo "Installing required packages from requirements files using uv..."
+uv pip install \
+    -r "$AUTOGLUON_TABULAR_REQ_PATH" \
+    --prerelease=allow \
+    -r "$COMMON_REQ_PATH" \
+    || { echo "ERROR: Failed to install packages from requirements files."; exit 1; }
+
+# 5. Install numpy, pandas, scikit-learn as explicitly requested
+echo "Installing numpy, pandas, scikit-learn..."
+uv pip install numpy pandas scikit-learn || { echo "ERROR: Failed to install numpy, pandas, scikit-learn."; exit 1; }
+
+echo "Conda environment setup complete at $CONDA_ENV_PATH"
+```

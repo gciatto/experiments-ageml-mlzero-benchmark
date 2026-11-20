@@ -1,0 +1,127 @@
+import os
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+from autogluon.core.metrics import make_scorer
+import sklearn.metrics
+
+# Define a custom balanced_accuracy scorer for AutoGluon.
+# AutoGluon's make_scorer expects the score_func to take y_true and y_pred.
+# sklearn.metrics.balanced_accuracy_score fits this signature.
+ag_balanced_accuracy_scorer = make_scorer(
+    name='balanced_accuracy',
+    score_func=sklearn.metrics.balanced_accuracy_score,
+    optimum=1,  # The best possible score for balanced accuracy is 1.
+    greater_is_better=True,  # Higher balanced accuracy is better.
+    needs_class=True  # This metric requires discrete class predictions, not probabilities.
+)
+
+class AutoGluonTabularWrapper:
+    """
+    A wrapper class for AutoGluon's TabularPredictor to conform to the
+    `fit(X, y)` and `predict(X)` interface required by the benchmark harness.
+    """
+    def __init__(self, label_column: str, random_seed: int, time_limit_per_fold_seconds: int):
+        """
+        Initializes the wrapper with configuration for AutoGluon TabularPredictor.
+
+        Args:
+            label_column (str): The name of the target column.
+            random_seed (int): Seed for reproducibility.
+            time_limit_per_fold_seconds (int): Maximum time in seconds allowed for each fit operation.
+        """
+        self.predictor = None
+        self.label_column = label_column
+        self.random_seed = random_seed
+        self.time_limit_per_fold_seconds = time_limit_per_fold_seconds
+        self.model_path = None  # Stores the unique path for the current fold's model artifacts
+
+    def fit(self, X: pd.DataFrame, y: pd.Series):
+        """
+        Fits the AutoGluon TabularPredictor model using the provided training data.
+
+        All preprocessing and model training are performed within this method,
+        using only the supplied training rows.
+
+        Args:
+            X (pd.DataFrame): Training features.
+            y (pd.Series): Training target labels.
+        """
+        # Combine X and y into a single DataFrame, which is the expected input format for AutoGluon.
+        # A copy is made to ensure the original DataFrames/Series are not modified.
+        train_data = X.copy()
+        train_data[self.label_column] = y
+
+        # Create a unique path for each fold's model artifacts.
+        # This ensures "fresh artifact directories per fold" as required by the contract,
+        # preventing conflicts and ensuring isolation between different folds.
+        self.model_path = f"autogluon_models_{uuid.uuid4()}"
+        
+        # Initialize TabularPredictor with the specified target column, evaluation metric,
+        # unique model path, and random seed for reproducibility.
+        # verbosity=0 is used to suppress extensive AutoGluon output during fitting.
+        self.predictor = TabularPredictor(
+            label=self.label_column,
+            eval_metric=ag_balanced_accuracy_scorer,
+            path=self.model_path,
+            random_seed=self.random_seed,
+            verbosity=0
+        )
+
+        # Fit the predictor.
+        # 'presets="medium_quality"' is chosen to ensure completion within the very tight
+        # per-fold time limit, as 'best_quality' would likely exceed it.
+        # The 'time_limit' parameter bounds each fit operation, ensuring all ten folds
+        # can complete within the total shared deadline.
+        # AutoGluon automatically handles internal validation splits, feature engineering,
+        # and model selection/ensembling.
+        self.predictor.fit(
+            train_data,
+            presets='medium_quality', # Changed from 'best_quality' to 'medium_quality' for faster training
+            time_limit=self.time_limit_per_fold_seconds,
+        )
+
+    def predict(self, X: pd.DataFrame) -> pd.Series:
+        """
+        Makes predictions using the fitted AutoGluon TabularPredictor model.
+
+        Args:
+            X (pd.DataFrame): Features for which to make predictions.
+
+        Returns:
+            pd.Series: Predicted class labels.
+        """
+        if self.predictor is None:
+            raise RuntimeError("Model has not been fitted yet. Call .fit(X, y) first.")
+        
+        # AutoGluon's predict method expects a DataFrame for inference.
+        predictions = self.predictor.predict(X)
+        return predictions
+
+def build_model(X_train: pd.DataFrame, y_train: pd.Series) -> AutoGluonTabularWrapper:
+    """
+    Factory function to create a new, unfitted AutoGluon TabularPredictor wrapper.
+    This function adheres to the contract by returning a fresh, unfitted model
+    with `fit(X,y)` and `predict(X)` methods.
+
+    Args:
+        X_train (pd.DataFrame): Training features (used to infer problem type, not for fitting).
+        y_train (pd.Series): Training target labels (used to infer problem type, not for fitting).
+
+    Returns:
+        AutoGluonTabularWrapper: An unfitted model wrapper instance.
+    """
+    # The target column name is 'Class' as specified in the README.md.
+    label_column = 'Class'
+    
+    # Seed 42 is required by the task description for reproducibility across runs.
+    random_seed = 42
+    
+    # The total shared deadline for all ten fits and overhead is 69 seconds.
+    # Allocating 5 seconds per fold for AutoGluon's fit method (10 folds * 5s = 50s)
+    # leaves a buffer of 19 seconds for data loading, wrapper instantiation,
+    # and other harness overhead, ensuring all fits complete within the deadline.
+    # This is a very aggressive time limit, so 'medium_quality' preset is used.
+    time_limit_per_fold_seconds = 5 # Changed from 300 to 5 seconds per fold
+    
+    return AutoGluonTabularWrapper(label_column, random_seed, time_limit_per_fold_seconds)

@@ -1,0 +1,171 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json"
+
+File Size: 0.85 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local/cv_contract.json"
+
+output_buffer = []
+
+def add_to_buffer(content):
+    output_buffer.append(str(content))
+
+try:
+    df = pd.read_json(file_path)
+
+    if not df.empty:
+        columns = df.columns.tolist()
+        if len(columns) > 20:
+            add_to_buffer("Columns (first 10 and last 10):")
+            add_to_buffer(columns[:10] + ['...'] + columns[-10:])
+        else:
+            add_to_buffer("Columns:")
+            add_to_buffer(columns)
+
+        add_to_buffer("\nFirst 3 rows:")
+        
+        df_head = df.head(3).copy()
+
+        for col in df_head.columns:
+            df_head[col] = df_head[col].astype(str).apply(
+                lambda x: (x[:50] + '...') if len(x) > 50 else x
+            )
+        
+        add_to_buffer(df_head.to_string(index=False))
+
+    else:
+        add_to_buffer("JSON file read as an empty DataFrame. Displaying as text.")
+        raise ValueError("Empty DataFrame")
+
+except (pd.errors.EmptyDataError, ValueError, json.JSONDecodeError, pd.errors.ParserError, FileNotFoundError) as e:
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            add_to_buffer("File content (first 768 characters):")
+            add_to_buffer(content)
+    except Exception as text_e:
+        add_to_buffer(f"Could not read file as text: {text_e}")
+except Exception as e:
+    add_to_buffer(f"An unexpected error occurred: {e}")
+
+final_output = "\n".join(output_buffer)
+if len(final_output) > 768:
+    final_output = final_output[:765] + "..."
+
+print(final_output)
+
+## Execution Results
+### Standard Output (stdout)
+
+File content (first 768 characters):
+{
+  "cv_folds": [
+    {
+      "train": [
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        1...
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

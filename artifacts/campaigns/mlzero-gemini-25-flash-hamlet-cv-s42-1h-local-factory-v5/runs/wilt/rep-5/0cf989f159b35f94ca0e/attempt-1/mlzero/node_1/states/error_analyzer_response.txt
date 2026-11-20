@@ -1,0 +1,2 @@
+ERROR_SUMMARY: The `MultiModalPredictor` constructor was called with an unsupported `random_seed` keyword argument. This argument is not part of the `MultiModalPredictor`'s initialization signature, leading to a `TypeError`.
+SUGGESTED_FIX: Remove the `random_seed` argument from the `MultiModalPredictor` constructor. If a random seed is required for reproducibility, it should be passed as a hyperparameter within the `hyperparameters` dictionary to the `predictor.fit()` method.

@@ -1,0 +1,65 @@
+import pandas as pd
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/cv_contract.json"
+
+output_buffer = []
+max_output_chars = 768
+
+def add_to_buffer(text):
+    global output_buffer
+    current_length = sum(len(s) for s in output_buffer)
+    if current_length >= max_output_chars:
+        return # Already at or over limit, do nothing
+
+    remaining_chars = max_output_chars - current_length
+    if len(text) > remaining_chars:
+        # Truncate text and add '...' if there's space for '...'
+        if remaining_chars > 3:
+            output_buffer.append(text[:remaining_chars - 3] + "...")
+        else: # Not enough space even for "..."
+            output_buffer.append(text[:remaining_chars]) # Just take what fits
+    else:
+        output_buffer.append(text)
+
+try:
+    # Attempt to read as JSON using pandas
+    try:
+        df = pd.read_json(file_path)
+
+        # Check if it's a DataFrame and not just a Series or scalar
+        if isinstance(df, pd.DataFrame) and not df.empty:
+            add_to_buffer("Columns: ")
+            cols = df.columns.tolist()
+            if len(cols) > 20:
+                add_to_buffer(f"{cols[:10]} ... {cols[-10:]}\n")
+            else:
+                add_to_buffer(f"{cols}\n")
+
+            add_to_buffer("First row (truncated):\n")
+            # Truncate cell content for the first row and convert to dictionary
+            first_row_dict = df.iloc[0].apply(lambda x: (str(x)[:50] + '...') if len(str(x)) > 50 else str(x)).to_dict()
+            add_to_buffer(str(first_row_dict) + "\n")
+
+        else: # Not a DataFrame or empty, try generic json load
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            add_to_buffer("JSON content (truncated):\n")
+            json_str = json.dumps(data, indent=2)
+            add_to_buffer(json_str) # add_to_buffer will truncate if needed
+
+    except (ValueError, TypeError, pd.errors.EmptyDataError) as e:
+        # If pandas fails to parse as tabular, try reading as a generic text file
+        add_to_buffer(f"Could not parse as tabular JSON (Error: {e}). Reading as text.\n")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            # Read a bit more than max_output_chars to ensure '...' can be added if truncated
+            content_full = f.read(max_output_chars + 100)
+            add_to_buffer(content_full)
+
+except FileNotFoundError:
+    add_to_buffer(f"File not found: {file_path}\n")
+except Exception as e:
+    add_to_buffer(f"An unexpected error occurred: {e}\n")
+
+print("".join(output_buffer))

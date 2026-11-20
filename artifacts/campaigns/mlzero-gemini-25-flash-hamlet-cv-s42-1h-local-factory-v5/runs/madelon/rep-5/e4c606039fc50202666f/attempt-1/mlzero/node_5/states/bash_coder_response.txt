@@ -1,0 +1,51 @@
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Define paths
+# The target environment path for node_5 as specified in the prompt.
+ENV_ROOT="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-25-flash-hamlet-cv-s42-1h-local-factory-v5/runs/madelon/rep-5/e4c606039fc50202666f/attempt-1/mlzero/node_5"
+CONDA_ENV_PATH="${ENV_ROOT}/conda_env"
+COMMON_REQ="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+TABULAR_REQ="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+echo "Starting minimal BASH INSTALLATION script for factory module."
+
+# Ensure parent directories exist for the conda environment
+mkdir -p "$(dirname "$CONDA_ENV_PATH")"
+
+# 1. Create conda environment with Python 3.11
+echo "Creating conda environment at $CONDA_ENV_PATH with Python 3.11..."
+conda create -y --prefix "$CONDA_ENV_PATH" python=3.11
+
+# Define paths to the new environment's binaries
+PYTHON_BIN="$CONDA_ENV_PATH/bin/python"
+PIP_BIN="$CONDA_ENV_PATH/bin/pip"
+UV_BIN="$CONDA_ENV_PATH/bin/uv" # uv will be installed here
+
+# Verify Python executable exists
+if [ ! -f "$PYTHON_BIN" ]; then
+    echo "Error: Python executable not found at $PYTHON_BIN after conda environment creation. Conda environment creation might have failed."
+    exit 1
+fi
+
+# 2. Install uv into the environment using its pip
+echo "Installing uv into the environment using $PIP_BIN..."
+"$PIP_BIN" install uv
+
+# Verify uv executable exists
+if [ ! -f "$UV_BIN" ]; then
+    echo "Error: uv executable not found at $UV_BIN after installation. uv installation might have failed."
+    exit 1
+fi
+
+# 3. Install required packages from requirements files and explicitly requested packages using uv
+echo "Installing required packages from $TABULAR_REQ, $COMMON_REQ, numpy, pandas, scikit-learn using $UV_BIN..."
+# Explicitly adding numpy, pandas, and scikit-learn as requested by the prompt
+# and to address previous ModuleNotFoundError for numpy.
+# uv efficiently resolves dependencies and avoids unnecessary upgrades/reinstalls.
+"$UV_BIN" pip install -r "$TABULAR_REQ" --prerelease=allow -r "$COMMON_REQ" numpy pandas scikit-learn
+
+echo "Conda environment setup complete at $CONDA_ENV_PATH."
+echo "The environment is prepared with autogluon.tabular, numpy, pandas, and scikit-learn."
+```
