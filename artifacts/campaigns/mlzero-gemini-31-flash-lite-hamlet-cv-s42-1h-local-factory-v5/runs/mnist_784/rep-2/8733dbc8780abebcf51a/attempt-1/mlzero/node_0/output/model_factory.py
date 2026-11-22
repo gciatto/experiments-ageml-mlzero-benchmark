@@ -1,0 +1,67 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, label='class', time_limit=300):
+        self.label = label
+        self.time_limit = time_limit
+        self.predictor = None
+        # Create a unique path for this fold's artifacts
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor.
+        X and y are provided as pandas objects.
+        """
+        # Combine X and y for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor
+        # Using 'extreme' preset as requested for high performance
+        # We disable auto_stack if time is tight, but 'extreme' implies high quality
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data=train_data,
+            time_limit=self.time_limit,
+            presets='extreme',
+            verbosity=1
+        )
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels for the given input features.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup artifacts after the model is no longer needed.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The time_limit is set to 300 seconds per fold to ensure all 10 folds
+    fit within the remaining shared deadline.
+    """
+    return AutoGluonWrapper(label='class', time_limit=300)

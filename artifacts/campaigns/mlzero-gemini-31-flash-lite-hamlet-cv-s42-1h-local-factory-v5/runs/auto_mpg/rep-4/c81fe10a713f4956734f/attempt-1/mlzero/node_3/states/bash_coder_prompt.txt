@@ -1,0 +1,121 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-4/c81fe10a713f4956734f/attempt-1/mlzero/node_3:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import os
+import shutil
+import tempfile
+import random
+import numpy as np
+import torch
+from autogluon.tabular import TabularPredictor
+from sklearn.base import BaseEstimator, RegressorMixin
+
+class AutoGluonRegressorWrapper(BaseEstimator, RegressorMixin):
+    """
+    A wrapper for AutoGluon TabularPredictor that adheres to the 
+    scikit-learn estimator interface for use in cross-validation.
+    """
+    def __init__(self, seed=42):
+        self.seed = seed
+        self.predictor = None
+        self.temp_dir = None
+        self.target_col = "class"
+
+    def _set_seeds(self):
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        torch.manual_seed(self.seed)
+        torch.cuda.manual_seed_all(self.seed)
+
+    def fit(self, X, y):
+        # Create a fresh directory for this fold's artifacts
+        self.temp_dir = tempfile.mkdtemp(prefix="ag_fold_")
+        
+        # Prepare data
+        df = X.copy()
+        df[self.target_col] = y
+        
+        self._set_seeds()
+        
+        # Initialize and fit predictor
+        # Using 'medium_quality' to balance performance and time constraints.
+        # time_limit is set to 250s to ensure 10 folds fit within the ~3000s budget.
+        self.predictor = TabularPredictor(
+            label=self.target_col,
+            path=self.temp_dir,
+            problem_type='regression',
+            verbosity=0
+        )
+        
+        self.predictor.fit(
+            df,
+            time_limit=250,
+            presets='medium_quality',
+            fit_weighted_ensemble=True
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model must be fitted before calling predict.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifacts after use to prevent disk bloat
+        if self.temp_dir and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Returns a fresh, unfitted AutoGluonRegressorWrapper instance.
+    The harness will call fit() on this object using the provided training fold.
+    """
+    return AutoGluonRegressorWrapper(seed=42)
+### Previous errors
+ERROR_SUMMARY: The `ValueError` is caused by passing an unsupported keyword argument `random_seed` to the `TabularPredictor.fit()` method. AutoGluon's `fit` method does not accept `random_seed` as a direct argument; instead, stochastic behavior is controlled via the `ag_args_fit` dictionary or by setting the seed globally before calling `fit`.
+
+SUGGESTED_FIX: Remove `random_seed=self.seed` from the `fit()` call in your `AutoGluonRegressorWrapper`. To ensure reproducibility, set the seed globally using `import random; random.seed(self.seed)`, `import numpy as np; np.random.seed(self.seed)`, and `import torch; torch.manual_seed(self.seed)` immediately before calling `fit()`.
+### Previous installation attempt
+#!/bin/bash
+
+# Define the environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-4/c81fe10a713f4956734f/attempt-1/mlzero/node_1/conda_env"
+
+# Create conda environment with Python 3.11
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate the environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install dependencies from registry files
+# Using --prerelease=allow as requested
+uv pip install \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine\ learning/requirements.txt \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt \
+    --prerelease=allow
+
+# Install specific required packages for the factory module
+# numpy, pandas, scikit-learn are typically in requirements, 
+# but we ensure they are present here.
+uv pip install numpy pandas scikit-learn torch autogluon
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-4/c81fe10a713f4956734f/attempt-1/mlzero/node_3/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3095 seconds.

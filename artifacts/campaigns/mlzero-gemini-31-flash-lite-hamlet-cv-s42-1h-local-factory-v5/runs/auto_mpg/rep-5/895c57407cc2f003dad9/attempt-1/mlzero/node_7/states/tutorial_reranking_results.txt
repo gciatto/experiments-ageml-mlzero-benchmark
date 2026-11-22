@@ -1,0 +1,42 @@
+Selected Tutorials After Reranking:
+==================================================
+
+1. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-essentials.md
+   Retrieval Score: 0.7960
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial covers AutoGluon's TabularPredictor for automated machine learning on tabular data. It demonstrates implementation of quick model training with minimal c...
+------------------------------
+
+2. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-indepth.md
+   Retrieval Score: 0.7690
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon TabularPredictor for machine learning tasks, covering hyperparameter tuning with search spaces for neural networks and gradient bo...
+------------------------------
+
+3. Title: Condensed: ```
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/tabular-feature-engineering.md
+   Retrieval Score: 0.7626
+   Content Preview: # Condensed: ```
+
+Summary: This tutorial explains AutoGluon's automatic feature engineering capabilities for tabular data. It covers type-specific processing: numerical columns remain unchanged, categ...
+------------------------------
+
+4. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-custom-model.md
+   Retrieval Score: 0.7568
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates how to implement custom models in AutoGluon by extending the AbstractModel class, specifically creating a custom RandomForest implementation...
+------------------------------
+
+5. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/condensed_tutorials/advanced/tabular-custom-model-advanced.md
+   Retrieval Score: 0.7396
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates how to prevent AutoGluon from dropping specific features during preprocessing. It covers three key techniques: (1) creating custom models wi...
+------------------------------

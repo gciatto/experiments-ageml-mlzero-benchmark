@@ -1,0 +1,54 @@
+{
+  "attempt": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-1/984a2614a6a4fa8693de/attempt-1",
+  "campaign_id": "mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5",
+  "cv_score": null,
+  "dataset": "mnist_784",
+  "final": true,
+  "finished_at": 1795217169.8887541,
+  "fit_seed": 42,
+  "llm_seed_requested": 42,
+  "llm_settings_verified": true,
+  "model": "gemini-3.1-flash-lite",
+  "native_validation_score": null,
+  "protocol": "ageml-evaluation-v3/hamlet_cv",
+  "protocol_compliance": "audited export; no proof against adversarial generated code",
+  "repetition": 1,
+  "resource_limits": {
+    "cpus": 16,
+    "gpus": 0,
+    "memory_gib": 50,
+    "memory_high_gib": 40
+  },
+  "resources": {
+    "cpu_s": 518.590753,
+    "peak_rss_bytes": 52376870912,
+    "resources_final": false,
+    "resources_source": "cgroup"
+  },
+  "run_id": "984a2614a6a4fa8693de",
+  "score_role": "selection_cv_not_independent_test",
+  "search_budget_s": 3600,
+  "search_wall_s": 3600.0333156300185,
+  "seed_support": "Requested on native Gemini and local Python/NumPy/sklearn; backend determinism is not guaranteed",
+  "selected": null,
+  "source_sha256": "30c9e1582974be8f5cb892d2d9ebc67fc1cf0a6074b16ef952a3458ba3e92e27",
+  "split_identity": "b7451a4d1c697c013386236b17547be25e785051cf778a04385b03991df0481a",
+  "status": "no_artifact",
+  "system": "mlzero",
+  "temperature": 0.0,
+  "termination_reason": "timeout",
+  "test_score": null,
+  "timing_note": "MLZero initialization, generation, repair and all ten-fold fits are inside 3600 s. AGE-ML planning may precede its exploration deadline; resource-time equivalence is not asserted.",
+  "usage": {
+    "billable_output_tokens": 2939,
+    "cache_read_tokens": 0,
+    "input_tokens": 44589,
+    "llm_calls": 16,
+    "output_tokens": 2939,
+    "reasoning_tokens": null,
+    "reported_models": [
+      "gemini-3.1-flash-lite"
+    ],
+    "usage_coverage": "complete"
+  }
+}

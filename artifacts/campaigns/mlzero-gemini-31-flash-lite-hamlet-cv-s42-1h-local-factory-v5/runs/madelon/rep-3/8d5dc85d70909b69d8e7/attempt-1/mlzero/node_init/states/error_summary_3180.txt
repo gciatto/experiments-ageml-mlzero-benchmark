@@ -1,0 +1,1 @@
+The output is heavily truncated by the system (3993 characters), violating the requirement to keep the total output under 768 characters. Additionally, the code prints the entire row content (which is extremely long for this dataset), causing the output to exceed the character limit. The code needs to truncate cell content as requested.

@@ -1,0 +1,5 @@
+The data science task is **classification**.
+
+**Input Format:** A tabular dataset (pandas DataFrame or numpy array) containing 500 numerical features, named V1 through V500.
+
+**Prediction Output Format:** A 1-dimensional numpy array or list of predicted class labels for the `Class` column, with its length matching the number of input samples.

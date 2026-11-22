@@ -1,0 +1,7 @@
+This is a **classification** task.
+
+**Input Format:**
+The model receives tabular data. For training, the `build_model` function is provided with `X_train` and `y_train`. `X_train` is a Pandas DataFrame containing numerical features: `GLCM_Pan`, `Mean_G`, `Mean_R`, `Mean_NIR`, and `SD_Plan`. `y_train` is a Pandas Series containing the corresponding target `class` labels. For prediction, the `predict` method receives `X`, a Pandas DataFrame of these numerical features.
+
+**Prediction Output Format:**
+The `predict(X)` method must return a 1D array of predicted class labels. The length of this array must be equal to the number of rows in the input `X`.

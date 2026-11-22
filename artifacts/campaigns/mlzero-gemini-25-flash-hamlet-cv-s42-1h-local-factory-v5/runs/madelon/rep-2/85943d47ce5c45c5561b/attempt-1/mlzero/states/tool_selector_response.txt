@@ -1,0 +1,21 @@
+EXPLANATION:
+The data science task is classification on tabular data with 500 numerical features. The target is a single class label, and the evaluation metric is balanced accuracy. The dataset size is moderate (2600 rows). The environment specifies a `build_model(X_train, y_train)` factory returning an unfitted model with `fit(X,y)` and `predict(X)` methods, implying compatibility with scikit-learn's API or similar.
+
+I evaluated each available library based on its description, relevance to the task, and suitability for the given data characteristics:
+
+1.  **autogluon.tabular**: This library is an excellent fit for the task. Its description explicitly states it "automates ML model training for tabular data, excelling at numerical and categorical data processing." This directly matches our input format (tabular, numerical features) and task (classification, which AutoGluon Tabular supports). Its AutoML capabilities are highly beneficial for achieving strong performance in benchmark settings like MLZero, as it can automatically select and ensemble various models robust to high-dimensional tabular data. The `TabularPredictor` interface can be easily wrapped to conform to the `build_model` contract.
+
+2.  **machine learning**: This is a generic reference, not a specific library. However, it represents the broad category of standard machine learning algorithms and frameworks (e.g., scikit-learn, XGBoost, LightGBM, CatBoost, TensorFlow/PyTorch for deep learning). Given the `evaluate_cv.py` imports `sklearn.metrics`, it's highly probable that scikit-learn-compatible models are expected or at least viable. For a tabular classification task with 500 numerical features, many algorithms from these general frameworks (e.g., Gradient Boosting Machines, Random Forests, Logistic Regression with regularization, or even simple Neural Networks) would be highly appropriate. This option provides flexibility and control, making it a strong fallback or alternative if an AutoML solution isn't preferred or doesn't yield optimal results. Its weakness is that it requires manual selection and tuning of algorithms, unlike AutoML.
+
+3.  **autogluon.multimodal**: This library is designed for multimodal tasks, excelling at combining different data types. While it supports classification, its description explicitly states it "is not optimized for pure tabular data processing." Our task involves *purely* tabular numerical data, without any other modalities like text or images. Using a multimodal framework for a unimodal tabular task would likely introduce unnecessary overhead or complexity and might not perform as well as a library specifically optimized for tabular data (like `autogluon.tabular`). However, among the remaining options, it's the only other AutoGluon library that *could* technically handle classification and tabular data, making it a distant third choice compared to the highly specialized and irrelevant libraries.
+
+The following libraries are entirely unsuitable for this task:
+*   **FlagEmbedding**: Specializes in retrieval and reranking, which are NLP tasks, not tabular classification.
+*   **wav2vec2**: Designed for audio processing (ASR, audio classification), completely irrelevant to tabular numerical data.
+*   **qwen3**: A large language model for text generation and reasoning, irrelevant to tabular numerical data.
+*   **autogluon.timeseries**: Designed for time series forecasting, not static tabular classification.
+
+RANKED_LIBRARIES:
+1. autogluon.tabular
+2. machine learning
+3. autogluon.multimodal

@@ -1,0 +1,63 @@
+import os
+import shutil
+import tempfile
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, label='Class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.temp_dir = tempfile.mkdtemp(prefix="ag_fold_")
+
+    def fit(self, X, y):
+        # Combine X and y for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Define a path for this specific fold's model
+        fold_path = os.path.join(self.temp_dir, str(uuid.uuid4()))
+        
+        # Initialize and fit the predictor.
+        # Using 'best_quality' preset for a balance of performance and time.
+        # We limit the time to ensure all 10 folds complete within the 42s budget.
+        # Given the tight constraint, we use a very short time_limit per fold.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            eval_metric='balanced_accuracy',
+            path=fold_path
+        )
+        
+        self.predictor.fit(
+            train_data,
+            presets='best_quality',
+            time_limit=3,  # Very aggressive limit to ensure 10 folds finish in 42s
+            verbosity=0,
+            num_gpus=0,
+            num_cpus=1
+        )
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Clean up the temporary directory after the object is destroyed
+        if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    return AutoGluonWrapper(label='Class')

@@ -1,0 +1,110 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_5:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.tabular if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+# Ensure environment stability for AutoGluon in constrained environments
+os.environ["RAY_DISABLE_MEMORY_MONITOR"] = "1"
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that ensures a fresh environment
+    for each fold and adheres to the fit/predict interface.
+    """
+    def __init__(self, label='class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this specific fold's artifacts
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor
+        # We use a conservative time_limit to ensure all 10 folds finish within the 157s budget.
+        # num_cpus=1 and num_gpus=0 are set to prevent resource contention/segfaults.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data,
+            presets='best_quality',
+            time_limit=12,  # Budgeted time per fold to stay under 157s total
+            num_cpus=1,
+            num_gpus=0,
+            verbosity=0,
+            ag_args_fit={'num_gpus': 0}
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifacts after use to save disk space
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    The label is 'class' based on the provided dataset description.
+    """
+    return AutoGluonWrapper(label='class')
+### Previous errors
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray runtime, which is AutoGluon's default parallelization engine. This is likely triggered by resource contention or environment instability when multiple Ray processes attempt to initialize or communicate within the restricted, non-interactive container environment.
+
+SUGGESTED_FIX: Disable AutoGluon's multi-processing and Ray-based parallelization by setting the environment variable `RAY_DISABLE_MEMORY_MONITOR=1` and passing `num_gpus=0` and `num_cpus=1` to the `fit()` method. Additionally, ensure that the `TabularPredictor` is initialized with `ag_args_fit={'num_gpus': 0}` to force sequential execution, which is more stable in constrained environments.
+### Previous installation attempt
+#!/bin/bash
+set -e
+
+# Define paths
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_0/conda_env"
+REQ_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install base dependencies
+pip install numpy pandas scikit-learn uv
+
+# Install requirements using uv
+# --no-upgrade ensures existing versions are respected if satisfied
+uv pip install \
+    --no-upgrade \
+    --prerelease=allow \
+    -r "$REQ_TABULAR" \
+    -r "$REQ_COMMON"
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_5/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 155 seconds.

@@ -1,0 +1,10 @@
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/evaluate_cv.py"
+
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read(768)
+        print(content)
+except Exception as e:
+    print(f"Error reading file: {e}")

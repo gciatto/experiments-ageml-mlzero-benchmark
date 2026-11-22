@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `AssertionError` occurs because the `time_limit` provided to AutoGluon's `fit()` method is too restrictive for the complexity of the models being trained, causing the process to time out before completion.
+
+SUGGESTED_FIX: Increase the `time_limit` parameter in the `fit()` method to allow sufficient time for model training, or disable resource-intensive features like `dynamic_stacking` and `bagging` by setting `auto_stack=False` and `num_bag_folds=0` to reduce the computational overhead.

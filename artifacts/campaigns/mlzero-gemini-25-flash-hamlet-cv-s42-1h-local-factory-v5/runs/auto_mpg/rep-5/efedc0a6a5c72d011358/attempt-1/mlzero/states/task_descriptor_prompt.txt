@@ -1,0 +1,262 @@
+
+Based ONLY on the information explicitly stated in the provided data structure and description files, provide a condensed and precise description of the data science task. Include only details that are directly mentioned in the source materials. Do not add assumptions or infer unstated information.
+
+Be very clear about the problem type (e.g. audio classification/image regression/seq-to-seq generation/etc.), input format, and prediction output format.
+
+### User Instruction
+
+
+### Data Structure:
+(IMPORTANT: The metadata of example files in Data Structure may not be representative - do not make assumptions about data statistics based on examples.)
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/data.csv
+Content:
+Columns: ['cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model', 'origin', 'class']
+
+First 3 rows:
+ cylinders  displacement  horsepower  weight  acceleration  model  origin  class
+         8         307.0       130.0  3504.0          12.0     70       1   18.0
+         8         350.0       165.0  3693.0          11.5     70       1   15.0
+         8         318.0       150.0  3436.0          11.0     70       1   18.0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: auto_mpg
+Target column: `class`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools remain
+al
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json
+Content:
+JSON Content (truncated):
+{
+  "cv_folds": [
+    {
+      "train": [
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+  ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### Description File Contents:
+File: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/evaluate_cv.py
+Content: """Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+
+
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = json.loads(contract_path.read_text())
+    data = contract_path.parent / "data.csv"
+    if digest(data) != contract["source_sha256"]:
+        raise ValueError("CSV checksum mismatch")
+    frame = pd.read_csv(data)
+    target = contract["target_column"]
+    random.seed(42)
+    np.random.seed(42)
+    spec = importlib.util.spec_from_file_location("candidate_factory", factory_path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = (
+        module  # normal import semantics, including dataclass annotations
+    )
+    spec.loader.exec_module(module)
+    scores = []
+    rows = []
+    seeds = []
+    start = time.monotonic()
+    for fold, part in enumerate(contract["cv_folds"]):
+        random.seed(42)
+        np.random.seed(42)
+        train = frame.iloc[part["train"]]
+        validation = frame.iloc[part["validation"]]
+        X = train.drop(columns=[target])
+        y = train[target]
+        model = module.build_model(X.copy(), y.copy())
+        applied = {}
+        if hasattr(model, "get_params") and hasattr(model, "set_params"):
+            applied = {
+                k: 42
+                for k in model.get_params(deep=True)
+                if k == "random_state" or k.endswith("__random_state")
+            }
+            if applied:
+                model.set_params(**applied)
+        model.fit(X, y)
+        prediction = np.asarray(model.predict(validation.drop(columns=[target])))
+        if prediction.ndim != 1 or len(prediction) != len(validation):
+            raise ValueError("Invalid prediction shape")
+        score = (
+            float(balanced_accuracy_score(validation[target], prediction))
+            if contract["task"] == "classification"
+            else float(np.sqrt(mean_squared_error(validation[target], prediction)))
+        )
+        if not np.isfinite(score):
+            raise ValueError("Non-finite fold score")
+        scores.append(score)
+        seeds.append(applied)
+        rows.extend(
+            {"row_id": row, "fold": fold, "prediction": pred}
+            for row, pred in zip(part["validation"], prediction.tolist())
+        )
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows).sort_values("row_id").to_csv(
+        output / "cv_predictions.csv", index=False
+    )
+    record = {
+        "score_role": "selection_cv_not_independent_test",
+        "fold_scores": scores,
+        "cv_score": float(np.mean(scores)),
+        "fit_seed": 42,
+        "effective_random_states": seeds,
+        "source_sha256": digest(data),
+        "contract_sha256": digest(contract_path),
+        "factory_sha256": digest(factory_path),
+        "evaluator_sha256": digest(__file__),
+        "wall_seconds": time.monotonic() - start,
+    }
+    # Write last: a deadline-interrupted candidate is never eligible.
+    temporary = output / "cv_evaluation.json.tmp"
+    temporary.write_text(json.dumps(record, sort_keys=True, allow_nan=False))
+    os.replace(temporary, output / "cv_evaluation.json")
+    print(
+        "MEAN_10_FOLD_"
+        + ("BALANCED_ACCURACY" if contract["task"] == "classification" else "RMSE")
+        + "="
+        + str(record["cv_score"])
+    )
+    return record
+
+
+if __name__ == "__main__":
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--factory", required=True, type=Path)
+    p.add_argument("--output", required=True, type=Path)
+    p.add_argument(
+        "--contract",
+        default=str(Path(__file__).with_name("cv_contract.json")),
+        type=Path,
+    )
+    a = p.parse_args()
+    evaluate(a.factory, a.contract, a.output)
+

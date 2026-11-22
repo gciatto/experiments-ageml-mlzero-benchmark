@@ -1,0 +1,5 @@
+This is a **classification** task.
+
+**Input Format:** Tabular data from `data.csv`. The input features (`X`) consist of 784 columns named `pixel1` through `pixel784`. The target variable (`y`) is the `class` column.
+
+**Prediction Output Format:** A 1-dimensional array or list of predicted class labels, with a length equal to the number of input samples.

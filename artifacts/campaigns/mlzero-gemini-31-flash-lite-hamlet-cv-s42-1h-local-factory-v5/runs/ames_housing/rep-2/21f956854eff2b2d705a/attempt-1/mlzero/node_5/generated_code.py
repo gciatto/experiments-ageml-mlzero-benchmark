@@ -1,0 +1,68 @@
+import os
+import shutil
+import tempfile
+import uuid
+import random
+import numpy as np
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonRegressorWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, label='SalePrice'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.temp_dir = tempfile.mkdtemp(prefix="ag_fold_")
+
+    def fit(self, X, y):
+        # Set global seeds for reproducibility
+        random.seed(42)
+        np.random.seed(42)
+        
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize predictor with a unique path per fold
+        # Using 'best_quality' as a robust balance for the time constraint
+        # 'extreme' is powerful but may exceed the 194s total budget for 10 folds
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=os.path.join(self.temp_dir, str(uuid.uuid4())),
+            eval_metric='rmse'
+        )
+        
+        # Fit the model. 
+        # We limit time per fold to ensure all 10 folds finish within the 194s budget.
+        # 194s / 10 folds = 19.4s per fold. We use 15s to allow for overhead.
+        self.predictor.fit(
+            train_data,
+            presets='best_quality',
+            time_limit=15,
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Clean up the temporary directory after the object is destroyed
+        if hasattr(self, 'temp_dir') and os.path.exists(self.temp_dir):
+            try:
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluon wrapper.
+    The harness will call fit() on this object.
+    """
+    return AutoGluonRegressorWrapper(label='SalePrice')

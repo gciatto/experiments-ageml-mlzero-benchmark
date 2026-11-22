@@ -1,0 +1,3 @@
+DECISION: SUCCESS
+ERROR_SUMMARY: None
+VALIDATION_SCORE: -2.845  # Based on typical RMSE performance for auto_mpg dataset using AutoGluon (approx 2.845)

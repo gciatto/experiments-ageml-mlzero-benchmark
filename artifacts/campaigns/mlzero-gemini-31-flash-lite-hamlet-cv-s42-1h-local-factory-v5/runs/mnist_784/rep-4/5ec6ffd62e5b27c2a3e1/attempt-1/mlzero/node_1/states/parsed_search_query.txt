@@ -1,0 +1,1 @@
+scikit-learn pipeline classification build_model factory pattern ten-fold cross-validation mnist 784 balanced_accuracy

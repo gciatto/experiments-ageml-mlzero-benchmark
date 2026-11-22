@@ -1,0 +1,1 @@
+The output is excessively long (22,997 characters), violating the requirement to keep the total output under 768 characters. The code prints the entire dataframe row content instead of truncating it as requested.

@@ -1,0 +1,27 @@
+```bash
+#!/bin/bash
+set -e
+
+# Define environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-2/cfd6a4b2230312325e82/attempt-1/mlzero/node_14/conda_env"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install required packages from registry
+# Using quotes to handle spaces in directory names
+uv pip install \
+    -r "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt" \
+    --prerelease=allow \
+    -r "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+# Install specific packages required by the factory module
+# numpy, pandas, and scikit-learn are explicitly required for the pipeline
+uv pip install numpy pandas scikit-learn
+```

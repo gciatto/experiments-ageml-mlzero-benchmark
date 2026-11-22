@@ -1,0 +1,87 @@
+import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.preprocessing import PolynomialFeatures
+
+class AutoMPGRegressor(BaseEstimator, RegressorMixin):
+    """
+    A robust regression wrapper for the auto_mpg dataset.
+    Uses HistGradientBoostingRegressor with feature engineering and 
+    constrained resource usage to prevent memory/process contention.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        self.model = None
+
+    def _build_pipeline(self):
+        # Features: cylinders, displacement, horsepower, weight, acceleration, model, origin
+        # 'model' is treated as numeric (year), 'origin' as categorical
+        numeric_features = ['cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model']
+        categorical_features = ['origin']
+
+        # Preprocessing pipeline
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler()),
+            ('poly', PolynomialFeatures(degree=2, include_bias=False))
+        ])
+
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='most_frequent')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, categorical_features)
+            ])
+
+        # HistGradientBoostingRegressor is efficient and handles missing values/large data well.
+        # We limit complexity to ensure it fits within the shared time budget across 10 folds.
+        return Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('regressor', HistGradientBoostingRegressor(
+                random_state=self.random_state,
+                max_iter=100,
+                learning_rate=0.1,
+                max_leaf_nodes=31,
+                early_stopping=True,
+                validation_fraction=0.1,
+                n_iter_no_change=5
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.model = self._build_pipeline()
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts using the fitted pipeline.
+        """
+        if self.model is None:
+            raise ValueError("Model must be fitted before calling predict.")
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model instance.
+    
+    Parameters:
+    X_train: Training features (pandas DataFrame)
+    y_train: Training targets (pandas Series)
+    
+    Returns:
+    An unfitted instance of AutoMPGRegressor.
+    """
+    return AutoMPGRegressor(random_state=42)

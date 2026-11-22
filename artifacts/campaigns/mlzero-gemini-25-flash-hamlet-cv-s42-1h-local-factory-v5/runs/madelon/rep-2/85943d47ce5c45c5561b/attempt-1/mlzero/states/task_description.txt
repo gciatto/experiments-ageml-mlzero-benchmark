@@ -1,0 +1,4 @@
+The data science task is **classification**.
+
+*   **Input Format**: Tabular data consisting of 500 numerical features (columns `V1` through `V500`).
+*   **Prediction Output Format**: A single predicted class label (numerical, e.g., float or integer) for each input row, corresponding to the `Class` column.

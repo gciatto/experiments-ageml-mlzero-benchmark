@@ -1,0 +1,1 @@
+AutoGluon tabular custom model factory wrapper for scikit-learn cross-validation pipeline

@@ -1,0 +1,54 @@
+{
+  "attempt": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-5/e87bcde5371c981f69d4/attempt-1",
+  "campaign_id": "mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5",
+  "cv_score": null,
+  "dataset": "california_housing",
+  "final": true,
+  "finished_at": 1795351278.947996,
+  "fit_seed": 42,
+  "llm_seed_requested": 42,
+  "llm_settings_verified": true,
+  "model": "gemini-3.1-flash-lite",
+  "native_validation_score": null,
+  "protocol": "ageml-evaluation-v3/hamlet_cv",
+  "protocol_compliance": "audited export; no proof against adversarial generated code",
+  "repetition": 5,
+  "resource_limits": {
+    "cpus": 16,
+    "gpus": 0,
+    "memory_gib": 50,
+    "memory_high_gib": 40
+  },
+  "resources": {
+    "cpu_s": 55613.112098,
+    "peak_rss_bytes": 21148864512,
+    "resources_final": false,
+    "resources_source": "cgroup"
+  },
+  "run_id": "e87bcde5371c981f69d4",
+  "score_role": "selection_cv_not_independent_test",
+  "search_budget_s": 3600,
+  "search_wall_s": 3600.0326619999832,
+  "seed_support": "Requested on native Gemini and local Python/NumPy/sklearn; backend determinism is not guaranteed",
+  "selected": null,
+  "source_sha256": "45e44ec0cb85a0de4a0a9174a92b3fecac9415bf0173247a541680eccb50c699",
+  "split_identity": "62eb71d8795c31ec883e6c7af8174e312c7b5219109140940433193c185c27a5",
+  "status": "no_artifact",
+  "system": "mlzero",
+  "temperature": 0.0,
+  "termination_reason": "timeout",
+  "test_score": null,
+  "timing_note": "MLZero initialization, generation, repair and all ten-fold fits are inside 3600 s. AGE-ML planning may precede its exploration deadline; resource-time equivalence is not asserted.",
+  "usage": {
+    "billable_output_tokens": 3032,
+    "cache_read_tokens": 0,
+    "input_tokens": 47741,
+    "llm_calls": 16,
+    "output_tokens": 3032,
+    "reasoning_tokens": null,
+    "reported_models": [
+      "gemini-3.1-flash-lite"
+    ],
+    "usage_coverage": "complete"
+  }
+}

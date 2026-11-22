@@ -1,0 +1,5 @@
+The data science task is **regression**.
+
+**Input Format:** Tabular data provided as a CSV file (`data.csv`). The input features are the columns: `longitude`, `latitude`, `housing_median_age`, `total_rooms`, `total_bedrooms`, `population`, `households`, `median_income`, and `ocean_proximity`.
+
+**Prediction Output Format:** A single numerical (float) value representing the predicted `median_house_value`.

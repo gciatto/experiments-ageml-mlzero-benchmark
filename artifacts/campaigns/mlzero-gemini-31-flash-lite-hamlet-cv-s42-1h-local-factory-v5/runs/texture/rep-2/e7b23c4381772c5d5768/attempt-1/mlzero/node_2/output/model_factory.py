@@ -1,0 +1,58 @@
+import os
+import shutil
+import uuid
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that handles fold-specific
+    artifact directories and sequential execution to avoid resource contention.
+    """
+    def __init__(self, label_column="Class"):
+        self.label_column = label_column
+        self.predictor = None
+        # Create a unique directory for this specific model instance
+        self.artifact_dir = os.path.join(os.getcwd(), f"ag_artifacts_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine features and target for AutoGluon
+        train_df = X.copy()
+        train_df[self.label_column] = y
+        
+        # Ensure artifact directory exists
+        if not os.path.exists(self.artifact_dir):
+            os.makedirs(self.artifact_dir, exist_ok=True)
+            
+        # Initialize predictor
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            path=self.artifact_dir,
+            eval_metric="balanced_accuracy"
+        )
+        
+        # Fit with restricted resources to prevent segmentation faults
+        # and ensure stability within the shared deadline.
+        self.predictor.fit(
+            train_data=train_df,
+            hyperparameters={
+                "env.num_gpus": 0,
+                "env.num_workers": 0,
+                "env.num_workers_inference": 0,
+                "model.names": ["numerical_mlp"]
+            },
+            time_limit=180,  # Bound per fold to stay within total deadline
+            seed=42
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    return AutoGluonWrapper(label_column="Class")

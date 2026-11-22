@@ -1,0 +1,84 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/README.md"
+
+File Size: 0.00 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/README.md
+
+### Python Code
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/README.md"
+
+def analyze_file(path):
+    if not os.path.exists(path):
+        print(f"File not found: {path}")
+        return
+
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(content)
+    except Exception as e:
+        print(f"Binary or unreadable file: {path}")
+        print(f"Size: {os.path.getsize(path)} bytes")
+
+if __name__ == "__main__":
+    analyze_file(file_path)
+
+## Execution Results
+### Standard Output (stdout)
+
+# Ten-fold cross-validation benchmark: california_housing
+Target column: `median_house_value`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon an
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

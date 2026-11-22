@@ -1,0 +1,65 @@
+import os
+import shutil
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, label='class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor.
+        X and y are provided by the CV harness.
+        """
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor
+        # Using 'extreme' preset as requested for high-quality classification
+        # We limit the time to ensure all 10 folds finish within the shared deadline
+        # 3571 seconds total / 10 folds = ~350s per fold, but we leave buffer for overhead
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data,
+            presets='extreme',
+            time_limit=300,
+            verbosity=1
+        )
+
+    def predict(self, X):
+        """
+        Predicts class labels for the given input features.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup artifacts after the model is no longer needed.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    # The target column is 'class' as per the task description
+    return AutoGluonWrapper(label='class')

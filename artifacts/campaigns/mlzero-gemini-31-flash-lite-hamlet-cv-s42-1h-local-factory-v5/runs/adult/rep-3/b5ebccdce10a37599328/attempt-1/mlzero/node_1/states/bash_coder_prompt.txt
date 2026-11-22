@@ -1,0 +1,99 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5-textfix/runs/adult/rep-3/b5ebccdce10a37599328/attempt-1/mlzero/node_1:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+class ModelWrapper:
+    """
+    A wrapper class that encapsulates the preprocessing pipeline and the 
+    HistGradientBoostingClassifier to ensure compatibility with the 
+    required fit/predict interface.
+    """
+    def __init__(self):
+        self.model = None
+        self._build_pipeline()
+
+    def _build_pipeline(self):
+        # Identify feature types
+        numeric_features = [
+            'age', 'fnlwgt', 'education-num', 'capital-gain', 
+            'capital-loss', 'hours-per-week'
+        ]
+        categorical_features = [
+            'workclass', 'education', 'marital-status', 'occupation', 
+            'relationship', 'race', 'sex', 'native-country'
+        ]
+
+        # Preprocessing for numeric data
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
+
+        # Preprocessing for categorical data
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, categorical_features)
+            ]
+        )
+
+        # Classifier with fixed random_state for reproducibility
+        self.model = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('classifier', HistGradientBoostingClassifier(
+                random_state=42,
+                max_iter=100,
+                early_stopping=True
+            ))
+        ])
+
+    def fit(self, X, y):
+        # Ensure y is encoded as binary if necessary
+        if y.dtype == 'object':
+            y = (y != '<=50K').astype(int)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The X_train and y_train are provided per the contract but 
+    the model is initialized fresh.
+    """
+    return ModelWrapper()
+### Previous errors
+ERROR_SUMMARY: The error is caused by passing `random_state` as a keyword argument to the `TabularPredictor.fit()` method, which is not a valid parameter for that function.
+
+SUGGESTED_FIX: Remove the `random_state` argument from the `fit()` method call in your `AutoGluonWrapper`. If you need to control randomness, use the `ag_args_fit` dictionary within the `hyperparameters` argument or set the global seed using `numpy.random.seed()` and `torch.manual_seed()` before calling `fit()`.
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5-textfix/runs/adult/rep-3/b5ebccdce10a37599328/attempt-1/mlzero/node_1/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3546 seconds.

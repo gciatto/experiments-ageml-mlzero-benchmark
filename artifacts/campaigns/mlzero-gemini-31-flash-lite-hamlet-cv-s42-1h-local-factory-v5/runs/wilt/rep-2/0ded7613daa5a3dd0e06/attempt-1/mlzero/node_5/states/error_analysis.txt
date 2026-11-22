@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray task manager during the execution of an AutoGluon model, likely caused by resource contention or memory management conflicts when running multiple parallel processes in a restricted environment.
+
+SUGGESTED_FIX: Disable Ray's internal parallelism and multi-processing features by setting `RAY_DISABLE_MEMORY_MONITOR=1` and explicitly configuring AutoGluon to use a single process (`num_cpus=1`, `num_gpus=0`) and disabling bagging/stacking (`auto_stack=False`) to prevent the creation of sub-processes that trigger the segmentation fault.

@@ -1,0 +1,6 @@
+DECISION: SUCCESS
+ERROR_SUMMARY: None
+VALIDATION_SCORE: None
+
+**Analysis:**
+The provided Python code implements a `MadelonModelWrapper` class and a `build_model` factory function as required. The implementation uses a `sklearn.pipeline.Pipeline` that correctly encapsulates preprocessing (`StandardScaler`) and feature selection (`SelectKBest`) within the model object, ensuring that these steps are fitted only on the training data provided during cross-validation. The model uses a `RandomForestClassifier` with a fixed `random_state=42`, adhering to the reproducibility constraints. The environment setup and dependency installation completed successfully. While the final validation score is not explicitly printed in the provided logs (as the evaluation script runs as a separate process), the code structure fully complies with the specified requirements for the `model_factory.py` module.

@@ -1,0 +1,16 @@
+The data science task is a **classification** problem based on the "adult" dataset.
+
+*   **Problem Type:** Classification.
+*   **Evaluation Metric:** `balanced_accuracy` (higher is better).
+*   **Input Format:** A CSV file (`data.csv`) containing the following columns: `age`, `workclass`, `fnlwgt`, `education`, `education-num`, `marital-status`, `occupation`, `relationship`, `race`, `sex`, `capital-gain`, `capital-loss`, `hours-per-week`, `native-country`, and `class`.
+*   **Prediction Output Format:** The target variable is the `class` column.
+*   **Task Constraints:**
+    *   The task requires a **ten-fold cross-validation** benchmark.
+    *   The train/validation folds are fixed by `cv_contract.json`.
+    *   There is no independent test set.
+    *   Data must not be shuffled, split, filtered, reordered, or sampled.
+    *   Row IDs must not be added as features.
+    *   Candidates must provide a self-contained Python factory module (`model_factory.py`) that implements a `build_model(X_train, y_train)` function.
+    *   The returned model must be unfitted and provide `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be contained within the model and fitted only on the provided training fold rows.
+    *   Stochastic models must use `random_state` or seed 42.

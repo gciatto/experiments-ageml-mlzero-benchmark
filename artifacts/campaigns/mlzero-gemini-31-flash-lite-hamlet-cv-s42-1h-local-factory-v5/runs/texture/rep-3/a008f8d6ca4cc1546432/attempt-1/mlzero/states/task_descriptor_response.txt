@@ -1,0 +1,11 @@
+The data science task is a **classification** problem based on a ten-fold cross-validation benchmark.
+
+*   **Input Format:** The input data is provided in a CSV file (`data.csv`) containing 40 numerical feature columns (labeled `V1` through `V40`) and a target column named `Class`.
+*   **Prediction Output Format:** The model must predict the `Class` label for the provided input features.
+*   **Task Requirements:**
+    *   The task requires a ten-fold cross-validation evaluation, with train/validation folds defined by `cv_contract.json`.
+    *   Candidates must provide a Python module containing a `build_model(X_train, y_train)` function.
+    *   The function must return an unfitted model object that implements `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be encapsulated within the model and fitted only on the training data provided for each fold.
+    *   The performance metric is **balanced_accuracy** (higher is better).
+    *   Stochastic models must use a random state/seed of 42.

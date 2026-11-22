@@ -1,0 +1,45 @@
+import numpy as np
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import SGDClassifier
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+class MNISTClassifier(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper for a high-performance linear classifier suitable for 
+    MNIST-style digit classification within strict time constraints.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        # Using SGDClassifier with 'log_loss' (Logistic Regression) 
+        # which is very fast and effective for high-dimensional sparse/dense data.
+        # Elasticnet penalty helps with feature selection/regularization.
+        self.model = Pipeline([
+            ('scaler', MinMaxScaler()),
+            ('clf', SGDClassifier(
+                loss='log_loss',
+                penalty='elasticnet',
+                l1_ratio=0.15,
+                alpha=1e-4,
+                max_iter=1000,
+                tol=1e-3,
+                random_state=self.random_state,
+                n_jobs=1
+            ))
+        ])
+
+    def fit(self, X, y):
+        # Ensure we handle the input as expected by sklearn
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return an unfitted model instance.
+    The model is designed to be efficient enough to fit 10 times 
+    within the remaining time budget.
+    """
+    return MNISTClassifier(random_state=42)

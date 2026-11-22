@@ -1,0 +1,8 @@
+This data science task is a **regression** problem.
+
+*   **Problem Type:** Regression.
+*   **Input Format:** Tabular data provided in `data.csv`. The input for prediction (`X`) consists of all columns from `data.csv` except the `SalePrice` column.
+*   **Prediction Output Format:** A 1D array of numerical values, where each value represents the predicted `SalePrice` for a corresponding input row. The length of the prediction array must match the number of rows in the input `X`.
+*   **Target Column:** `SalePrice`.
+*   **Metric:** Root Mean Squared Error (RMSE), where lower values are better.
+*   **Evaluation:** Ten-fold cross-validation is used, with predefined train/validation splits specified in `cv_contract.json`. There is no independent test set.

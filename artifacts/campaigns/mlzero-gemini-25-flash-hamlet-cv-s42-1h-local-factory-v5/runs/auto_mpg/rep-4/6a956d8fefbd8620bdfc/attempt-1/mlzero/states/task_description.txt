@@ -1,0 +1,7 @@
+This is a **regression** task.
+
+The **input format** is tabular data provided in a CSV file (`data.csv`). Features include columns such as 'cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model', and 'origin'. The target column for prediction is 'class'.
+
+The **prediction output format** is a 1-dimensional array of floating-point numbers, representing the predicted continuous values for the 'class' target.
+
+The task is evaluated using ten-fold cross-validation, with Root Mean Squared Error (RMSE) as the metric (lower is better). There is no independent test set.

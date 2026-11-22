@@ -1,0 +1,42 @@
+Selected Tutorials After Reranking:
+==================================================
+
+1. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/image_prediction/beginner_image_cls.md
+   Retrieval Score: 0.8660
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates image classification using AutoGluon MultiModal, covering implementation of a complete workflow from setup to deployment. It teaches how to:...
+------------------------------
+
+2. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/problem_types_and_metrics.md
+   Retrieval Score: 0.8429
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial explains AutoGluon MultiModal's problem types for code implementation, covering classification (binary and multiclass), regression, object detection, sem...
+------------------------------
+
+3. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/multimodal_prediction/multimodal-quick-start.md
+   Retrieval Score: 0.8330
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal for multimodal machine learning, focusing on image-text classification with the PetFinder dataset. It covers implementa...
+------------------------------
+
+4. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/multimodal_prediction/beginner_multimodal.md
+   Retrieval Score: 0.8054
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon MultiModal, a framework for multimodal machine learning that handles mixed data types. It covers implementing a pet adoption speed...
+------------------------------
+
+5. Title: Condensed: ```python
+   Path: /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/condensed_tutorials/advanced_topics/presets.md
+   Retrieval Score: 0.7927
+   Content Preview: # Condensed: ```python
+
+Summary: This tutorial demonstrates AutoGluon's MultiModalPredictor for text classification using different quality presets. It covers implementation techniques for sentiment a...
+------------------------------

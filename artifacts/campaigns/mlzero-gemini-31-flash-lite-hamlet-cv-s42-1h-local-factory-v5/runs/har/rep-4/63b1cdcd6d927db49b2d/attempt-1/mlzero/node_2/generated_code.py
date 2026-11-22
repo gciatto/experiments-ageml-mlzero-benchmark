@@ -1,0 +1,67 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that handles the lifecycle
+    of the model within the cross-validation constraints.
+    """
+    def __init__(self, label_column='Class'):
+        self.label_column = label_column
+        self.predictor = None
+        # Create a unique path for this fold's artifacts
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the model using the provided training data.
+        X and y are combined into a single DataFrame for AutoGluon.
+        """
+        train_data = X.copy()
+        train_data[self.label_column] = y
+        
+        # Initialize predictor
+        # Using 'medium_quality' to ensure we stay within the total time budget
+        # for all 10 folds.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        )
+        
+        # Fit with a time limit to ensure all 10 folds complete within the 
+        # remaining shared deadline. 
+        # 1117s total / 10 folds = ~110s per fold.
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=90,
+            presets='medium_quality'
+        )
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided input features.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup artifacts to prevent disk space issues during 10-fold CV.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    """
+    return AutoGluonWrapper(label_column='Class')

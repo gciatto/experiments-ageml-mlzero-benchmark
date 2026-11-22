@@ -1,0 +1,54 @@
+import os
+import shutil
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles directory management
+    and ensures a fresh model is trained for each fold.
+    """
+    def __init__(self, label='Class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this specific model instance
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine features and target for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Clean up any existing directory from previous attempts
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path, ignore_errors=True)
+            
+        # Initialize and fit the predictor.
+        # We use 'best_quality' to balance performance and time constraints.
+        # Given the 175s total budget for 10 folds, we allocate ~15s per fold.
+        self.predictor = TabularPredictor(
+            label=self.label, 
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data,
+            presets='best_quality',
+            time_limit=15,
+            verbosity=0,
+            # Disable heavy ensembling to stay within strict time limits
+            num_bag_folds=0,
+            num_stack_levels=0
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    return AutoGluonWrapper(label='Class')

@@ -1,0 +1,5 @@
+The data science task is **classification**.
+
+**Input Format:** The model's `predict` method receives tabular data (e.g., a pandas DataFrame) consisting of 784 numerical features, explicitly named `pixel1` through `pixel784`.
+
+**Prediction Output Format:** The model's `predict` method must return a 1-dimensional array (or list) of predicted class labels. The length of this array must match the number of input samples provided for prediction.

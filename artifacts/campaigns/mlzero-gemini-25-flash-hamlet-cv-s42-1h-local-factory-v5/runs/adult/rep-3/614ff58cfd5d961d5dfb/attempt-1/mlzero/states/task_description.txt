@@ -1,0 +1,10 @@
+This is a **classification** task.
+
+**Input Format:**
+The model receives tabular data from `data.csv`. For training (`fit(X, y)`), `X` is a pandas DataFrame containing all columns from `data.csv` except the `class` column, and `y` is a pandas Series containing the `class` column values. For prediction (`predict(X)`), `X` is a pandas DataFrame containing all columns from `data.csv` except the `class` column.
+
+**Prediction Output Format:**
+The model must output a 1-dimensional array or list of predicted class labels (strings), with the same length as the input `X` provided for prediction.
+
+**Target Column:** `class`
+**Metric:** `balanced_accuracy` (higher is better)

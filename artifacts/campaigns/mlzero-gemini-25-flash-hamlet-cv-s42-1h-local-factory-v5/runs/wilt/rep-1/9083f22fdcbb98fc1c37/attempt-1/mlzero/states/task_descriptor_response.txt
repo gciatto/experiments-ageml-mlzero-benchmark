@@ -1,0 +1,15 @@
+This data science task is a **classification** problem.
+
+**Input Format:**
+*   **For training (`fit(X, y)`):**
+    *   `X`: A pandas DataFrame containing 5 numerical feature columns: `GLCM_Pan`, `Mean_G`, `Mean_R`, `Mean_NIR`, `SD_Plan`.
+    *   `y`: A pandas Series containing integer class labels.
+*   **For prediction (`predict(X)`):**
+    *   `X`: A pandas DataFrame with the same 5 numerical feature columns as training.
+
+**Prediction Output Format:**
+A 1-dimensional NumPy array or list of predicted integer class labels, with its length matching the number of input samples.
+
+**Target Column:** `class`
+
+**Evaluation Metric:** Balanced accuracy (higher is better).

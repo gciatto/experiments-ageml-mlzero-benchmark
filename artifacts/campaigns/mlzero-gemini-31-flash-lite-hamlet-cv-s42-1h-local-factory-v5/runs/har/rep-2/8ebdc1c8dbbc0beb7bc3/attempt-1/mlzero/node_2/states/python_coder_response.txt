@@ -1,0 +1,62 @@
+```python
+import os
+import uuid
+import shutil
+import pandas as pd
+import numpy as np
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that handles the lifecycle
+    of the model within the cross-validation constraints.
+    """
+    def __init__(self, label_column='Class'):
+        self.label_column = label_column
+        self.predictor = None
+        self.artifact_dir = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine features and target into a single DataFrame for AutoGluon
+        train_df = X.copy()
+        train_df[self.label_column] = y
+        
+        # Initialize predictor
+        # Using 'medium_quality' to ensure we stay within the total time budget for 10 folds
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            path=self.artifact_dir,
+            eval_metric='balanced_accuracy'
+        )
+        
+        # Fit the model
+        # We limit time_limit to ensure all 10 folds finish within the remaining budget
+        # 1011 seconds total / 10 folds = ~100s per fold. 
+        # We set to 80s to allow for overhead.
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=80,
+            presets='medium_quality'
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifacts to save disk space
+        if os.path.exists(self.artifact_dir):
+            try:
+                shutil.rmtree(self.artifact_dir)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    """
+    # The target column name is 'Class' as per the task description
+    return AutoGluonWrapper(label_column='Class')
+```

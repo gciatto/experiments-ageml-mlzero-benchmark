@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray runtime (`ray/_raylet.so`) during task execution, likely caused by resource contention or memory exhaustion when AutoGluon attempts to spawn parallel processes within a restricted container environment.
+
+SUGGESTED_FIX: Disable AutoGluon's internal parallelization and multi-processing features by setting `num_bag_folds=0` and `num_stack_levels=0` in the `fit()` call. Additionally, explicitly set `num_cpus=1` and `num_gpus=0` in the `fit()` method to ensure the model runs strictly in a single-threaded, non-distributed mode.

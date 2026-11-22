@@ -1,0 +1,5 @@
+This is a **classification** task.
+
+**Input Format:** Tabular data consisting of five numerical features: `GLCM_Pan`, `Mean_G`, `Mean_R`, `Mean_NIR`, and `SD_Plan`.
+
+**Prediction Output Format:** A predicted class label for each input row, corresponding to the `class` target column.

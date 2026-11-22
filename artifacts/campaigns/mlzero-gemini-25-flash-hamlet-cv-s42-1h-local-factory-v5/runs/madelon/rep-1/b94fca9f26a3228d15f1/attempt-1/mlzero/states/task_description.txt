@@ -1,0 +1,4 @@
+The data science task is **classification**.
+
+**Input Format:** Tabular data, specifically 500 numerical features named `V1` through `V500`.
+**Prediction Output Format:** Predicted class labels for the `Class` column.

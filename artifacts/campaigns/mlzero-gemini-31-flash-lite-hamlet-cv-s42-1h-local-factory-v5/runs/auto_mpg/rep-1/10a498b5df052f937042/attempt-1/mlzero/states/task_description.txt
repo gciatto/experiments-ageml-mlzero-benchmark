@@ -1,0 +1,21 @@
+The data science task is a **regression** problem based on the `auto_mpg` dataset.
+
+### Task Description
+*   **Problem Type:** Regression.
+*   **Evaluation Protocol:** Ten-fold cross-validation. The harness computes the mean of ten fold scores (RMSE).
+*   **Metric:** Root Mean Squared Error (RMSE), where lower is better.
+*   **Constraints:** 
+    *   Do not shuffle, split, filter, reorder, or sample the dataset.
+    *   Do not add row IDs as features.
+    *   Do not tune on validation labels, refit on all data, or perform fitting within the factory module.
+    *   Use `random_state` or seed 42 for stochastic models.
+
+### Input Format
+*   **Data Source:** `data.csv` containing the following columns: `cylinders`, `displacement`, `horsepower`, `weight`, `acceleration`, `model`, `origin`, and `class`.
+*   **Target Column:** `class`.
+*   **Contract:** A `cv_contract.json` file defines the specific row indices for the training and validation sets for each of the ten folds.
+
+### Prediction Output Format
+*   **Implementation:** A self-contained Python factory module (`model_factory.py`) must be provided.
+*   **Interface:** The module must define a `build_model(X_train, y_train)` function that returns a new, unfitted model object.
+*   **Model Requirements:** The returned model must implement `fit(X, y)` and `predict(X)` methods. All preprocessing must be encapsulated within the model and fitted exclusively on the provided training fold data.

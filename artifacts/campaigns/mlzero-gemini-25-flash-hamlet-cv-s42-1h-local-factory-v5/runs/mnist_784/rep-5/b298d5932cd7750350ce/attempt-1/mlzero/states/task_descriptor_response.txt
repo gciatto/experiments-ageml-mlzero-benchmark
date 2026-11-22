@@ -1,0 +1,8 @@
+The data science task is **classification**.
+
+**Input Format:**
+*   **Features (X):** A Pandas DataFrame containing 784 columns named 'pixel1' through 'pixel784'.
+*   **Target (y):** A Pandas Series named 'class'.
+
+**Prediction Output Format:**
+*   A 1-dimensional NumPy array of predicted class labels, with length equal to the number of input samples.

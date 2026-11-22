@@ -1,0 +1,5 @@
+This is a **Tabular Classification** task.
+
+**Input Format:** A tabular dataset (Pandas DataFrame) containing 5 numerical features: 'GLCM_Pan', 'Mean_G', 'Mean_R', 'Mean_NIR', 'SD_Plan'.
+
+**Prediction Output Format:** A 1-dimensional array of predicted class labels, with its length matching the number of input rows.

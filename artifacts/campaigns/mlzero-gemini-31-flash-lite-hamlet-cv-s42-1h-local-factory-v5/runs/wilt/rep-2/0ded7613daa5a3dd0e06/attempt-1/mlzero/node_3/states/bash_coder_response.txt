@@ -1,0 +1,27 @@
+```bash
+#!/bin/bash
+set -e
+
+# Define paths
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_3/conda_env"
+REQ_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_TABULAR="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv and core data science libraries
+pip install uv numpy pandas scikit-learn
+
+# Install requirements using uv
+# --no-upgrade ensures we do not upgrade packages if already satisfied
+# --prerelease=allow is used as requested
+uv pip install \
+    --no-upgrade \
+    --prerelease=allow \
+    -r "$REQ_TABULAR" \
+    -r "$REQ_COMMON"
+```

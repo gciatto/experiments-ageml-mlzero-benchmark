@@ -1,0 +1,101 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_4:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import numpy as np
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+class WiltClassifierWrapper(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper for a HistGradientBoostingClassifier.
+    This model is chosen for its speed and efficiency in handling tabular data
+    within strict time constraints, while providing robust performance.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        # HistGradientBoostingClassifier is natively fast and handles 
+        # missing values and scaling internally, but we include a 
+        # StandardScaler for consistency with standard ML pipelines.
+        self.model = Pipeline([
+            ('scaler', StandardScaler()),
+            ('clf', HistGradientBoostingClassifier(
+                max_iter=100,
+                learning_rate=0.1,
+                max_depth=8,
+                random_state=self.random_state,
+                class_weight='balanced',
+                early_stopping=True
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided data.
+        """
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted instance of the classifier.
+    
+    Parameters:
+    X_train: Training features (provided for context)
+    y_train: Training labels (provided for context)
+    
+    Returns:
+    An unfitted WiltClassifierWrapper instance.
+    """
+    # We return a fresh instance for every fold to ensure no state leakage.
+    return WiltClassifierWrapper(random_state=42)
+### Previous errors
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray runtime, which is AutoGluon's default parallelization engine. This is likely triggered by resource contention or environment instability when multiple Ray processes attempt to initialize or communicate within the restricted, non-interactive container environment.
+
+SUGGESTED_FIX: Disable AutoGluon's multi-processing and Ray-based parallelization by setting the environment variable `RAY_DISABLE_MEMORY_MONITOR=1` and passing `num_gpus=0` and `num_cpus=1` to the `fit()` method. Additionally, ensure that the `TabularPredictor` is initialized with `ag_args_fit={'num_gpus': 0}` to force sequential execution, which is more stable in constrained environments.
+### Previous installation attempt
+#!/bin/bash
+set -e
+
+# Define environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_1/conda_env"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install dependencies from registry files
+uv pip install \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine\ learning/requirements.txt \
+    --prerelease=allow \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+
+# Install specific requirements for the factory module
+uv pip install numpy pandas scikit-learn
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_4/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 176 seconds.

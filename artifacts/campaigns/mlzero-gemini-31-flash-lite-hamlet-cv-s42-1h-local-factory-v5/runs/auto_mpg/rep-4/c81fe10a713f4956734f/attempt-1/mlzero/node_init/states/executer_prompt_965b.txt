@@ -1,0 +1,73 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json"
+
+File Size: 0.06 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json
+
+### Python Code
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json"
+
+try:
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+        print(f"JSON structure loaded. Keys: {list(data.keys())}")
+        print(f"Content preview: {str(data)[:768]}")
+except Exception:
+    try:
+        with open(file_path, 'r') as f:
+            print(f.read(768))
+    except Exception as e:
+        print(f"File info: {os.path.basename(file_path)}, Size: {os.path.getsize(file_path)} bytes")
+
+## Execution Results
+### Standard Output (stdout)
+
+JSON structure loaded. Keys: ['cv_folds', 'dataset_id', 'dataset_version', 'evaluation_protocol', 'partitions', 'protocol_version', 'row_identity', 'source_row_count', 'source_sha256', 'split_hashes', 'split_identity', 'split_seed', 'splitter', 'stratification', 'target_column', 'task']
+Content preview: {'cv_folds': [{'train': [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

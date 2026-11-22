@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `HistGradientBoostingClassifier` in scikit-learn expects dense input arrays, but the `OneHotEncoder` in your pipeline is configured by default to return sparse matrices, causing a `TypeError` during the `fit` process.
+
+SUGGESTED_FIX: Update the `OneHotEncoder` initialization within your `model_factory.py` to include the parameter `sparse_output=False`. This ensures the preprocessor outputs a dense array compatible with the `HistGradientBoostingClassifier`.

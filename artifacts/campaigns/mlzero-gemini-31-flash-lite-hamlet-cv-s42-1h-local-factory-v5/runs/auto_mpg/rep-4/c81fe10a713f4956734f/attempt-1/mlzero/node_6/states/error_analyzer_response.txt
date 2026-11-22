@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The error is caused by passing an unsupported keyword argument `random_seed` to the `TabularPredictor.fit()` method. AutoGluon's `fit()` method does not accept `random_seed` as a direct argument; instead, stochastic behavior is controlled via the `ag_args_fit` dictionary or by setting the seed globally before calling `fit()`.
+
+SUGGESTED_FIX: Remove `random_seed=self.seed` from the `fit()` method call. To ensure reproducibility, set the random seed using `numpy.random.seed(self.seed)` and `torch.manual_seed(self.seed)` at the beginning of the `fit` method before initializing the `TabularPredictor`.

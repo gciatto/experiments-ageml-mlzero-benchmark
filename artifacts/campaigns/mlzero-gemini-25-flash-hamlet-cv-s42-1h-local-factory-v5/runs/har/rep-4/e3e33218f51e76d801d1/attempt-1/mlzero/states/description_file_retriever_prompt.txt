@@ -1,0 +1,92 @@
+
+Given the data structure, please identify any files that appear to contain project descriptions, requirements, or task definitions.
+Look for files like README, documentation files, or task description files.
+
+### Data Structure
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/README.md
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (text):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+       ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+
+----------
+
+
+Format your response as follows, do not give explanations:
+Description Files: [list ONLY the absolute path, one per line]

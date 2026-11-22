@@ -1,0 +1,19 @@
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/cv_contract.json"
+
+def analyze_file(path):
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            try:
+                data = json.loads(content)
+                print(f"JSON structure detected. Keys: {list(data.keys()) if isinstance(data, dict) else 'List'}")
+                print(f"Preview: {str(data)[:500]}")
+            except json.JSONDecodeError:
+                print(f"Text file preview:\n{content}")
+    except Exception as e:
+        print(f"File info: {os.path.basename(path)}, Size: {os.path.getsize(path)} bytes. Error: {e}")
+
+analyze_file(file_path)

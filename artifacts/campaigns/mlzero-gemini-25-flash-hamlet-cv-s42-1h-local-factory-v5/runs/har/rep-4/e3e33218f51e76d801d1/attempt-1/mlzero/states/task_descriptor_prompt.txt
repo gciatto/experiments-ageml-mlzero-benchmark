@@ -1,0 +1,128 @@
+
+Based ONLY on the information explicitly stated in the provided data structure and description files, provide a condensed and precise description of the data science task. Include only details that are directly mentioned in the source materials. Do not add assumptions or infer unstated information.
+
+Be very clear about the problem type (e.g. audio classification/image regression/seq-to-seq generation/etc.), input format, and prediction output format.
+
+### User Instruction
+
+
+### Data Structure:
+(IMPORTANT: The metadata of example files in Data Structure may not be representative - do not make assumptions about data statistics based on examples.)
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Could not read file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/README.md
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+File content (text):
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+       ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+Error: File not found at /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f5fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+
+----------
+
+
+### Description File Contents:
+File: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content: # Ten-fold cross-validation benchmark: har
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools remain
+allowed through a fit/predict wrapper. Do not tune on a fold's validation labels,
+refit on all data, or fit in the factory. Use random_state/seed 42 for stochastic
+models, including wrappers. Do not call another LLM, service or external dataset.
+
+Return a SELF-CONTAINED Python MODULE defining build_model(X_train, y_train)
+at module level. The harness writes this generated module to model_factory.py,
+then executes the supplied evaluator in your node's conda_env after installation.
+Your Bash script must create conda_env with required dependencies (numpy, pandas,
+scikit-learn and your selected ML library); it need not train or print scores.
+Do NOT run fitting, dataset reading, holdout splitting, prediction, or the
+evaluator at module import time. Normal Python initialization (including scorer
+construction, logging and computed constants) is allowed. Put fit/predict logic
+in the returned model.
+Do NOT run a separate holdout/full-data fit. Do NOT generate your own evaluation
+or claim a validation score. The harness alone computes the mean of ten fold
+scores, injects it into the existing MCTS reward (negative RMSE for regression),
+and rejects candidates without completed valid CV exports. Earlier tutorial
+examples using holdouts/results.csv do not apply to this benchmark. No final
+full-data refit is required. See the mandatory node-level CV contract in prompts.
+

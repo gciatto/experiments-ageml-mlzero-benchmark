@@ -1,0 +1,13 @@
+Based on the provided files, the data science task is described as follows:
+
+*   **Problem Type:** Regression.
+*   **Task Objective:** Predict the `SalePrice` column using the provided dataset.
+*   **Evaluation Metric:** Root Mean Squared Error (RMSE), where lower values are better.
+*   **Input Format:** A CSV file (`data.csv`) containing housing features. The dataset must not be shuffled, split, filtered, reordered, or sampled. Row IDs must not be used as features.
+*   **Prediction Output Format:** A continuous numerical value representing the predicted `SalePrice`.
+*   **Evaluation Protocol:** Ten-fold cross-validation as defined by the `cv_contract.json` file. There is no independent test set.
+*   **Implementation Requirements:**
+    *   Candidates must provide a self-contained Python factory module (`model_factory.py`) that defines a `build_model(X_train, y_train)` function.
+    *   The function must return a new, unfitted model object with `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be encapsulated within the model and fitted only on the training rows provided for each fold.
+    *   Stochastic models must use a random state/seed of 42.

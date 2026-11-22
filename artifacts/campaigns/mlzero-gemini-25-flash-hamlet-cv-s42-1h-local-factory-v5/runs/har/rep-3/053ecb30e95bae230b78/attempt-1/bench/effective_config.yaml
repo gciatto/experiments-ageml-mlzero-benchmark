@@ -1,0 +1,182 @@
+per_execution_timeout: 28800
+exploration_constant: 1.414
+max_debug_depth: 3
+failure_offset: 2
+failure_penalty_weight: 0.5
+initial_root_children: 3
+max_debug_children: 2
+max_evolve_children: 2
+max_file_group_size_to_show: 5
+num_example_files_to_show: 1
+max_chars_per_file: 768
+num_tutorial_retrievals: 30
+max_num_tutorials: 5
+max_user_input_length: 2048
+max_tutorial_length: 32768
+configure_env: false
+condense_tutorials: true
+use_tutorial_summary: true
+continuous_improvement: true
+optimize_system_resources: false
+cleanup_unused_env: true
+enable_meta_prompting: false
+llm:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+python_coder:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+bash_coder:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+executer:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+meta_prompting:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+reader:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  details: false
+  seed: 42
+error_analyzer:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+retriever:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+reranker:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+description_file_retriever:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+task_descriptor:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  max_description_files_length_to_show: 1024
+  max_description_files_length_for_summarization: 16384
+  seed: 42
+tool_selector:
+  provider: gemini
+  model: gemini-2.5-flash
+  max_tokens: null
+  proxy_url: https://generativelanguage.googleapis.com/v1beta
+  temperature: 0.0
+  top_p: null
+  verbose: true
+  multi_turn: false
+  template: null
+  add_coding_format_instruction: false
+  apply_meta_prompting: false
+  seed: 42
+remove_current_iteration_folder: false

@@ -1,0 +1,16 @@
+EXPLANATION: The task is a standard tabular regression problem using the California housing dataset. The primary requirements are high predictive performance (RMSE minimization), robust handling of mixed numerical and categorical features (`ocean_proximity`), and the ability to encapsulate preprocessing within a `fit`/`predict` interface.
+
+1. **autogluon.tabular**: This is the optimal choice. It is specifically designed for tabular regression, automatically handles feature engineering (including categorical encoding for `ocean_proximity`), performs hyperparameter optimization, and uses ensemble methods (stacking/bagging) that typically yield the lowest RMSE on tabular datasets. It natively supports the required `fit`/`predict` interface.
+2. **machine learning**: This is selected as the secondary choice. Since it serves as a general reference for ML algorithms, it implies the use of standard libraries like `scikit-learn` or `xgboost`. These are highly effective for tabular regression, though they require manual implementation of preprocessing pipelines (e.g., `ColumnTransformer` for scaling and one-hot encoding) to meet the "self-contained" requirement.
+3. **autogluon.multimodal**: While this library supports regression, it is designed for complex, heterogeneous data (text, images, tables). For a pure tabular dataset like California housing, it is significantly more computationally expensive and less efficient than `autogluon.tabular`.
+4. **autogluon.timeseries**: This is unsuitable as the dataset is cross-sectional, not time-series.
+5. **FlagEmbedding**, **wav2vec2**, **qwen3**: These are specialized for retrieval, audio, and text generation respectively, and are entirely inappropriate for a tabular regression task.
+
+RANKED_LIBRARIES:
+1. autogluon.tabular
+2. machine learning
+3. autogluon.multimodal
+4. autogluon.timeseries
+5. FlagEmbedding
+6. wav2vec2
+7. qwen3

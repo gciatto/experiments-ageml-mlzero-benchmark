@@ -1,0 +1,9 @@
+The data science task is **classification**.
+
+*   **Problem Type**: Classification.
+*   **Input Format**: Tabular data, where `X` represents features and `y` represents the target column named `Class`.
+*   **Prediction Output Format**: Discrete class labels, corresponding to the values found in the `Class` column.
+*   **Evaluation Metric**: Balanced accuracy (higher is better).
+
+**Methodology Constraints**:
+The task requires training models using a 10-fold cross-validation setup, with predefined folds specified in `cv_contract.json`. There is no independent test set. Models must be returned by `build_model(X_train, y_train)` as new, unfitted objects with `fit(X,y)` and `predict(X)` methods. All preprocessing must be internal to the model and fitted only on the training data for each fold. Stochastic models must use `random_state/seed 42`. No external data, services, or unstated assumptions are permitted.

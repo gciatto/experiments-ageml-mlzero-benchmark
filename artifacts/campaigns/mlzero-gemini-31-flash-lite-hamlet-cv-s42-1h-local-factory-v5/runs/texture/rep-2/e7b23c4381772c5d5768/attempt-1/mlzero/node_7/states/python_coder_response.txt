@@ -1,0 +1,63 @@
+```python
+import os
+import shutil
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon Tabular that ensures sequential execution
+    and resource isolation for cross-validation folds.
+    """
+    def __init__(self, label='Class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for each fold to prevent file collisions
+        self.artifact_dir = os.path.join(os.getcwd(), f"ag_fold_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine X and y for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # We use a very tight time_limit to ensure all 10 folds finish within 216s.
+        # Given 10 folds, we allocate ~18 seconds per fold.
+        # num_bag_folds=0 and num_stack_levels=0 disable internal parallelization
+        # to prevent segmentation faults in restricted environments.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.artifact_dir,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data,
+            time_limit=18,
+            presets='medium_quality',
+            num_bag_folds=0,
+            num_stack_levels=0,
+            num_cpus=1,
+            num_gpus=0,
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Clean up artifacts after the object is destroyed to save disk space
+        if self.artifact_dir and os.path.exists(self.artifact_dir):
+            try:
+                shutil.rmtree(self.artifact_dir, ignore_errors=True)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    The model is configured for sequential execution to avoid resource contention.
+    """
+    return AutoGluonWrapper(label='Class')
+```

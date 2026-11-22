@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray runtime (`_raylet.so`) during task submission or event polling, likely triggered by resource contention or environment instability when AutoGluon attempts to spawn parallel workers within the restricted node environment.
+
+SUGGESTED_FIX: Disable AutoGluon's multi-processing and Ray-based parallelism by setting `num_gpus=0` and `num_cpus=1` in the `fit()` call, and explicitly set `ag_args_fit={'num_cpus': 1}` in the hyperparameters to force sequential execution. Additionally, ensure the `path` argument in `TabularPredictor` points to a unique, writable directory for every fold to prevent file locking conflicts.

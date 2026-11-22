@@ -1,0 +1,8 @@
+This is a **regression** task.
+
+**Input Format:** Tabular data from `data.csv`. Features include numerical columns (`longitude`, `latitude`, `housing_median_age`, `total_rooms`, `total_bedrooms`, `population`, `households`, `median_income`) and one categorical column (`ocean_proximity`).
+
+**Prediction Output Format:** Numerical prediction for the `median_house_value`.
+
+**Additional Details:**
+The task involves predicting the `median_house_value` using a ten-fold cross-validation benchmark. The evaluation metric is Root Mean Squared Error (RMSE), where lower is better. There is no independent test set. The dataset must not be shuffled, split, filtered, reordered, or sampled, and row IDs must not be added as features. Models must be provided as a Python factory module (`model_factory.py`) with a `build_model(X_train, y_train)` function that returns a new, unfitted model exposing `fit(X,y)` and `predict(X)` methods. All preprocessing must be contained within this model and fitted only on the training data for each fold. Stochastic models should use `random_state/seed 42`.

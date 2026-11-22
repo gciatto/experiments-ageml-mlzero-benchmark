@@ -1,0 +1,16 @@
+import json
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json"
+
+try:
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+        print(f"JSON structure loaded. Keys: {list(data.keys())}")
+        print(f"Content preview: {str(data)[:768]}")
+except Exception:
+    try:
+        with open(file_path, 'r') as f:
+            print(f.read(768))
+    except Exception as e:
+        print(f"File info: {os.path.basename(file_path)}, Size: {os.path.getsize(file_path)} bytes")

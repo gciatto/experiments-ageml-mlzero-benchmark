@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Define the target environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-5/aa258512ecd2082f0f0f/attempt-1/mlzero/node_2/conda_env"
+
+# Create the conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate the environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Define requirement paths
+COMMON_REQS="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AG_REQS="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+# Install base dependencies and ML library requirements
+# Using uv pip to ensure strict adherence to requirements files
+uv pip install numpy pandas scikit-learn
+uv pip install -r "$AG_REQS" --prerelease=allow -r "$COMMON_REQS"
+
+# Verify installation exit status
+if [ $? -ne 0 ]; then
+    echo "Installation failed."
+    exit 1
+fi

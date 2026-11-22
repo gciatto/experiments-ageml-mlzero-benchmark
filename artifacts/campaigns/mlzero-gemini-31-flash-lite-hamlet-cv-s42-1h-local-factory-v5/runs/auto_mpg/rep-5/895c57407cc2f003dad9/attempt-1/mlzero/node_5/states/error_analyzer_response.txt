@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `PolynomialFeatures` transformer in your pipeline is encountering `NaN` values in the input dataset, which it cannot process natively. This causes a `ValueError` during the `fit` process because the transformer expects finite numerical input.
+
+SUGGESTED_FIX: Add an `SimpleImputer` from `sklearn.impute` to your `Pipeline` before the `PolynomialFeatures` step to handle missing values. Alternatively, ensure your preprocessing step includes a strategy to drop or fill `NaN` values before they reach the feature expansion stage.

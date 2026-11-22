@@ -1,0 +1,14 @@
+EXPLANATION: The task involves a classification problem on a tabular dataset (MADELON) with 500 features. The primary requirement is to perform ten-fold cross-validation using a self-contained `model_factory.py` that encapsulates preprocessing and model fitting. 
+
+1. **autogluon.tabular**: This is the optimal choice. MADELON is a classic high-dimensional tabular classification benchmark. AutoGluon Tabular is specifically designed to handle such datasets by automating feature engineering, model selection, and hyperparameter tuning. It natively supports the `fit`/`predict` interface required by the `model_factory.py` contract and is highly effective at managing the noise and feature redundancy typical of the MADELON dataset.
+
+2. **machine learning**: This is selected as the secondary choice. Since the task requires a standard machine learning approach (likely involving Scikit-Learn or similar libraries), a general reference library is the most appropriate fallback if specialized automated tools are restricted or if a custom implementation using standard algorithms (like Random Forest or Gradient Boosting) is preferred for transparency and control.
+
+3. **autogluon.multimodal**: While this library is part of the AutoGluon ecosystem, it is explicitly designed for multimodal tasks (text, image, tabular combinations). It is less efficient and less optimized for pure tabular data compared to `autogluon.tabular`. It is ranked third because it remains a viable, albeit suboptimal, alternative for tabular classification if the primary tabular library were unavailable.
+
+The other libraries (FlagEmbedding, wav2vec2, qwen3, autogluon.timeseries) are entirely unsuitable as they are specialized for retrieval, audio, text generation, and time-series forecasting, respectively, and do not align with the requirements of a tabular classification task.
+
+RANKED_LIBRARIES:
+1. autogluon.tabular
+2. machine learning
+3. autogluon.multimodal

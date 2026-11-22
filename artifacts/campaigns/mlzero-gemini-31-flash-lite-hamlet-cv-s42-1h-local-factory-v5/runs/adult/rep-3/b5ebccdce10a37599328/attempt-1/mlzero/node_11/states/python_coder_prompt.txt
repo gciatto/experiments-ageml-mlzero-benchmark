@@ -1,0 +1,261 @@
+Generate a SELF-CONTAINED Python factory MODULE using machine learning.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+The data science task is a **classification** problem based on the "adult" dataset.
+
+*   **Problem Type:** Classification.
+*   **Evaluation Metric:** `balanced_accuracy` (higher is better).
+*   **Input Format:** A CSV file (`data.csv`) containing the following columns: `age`, `workclass`, `fnlwgt`, `education`, `education-num`, `marital-status`, `occupation`, `relationship`, `race`, `sex`, `capital-gain`, `capital-loss`, `hours-per-week`, `native-country`, and `class`.
+*   **Prediction Output Format:** The target variable is the `class` column.
+*   **Task Constraints:**
+    *   The task requires a **ten-fold cross-validation** benchmark.
+    *   The train/validation folds are fixed by `cv_contract.json`.
+    *   There is no independent test set.
+    *   Data must not be shuffled, split, filtered, reordered, or sampled.
+    *   Row IDs must not be added as features.
+    *   Candidates must provide a self-contained Python factory module (`model_factory.py`) that implements a `build_model(X_train, y_train)` function.
+    *   The returned model must be unfitted and provide `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be contained within the model and fitted only on the provided training fold rows.
+    *   Stochastic models must use `random_state` or seed 42.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/data.csv
+Content:
+Columns: ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship', 'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country', 'class']
+ age workclass   fnlwgt  education  education-num     marital-status        occupation relationship  race  sex  capital-gain  capital-loss  hours-per-week native-country class
+  25   Private 226802.0       11th              7      Never-married Machine-op-inspct    Own-child Black Male           0.0           0.0              40  United-States <=50K
+  38   Private  89814.0    HS-grad              9 Married-civ-spouse   Farming-fishing      Husband White Male           0.0           0.0              50  United-States <=50K
+  28 Local-gov 336951.0 Ass...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: adult
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other 
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/cv_contract.json
+Content:
+Text file preview:
+{
+  "cv_folds": [
+    {
+      "train": [
+        4843,
+        4845,
+        4846,
+        4847,
+        4850,
+        4851,
+        4852,
+        4853,
+        4856,
+        4858,
+        4859,
+        4860,
+        4861,
+        4862,
+        4864,
+        4865,
+        4867,
+        4870,
+        4871,
+        4874,
+        4875,
+        4876,
+        4877,
+        4878,
+        4879,
+        4880,
+        4882,
+        4885,
+        4886,
+        4887,
+        4888,
+        4889,
+        4890,
+        4894,
+        4895,
+        4896,
+        4897,
+        4898,
+        4902,
+        4903,
+        4904,
+        4905,
+        4906,
+        4907,
+        4909,
+        4910,
+        4911,
+        4912,
+        4913,
+        4914,
+     ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local/evaluate_cv.py
+Content:
+File: evaluate_cv.py
+--------------------
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path...
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+In the bash script, install all necessary packages.
+### Native debug/evolution context
+### Previous Code to Debug
+```python
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+class ModelWrapper:
+    """
+    A wrapper class that encapsulates the preprocessing pipeline and the 
+    HistGradientBoostingClassifier to ensure compatibility with the 
+    required fit/predict interface.
+    """
+    def __init__(self):
+        self.model = None
+        self._build_pipeline()
+
+    def _build_pipeline(self):
+        # Identify feature types
+        numeric_features = [
+            'age', 'fnlwgt', 'education-num', 'capital-gain', 
+            'capital-loss', 'hours-per-week'
+        ]
+        categorical_features = [
+            'workclass', 'education', 'marital-status', 'occupation', 
+            'relationship', 'race', 'sex', 'native-country'
+        ]
+
+        # Preprocessing for numeric data
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
+
+        # Preprocessing for categorical data
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, categorical_features)
+            ]
+        )
+
+        # Classifier with fixed random_state for reproducibility
+        self.model = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('classifier', HistGradientBoostingClassifier(
+                random_state=42,
+                max_iter=100,
+                early_stopping=True
+            ))
+        ])
+
+    def fit(self, X, y):
+        # Ensure y is encoded as binary if necessary
+        if y.dtype == 'object':
+            y = (y != '<=50K').astype(int)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The X_train and y_train are provided per the contract but 
+    the model is initialized fresh.
+    """
+    return ModelWrapper()
+```
+Please fix the errors in the code above. Make minimal changes necessary to fix the issues.
+
+### Previous errors
+ERROR_SUMMARY: The error is caused by passing `random_state` as a keyword argument to the `TabularPredictor.fit()` method, which is not a valid parameter for that function.
+
+SUGGESTED_FIX: Remove the `random_state` argument from the `fit()` method call in your `AutoGluonWrapper`. If you need to control randomness, use the `ag_args_fit` dictionary within the `hyperparameters` argument or set the global seed using `numpy.random.seed()` and `torch.manual_seed()` before calling `fit()`.
+
+ERROR_SUMMARY: The `HistGradientBoostingClassifier` in scikit-learn expects dense input arrays, but the `OneHotEncoder` in your pipeline is configured by default to return sparse matrices, causing a `TypeError` during the `fit` process.
+
+SUGGESTED_FIX: Update the `OneHotEncoder` initialization within your `model_factory.py` to include the parameter `sparse_output=False`. This ensures the preprocessor outputs a dense array compatible with the `HistGradientBoostingClassifier`.
+
+ERROR_SUMMARY: The `ValueError` occurs because `tab_transformer` is not a valid model name in `AutoGluon.MultiModalPredictor`. The `MultiModalPredictor` expects specific model prefixes (e.g., `categorical_mlp`, `numerical_mlp`, `fusion_mlp`) for tabular data, and `tab_transformer` is not included in the allowed list of model architectures for this predictor.
+
+SUGGESTED_FIX: Remove the `model.names` hyperparameter configuration from your `predictor.fit` call. Allow AutoGluon to automatically select the appropriate default models for your tabular dataset, or use `fusion_mlp` if you specifically need to customize the architecture for tabular inputs.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script is failing because the `balanced_accuracy_score` function is receiving a mix of string labels (from the validation set) and integer predictions (from the model), causing a type mismatch in scikit-learn's internal target validation.
+
+SUGGESTED_FIX: Modify the `predict` method in your `ModelWrapper` class to map the integer predictions back to the original string labels (e.g., '<=50K' and '>50K') before returning them. Ensure the mapping logic matches the binary encoding used in your `fit` method so that the output format is consistent with the ground truth labels in the validation set.
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+# Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+# Intro to Use Machine Learning or Deep Learning algorithms
+
+You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5-textfix/runs/adult/rep-3/b5ebccdce10a37599328/attempt-1/mlzero/node_11/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 176 seconds.

@@ -1,0 +1,5 @@
+This is a **regression** task.
+
+**Input Format:** The input is a tabular dataset provided as `data.csv`. Each row represents an instance with the following features: `cylinders`, `displacement`, `horsepower`, `weight`, `acceleration`, `model`, and `origin`. These are numerical features.
+
+**Prediction Output Format:** The model is required to predict the continuous numerical value for the `class` target column. The output of the `predict(X)` method will be a numerical value for each input instance.

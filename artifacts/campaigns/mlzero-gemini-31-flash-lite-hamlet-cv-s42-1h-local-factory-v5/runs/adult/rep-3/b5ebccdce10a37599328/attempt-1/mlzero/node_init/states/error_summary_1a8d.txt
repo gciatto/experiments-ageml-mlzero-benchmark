@@ -1,0 +1,1 @@
+The output exceeds the 768-character limit constraint. Additionally, the requirement to truncate cell content to 50 characters was not fully met, as the `to_string` method does not automatically truncate cell content to 50 characters when using `pd.set_option('display.max_colwidth', 50)` in all display contexts, and the output formatting is too verbose.

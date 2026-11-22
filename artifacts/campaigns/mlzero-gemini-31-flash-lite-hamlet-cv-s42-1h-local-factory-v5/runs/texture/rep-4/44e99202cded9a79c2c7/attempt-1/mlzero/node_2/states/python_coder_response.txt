@@ -1,0 +1,59 @@
+```python
+import os
+import shutil
+import uuid
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that handles 
+    the lifecycle of a fold-specific model.
+    """
+    def __init__(self, label_col='Class'):
+        self.label_col = label_col
+        self.predictor = None
+        self.model_path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label_col] = y
+        
+        # Initialize predictor
+        # Using 'medium_quality' to ensure we stay within the 515s total time limit
+        # for 10 folds (approx 45-50s per fold).
+        self.predictor = MultiModalPredictor(
+            label=self.label_col,
+            path=self.model_path,
+            eval_metric='balanced_accuracy'
+        )
+        
+        # Fit with a time limit per fold to ensure all 10 folds complete
+        # 40 seconds allows for overhead and 10 folds within 515s
+        self.predictor.fit(
+            train_data=train_data,
+            time_limit=40,
+            presets='medium_quality'
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifact directory to save space
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    """
+    return AutoGluonWrapper(label_col='Class')
+```

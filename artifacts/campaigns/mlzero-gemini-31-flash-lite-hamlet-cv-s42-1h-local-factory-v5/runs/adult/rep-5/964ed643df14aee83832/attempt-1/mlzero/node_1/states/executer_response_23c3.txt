@@ -1,0 +1,6 @@
+DECISION: SUCCESS
+ERROR_SUMMARY: None
+VALIDATION_SCORE: None
+
+**Analysis:**
+The provided code implements a `ModelWrapper` class and a `build_model` factory function as required. It correctly uses a `Pipeline` with `ColumnTransformer` to handle both numeric and categorical features, including imputation and scaling/encoding. The use of `HistGradientBoostingClassifier` is appropriate for the "adult" dataset, and the implementation respects the requirement to return an unfitted model that exposes `fit` and `predict` methods. The environment setup and dependency installation completed successfully. While the final validation score is not explicitly printed in the provided logs (as the evaluation script runs internally), the code structure adheres to all constraints specified in the task description.

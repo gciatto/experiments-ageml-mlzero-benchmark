@@ -1,0 +1,65 @@
+import os
+import shutil
+import tempfile
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, label='Class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.path = os.path.join(tempfile.gettempdir(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor on the provided training fold.
+        """
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor
+        # Using 'extreme' preset as requested, with a focus on balanced_accuracy
+        self.predictor = TabularPredictor(
+            label=self.label,
+            eval_metric='balanced_accuracy',
+            path=self.path
+        ).fit(
+            train_data,
+            presets='extreme',
+            # We rely on AutoGluon's internal validation splitting
+            # and time management to fit within the global deadline.
+            # We do not set a hard time_limit per fold to allow flexibility,
+            # but the 'extreme' preset is robust.
+            verbosity=1
+        )
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided input.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup temporary artifacts after the model is no longer needed.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    return AutoGluonWrapper(label='Class')

@@ -1,0 +1,15 @@
+The data science task is a **classification** problem evaluated via **ten-fold cross-validation**.
+
+### Input Format
+*   **Data Source:** A CSV file (`data.csv`) containing features labeled `V1` through `V500`.
+*   **Structure:** The dataset must not be shuffled, split, filtered, reordered, or sampled. Row IDs must not be added as features.
+*   **Fold Definition:** Specific train/validation splits are provided in `cv_contract.json`.
+
+### Prediction Output Format
+*   **Target:** The `Class` column.
+*   **Model Requirements:** Candidates must provide a self-contained Python factory module (`model_factory.py`) that implements a `build_model(X_train, y_train)` function. This function must return an unfitted model object that exposes `fit(X, y)` and `predict(X)` methods.
+*   **Preprocessing:** All preprocessing must be encapsulated within the model and fitted exclusively on the training rows provided for each fold.
+
+### Evaluation
+*   **Metric:** `balanced_accuracy` (higher is better).
+*   **Constraints:** No independent test set is provided. Models must not be tuned on validation labels, and no final full-data refit is required. Stochastic models must use a `random_state` or seed of 42.

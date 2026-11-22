@@ -1,0 +1,68 @@
+import os
+import uuid
+import shutil
+import numpy as np
+import pandas as pd
+import random
+import logging
+from autogluon.multimodal import MultiModalPredictor
+
+# Configure logging to be silent or minimal to avoid cluttering output
+logging.getLogger("autogluon").setLevel(logging.ERROR)
+
+class AutoGluonWrapper:
+    def __init__(self, label_column="class", seed=42):
+        self.label_column = label_column
+        self.seed = seed
+        self.model_path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+        self.predictor = None
+
+    def _set_seeds(self):
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        # AutoGluon internal torch/numpy seeds are handled by the predictor 
+        # but we ensure global state is set.
+
+    def fit(self, X, y):
+        self._set_seeds()
+        
+        # Combine features and target into a single DataFrame for AutoGluon
+        train_df = X.copy()
+        train_df[self.label_column] = y
+        
+        # Initialize predictor
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            path=self.model_path,
+            eval_metric="balanced_accuracy"
+        )
+        
+        # Fit with constraints to ensure we finish within the total time budget
+        # We use a conservative time limit per fold to ensure 10 folds fit in ~360s
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=30, 
+            presets="medium_quality"
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifact directory to save space
+        if os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    The X_train/y_train arguments are provided by the harness but 
+    the model object itself remains unfitted until .fit() is called.
+    """
+    return AutoGluonWrapper(label_column="class", seed=42)

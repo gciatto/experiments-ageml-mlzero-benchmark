@@ -1,0 +1,12 @@
+This is a **tabular regression** task.
+
+**Problem Type:** Regression. The goal is to predict the continuous numerical value of the `SalePrice` column.
+
+**Input Format:** Tabular data provided in `data.csv`. Each row represents an instance, and columns (excluding `Id` and `SalePrice`) serve as features. The `Id` column must not be used as a feature.
+
+**Prediction Output Format:** A continuous numerical value representing the predicted `SalePrice` for each input instance.
+
+**Additional Details:**
+*   **Metric:** Root Mean Squared Error (RMSE), where lower is better.
+*   **Evaluation:** Ten-fold cross-validation is used, with predefined folds specified in `cv_contract.json`. There is no independent test set.
+*   **Constraints:** The dataset must not be shuffled, split, filtered, reordered, or sampled. All preprocessing must be encapsulated within the model and fitted only on the training data of each fold. Stochastic models should use `random_state/seed 42`.

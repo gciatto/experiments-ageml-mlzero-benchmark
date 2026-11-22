@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray task management layer, likely triggered by resource contention or memory exhaustion during the AutoGluon training process. This is exacerbated by the use of `presets='best_quality'` (which enables heavy stacking/bagging) and the lack of explicit resource constraints in a constrained environment.
+
+SUGGESTED_FIX: Reduce the complexity of the AutoGluon training by setting `presets='medium_quality'` and disabling auto-stacking (`auto_stack=False`) to lower memory overhead. Additionally, explicitly set `num_gpus=0` and `num_cpus=1` in the `fit()` call to prevent Ray from attempting to over-allocate resources in the restricted node environment.

@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `KeyError: "env.num_cpus" is not found in the config` occurs because the `MultiModalPredictor` configuration schema does not support the `env.num_cpus` key in the `hyperparameters` dictionary. AutoGluon manages CPU/GPU resources internally via PyTorch Lightning settings or environment variables rather than through the `hyperparameters` override dictionary.
+
+SUGGESTED_FIX: Remove the `env.num_cpus` and `env.num_gpus` keys from the `hyperparameters` dictionary in your `fit` call. If you need to restrict resource usage, set the `num_gpus` parameter directly in the `MultiModalPredictor.fit()` method (e.g., `num_gpus=0`) instead of passing it inside the `hyperparameters` argument.

@@ -1,0 +1,5 @@
+This is a **classification** task.
+
+**Input Format:** Tabular data provided in `data.csv`, consisting of 784 numerical features named `pixel1` through `pixel784`.
+
+**Prediction Output Format:** Predicted class labels for the `class` target column.

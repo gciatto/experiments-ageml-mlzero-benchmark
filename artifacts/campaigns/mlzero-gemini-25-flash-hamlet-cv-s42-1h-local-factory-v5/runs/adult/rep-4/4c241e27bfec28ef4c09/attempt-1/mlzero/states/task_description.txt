@@ -1,0 +1,13 @@
+This data science task is a **classification** problem.
+
+**Input Format:**
+Tabular data provided in a CSV file (`data.csv`). The input features (`X`) for the model are all columns from `data.csv` except for the `class` column.
+
+**Prediction Output Format:**
+The model's `predict(X)` method must return a 1D array of predicted class labels, corresponding to the input rows. These predictions are evaluated against the true `class` labels.
+
+**Task Details:**
+*   **Target Column:** `class`.
+*   **Metric:** `balanced_accuracy` (higher is better).
+*   **Evaluation:** Ten-fold cross-validation is used, with pre-defined train/validation splits specified in `cv_contract.json`. There is no independent test set.
+*   **Model Requirements:** A Python module must provide a `build_model(X_train, y_train)` function that returns a new, unfitted model object. This model must expose `fit(X,y)` and `predict(X)` methods. All preprocessing must be encapsulated within this model and fitted solely on the provided training data for each fold. Stochastic models must use `random_state/seed 42`.

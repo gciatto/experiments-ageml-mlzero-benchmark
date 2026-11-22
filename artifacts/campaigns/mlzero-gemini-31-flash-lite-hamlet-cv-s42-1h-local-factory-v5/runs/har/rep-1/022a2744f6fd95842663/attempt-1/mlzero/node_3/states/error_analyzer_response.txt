@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `AssertionError: Not enough time left to train models` occurs because AutoGluon's `fit` process is attempting to perform complex operations (like stacking or bagging) that exceed the extremely tight `time_limit` provided in the `fit()` call.
+
+SUGGESTED_FIX: Increase the `time_limit` parameter in the `predictor.fit()` method to allow sufficient time for model training, or disable advanced features by setting `auto_stack=False` and `presets='medium'` to reduce the computational overhead per fold. Ensure the `time_limit` is set to a value that allows the model to complete its training cycle within the total benchmark budget.

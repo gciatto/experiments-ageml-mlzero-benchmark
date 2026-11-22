@@ -1,0 +1,8 @@
+This data science task is a **classification** problem.
+
+**Input Format:**
+*   **For training (`fit` method):** A pandas DataFrame (`X_train`) containing feature columns 'V1' through 'V40', and a pandas Series (`y_train`) containing the target column 'Class'.
+*   **For prediction (`predict` method):** A pandas DataFrame (`X`) containing feature columns 'V1' through 'V40'.
+
+**Prediction Output Format:**
+A 1-dimensional NumPy array or Python list of predicted class labels, with a length equal to the number of input instances for prediction.

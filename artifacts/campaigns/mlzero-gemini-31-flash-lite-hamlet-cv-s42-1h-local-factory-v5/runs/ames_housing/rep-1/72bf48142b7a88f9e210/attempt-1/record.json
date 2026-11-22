@@ -1,0 +1,79 @@
+{
+  "attempt": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/72bf48142b7a88f9e210/attempt-1",
+  "campaign_id": "mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5",
+  "cv_fold_scores": [
+    20070.369005108914,
+    23491.765613621024,
+    18457.090249610595,
+    36567.69430468535,
+    30073.10675841072,
+    21659.094543763145,
+    20494.864398761365,
+    18641.967715692117,
+    36021.57277984482,
+    23952.742059734464
+  ],
+  "cv_score": 24943.026742923255,
+  "dataset": "ames_housing",
+  "final": true,
+  "finished_at": 1795300559.2992141,
+  "fit_seed": 42,
+  "llm_seed_requested": 42,
+  "llm_settings_verified": true,
+  "model": "gemini-3.1-flash-lite",
+  "native_validation_score": -24943.026742923255,
+  "native_vs_trusted_cv_discrepancy": 0.0,
+  "protocol": "ageml-evaluation-v3/hamlet_cv",
+  "protocol_compliance": "audited export; no proof against adversarial generated code",
+  "repetition": 1,
+  "resource_limits": {
+    "cpus": 16,
+    "gpus": 0,
+    "memory_gib": 50,
+    "memory_high_gib": 40
+  },
+  "resources": {
+    "cpu_s": 34152.460236,
+    "peak_rss_bytes": 10864881664,
+    "resources_final": false,
+    "resources_source": "cgroup"
+  },
+  "run_id": "72bf48142b7a88f9e210",
+  "score_role": "selection_cv_not_independent_test",
+  "search_budget_s": 3600,
+  "search_wall_s": 3600.0319933599967,
+  "seed_support": "Requested on native Gemini and local Python/NumPy/sklearn; backend determinism is not guaranteed",
+  "selected": {
+    "committed_at": 1795300553.7739155,
+    "event": "incumbent_committed",
+    "export_status": "present",
+    "native_validation_score": -24943.026742923255,
+    "node_folder": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/72bf48142b7a88f9e210/attempt-1/mlzero/node_0",
+    "node_id": 0,
+    "output_folder": "/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/ames_housing/rep-1/72bf48142b7a88f9e210/attempt-1/mlzero/node_0/output",
+    "selected_by": "best_validation_score",
+    "time_step": 4,
+    "tool": "autogluon.tabular",
+    "ts": 1795300553.7801542
+  },
+  "source_sha256": "06b4acbf769dab2e6b5851fe11e3fb716394535313cd269f157b817463c51ee2",
+  "split_identity": "d03c98baee5d69cdc7179c219fda83cf4efb5899fc0f9681166105c8fe600af0",
+  "status": "completed",
+  "system": "mlzero",
+  "temperature": 0.0,
+  "termination_reason": "timeout",
+  "test_score": null,
+  "timing_note": "MLZero initialization, generation, repair and all ten-fold fits are inside 3600 s. AGE-ML planning may precede its exploration deadline; resource-time equivalence is not asserted.",
+  "usage": {
+    "billable_output_tokens": 7683,
+    "cache_read_tokens": 0,
+    "input_tokens": 142247,
+    "llm_calls": 40,
+    "output_tokens": 7683,
+    "reasoning_tokens": null,
+    "reported_models": [
+      "gemini-3.1-flash-lite"
+    ],
+    "usage_coverage": "complete"
+  }
+}

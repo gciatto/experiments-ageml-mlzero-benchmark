@@ -1,0 +1,146 @@
+
+You are a data science expert tasked with selecting and ranking the most appropriate ML libraries for a specific task.
+
+### Task Description:
+This data science task is a **classification** problem.
+
+**Input Format:**
+*   **For training (`fit(X, y)`):**
+    *   `X`: A pandas DataFrame containing 5 numerical feature columns: `GLCM_Pan`, `Mean_G`, `Mean_R`, `Mean_NIR`, `SD_Plan`.
+    *   `y`: A pandas Series containing integer class labels.
+*   **For prediction (`predict(X)`):**
+    *   `X`: A pandas DataFrame with the same 5 numerical feature columns as training.
+
+**Prediction Output Format:**
+A 1-dimensional NumPy array or list of predicted integer class labels, with its length matching the number of input samples.
+
+**Target Column:** `class`
+
+**Evaluation Metric:** Balanced accuracy (higher is better).
+
+### Data Information:
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/data.csv
+Content:
+Columns: ['GLCM_Pan', 'Mean_G', 'Mean_R', 'Mean_NIR', 'SD_Plan', 'class']
+  GLCM_Pan     Mean_G     Mean_R   Mean_NIR   SD_Plan class
+120.362774      205.5 119.395349 416.581395 20.676318     2
+124.739583      202.8 115.333333 354.333333 16.707151     2
+134.691964 199.285714 116.857143 477.857143 22.496712     2
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: wilt
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other t
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json
+Content:
+JSON object keys: cv_folds, dataset_id, dataset_version, evaluation_protocol, partitions, protocol_version, row_identity, source_row_count, source_sha256, split_hashes, split_identity, split_seed, splitter, stratification, target_column, task
+First few values:
+  cv_folds: [{'train': [27, 28, 29, 30, 31, 32, 33, 34, 35, 36...
+  dataset_id: wilt
+  dataset_version: a7fbce33d5040f9bce1e3a95b9922c904293f573508ec0abe5...
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### Available ML Libraries:
+Library Name: FlagEmbedding
+Version: v1.3.4
+Description: FlagEmbedding specializes in retrieval and reranking tasks.
+
+
+Library Name: machine learning
+Version: v0.1.0
+Description: You should select this as a general reference of machine learning or deep learning algorithms in case other tools are not helpful.
+
+
+Library Name: wav2vec2
+Version: v0.0.0
+Description: This model was pre-trained on 4.5M hours of unlabeled audio data covering more than 143 languages. It requires finetuning to be used for downstream tasks such as Automatic Speech Recognition (ASR), or Audio Classification.
+
+
+Library Name: qwen3
+Version: v0.0.0
+Description: Qwen3-0.6B is a compact 0.6 billion parameter text generation model that uniquely switches between thinking and non-thinking modes for both efficient dialogue and complex reasoning tasks.
+
+
+Library Name: autogluon.tabular
+Version: v1.4.0.dev
+Description: AutoGluon Tabular automates ML model training for tabular data, excelling at numerical and categorical data processing. It doesn't support NLP or image-based tasks.
+
+
+Library Name: autogluon.multimodal
+Version: v1.4.0.dev
+Description: AutoGluon Multimodal excels at multimodal classification, regression, document classification, and semantic segmentation tasks. The framework is not optimized for pure tabular data processing and DOES NOT support generative tasks (image generation, text generation, etc.) or audio-related tasks. It also doesn't handle object detection.
+
+
+Library Name: autogluon.timeseries
+Version: v1.4.0.dev
+Description: AutoGluon TimeSeries automates forecasting model training for time series data, supporting both univariate and multivariate predictions.
+
+
+
+
+IMPORTANT: Your response MUST follow this exact format:
+---
+EXPLANATION: <provide your detailed reasoning process for evaluating the libraries>
+
+RANKED_LIBRARIES:
+1. <first choice library name>
+2. <second choice library name>
+3. <third choice library name>
+...
+---
+
+Requirements for your response:
+1. First provide a detailed explanation of your reasoning process using the "EXPLANATION:" header
+2. Then provide a ranking of libraries using the "RANKED_LIBRARIES:" header
+3. The library names must be exactly as shown in the available libraries list
+4. Provide a ranking of at least 3 libraries (if available)
+5. In your explanation, analyze each library's strengths and weaknesses for this specific task
+6. Consider the task requirements, data characteristics, and library features
+
+Do not include any other formatting or additional sections in your response.

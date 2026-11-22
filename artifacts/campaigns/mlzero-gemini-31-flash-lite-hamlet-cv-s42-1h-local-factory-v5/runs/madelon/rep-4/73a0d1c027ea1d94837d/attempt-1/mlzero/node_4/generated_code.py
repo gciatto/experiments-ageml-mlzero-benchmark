@@ -1,0 +1,47 @@
+import numpy as np
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.linear_model import SGDClassifier
+from sklearn.calibration import CalibratedClassifierCV
+
+class MadelonModelWrapper(BaseEstimator, ClassifierMixin):
+    """
+    Optimized wrapper for the Madelon dataset.
+    Uses a fast linear model with feature selection to ensure 10-fold CV 
+    completes within the strict time constraints.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        # Using SGDClassifier with hinge loss (Linear SVM) for speed.
+        # Feature selection is critical for Madelon's 500 features.
+        self.pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('selector', SelectKBest(score_func=f_classif, k=150)),
+            ('classifier', SGDClassifier(
+                loss='hinge',
+                penalty='l2',
+                alpha=1e-3,
+                max_iter=1000,
+                tol=1e-3,
+                random_state=self.random_state,
+                n_jobs=1
+            ))
+        ])
+        self.model = CalibratedClassifierCV(self.pipeline, method='sigmoid', cv=3)
+
+    def fit(self, X, y):
+        # Fit the calibrated pipeline
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function returning a fresh, unfitted model instance.
+    The model encapsulates all preprocessing and feature selection.
+    """
+    return MadelonModelWrapper(random_state=42)

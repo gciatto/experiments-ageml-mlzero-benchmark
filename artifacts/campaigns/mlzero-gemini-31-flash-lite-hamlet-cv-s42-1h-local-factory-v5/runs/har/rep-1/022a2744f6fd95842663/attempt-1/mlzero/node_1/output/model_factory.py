@@ -1,0 +1,46 @@
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import VarianceThreshold
+
+class HARModelWrapper:
+    """
+    A wrapper class for the HAR classification task.
+    Uses a pipeline with variance thresholding, scaling, and a Random Forest classifier.
+    """
+    def __init__(self):
+        # We use a Random Forest as it is robust for high-dimensional sensor data.
+        # n_estimators is set to 100 to balance performance and time constraints.
+        # random_state=42 is fixed as per requirements.
+        self.model = Pipeline([
+            ('variance_threshold', VarianceThreshold(threshold=0.01)),
+            ('scaler', StandardScaler()),
+            ('classifier', RandomForestClassifier(
+                n_estimators=100,
+                max_depth=20,
+                random_state=42,
+                n_jobs=-1
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided data.
+        """
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The X_train and y_train arguments are provided by the harness but 
+    the model is returned unfitted as per the contract.
+    """
+    return HARModelWrapper()

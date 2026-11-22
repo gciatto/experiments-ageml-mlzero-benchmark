@@ -1,0 +1,50 @@
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+class ModelWrapper(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper class that encapsulates a preprocessing pipeline and a 
+    RandomForest classifier. This ensures all preprocessing is fitted 
+    only on the training data provided for each fold.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        self.model = Pipeline([
+            ('scaler', StandardScaler()),
+            ('clf', RandomForestClassifier(
+                n_estimators=100,
+                max_depth=15,
+                min_samples_split=2,
+                random_state=self.random_state,
+                n_jobs=1  # Constrained to ensure stability within shared resources
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels using the fitted pipeline.
+        """
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model instance.
+    
+    Parameters:
+    X_train: Training features (provided for context, not used for fitting here)
+    y_train: Training labels (provided for context, not used for fitting here)
+    
+    Returns:
+    An unfitted instance of ModelWrapper.
+    """
+    return ModelWrapper(random_state=42)

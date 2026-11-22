@@ -1,0 +1,55 @@
+```python
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    def __init__(self, label_col='class'):
+        self.label_col = label_col
+        self.predictor = None
+        self.path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine features and target for AutoGluon
+        train_df = X.copy()
+        train_df[self.label_col] = y
+        
+        # Initialize predictor
+        # Using 'medium_quality' to ensure we stay within the very tight time budget
+        self.predictor = MultiModalPredictor(
+            label=self.label_col,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        )
+        
+        # Fit with a strict time limit to ensure all 10 folds finish
+        # Total budget is 8s, so we allocate a fraction per fold
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=0.5, 
+            presets='medium_quality'
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model not fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifacts to prevent disk bloat
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Returns a fresh, unfitted AutoGluonWrapper instance.
+    The target column is 'class' as per the dataset description.
+    """
+    return AutoGluonWrapper(label_col='class')
+```

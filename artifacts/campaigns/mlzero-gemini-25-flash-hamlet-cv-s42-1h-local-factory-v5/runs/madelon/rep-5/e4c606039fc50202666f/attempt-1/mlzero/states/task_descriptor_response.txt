@@ -1,0 +1,5 @@
+This is a **classification** task.
+
+**Input Format:** Tabular data provided in `data.csv`. Each input instance consists of 500 features, named `V1` through `V500`.
+
+**Prediction Output Format:** Predicted class labels for the `Class` column.

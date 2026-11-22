@@ -1,0 +1,78 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+
+Generate Python code to read and analyze the file: "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv"
+
+File Size: 0.43 MB
+
+Your code should:
+1. Import all modules used (e.g. import os).
+1. Use appropriate libraries based on file type (pandas for tabular data, etc.)
+2. For tabular files (csv, excel, parquet, etc.):
+    - Display column names. If there are more than 20 columns, only display the first and last 10.
+    - Show first 2-3 rows with truncated cell content (50 chars).
+    - Do not show additional index column if it's not in the original table
+    - If failed to open the file, treat it as text file
+3. For text files:
+    - Display first few lines (up to 768 characters)
+4. For compressed tabular or text files, show its decompressed content as described.
+5. For binary or other files, provide only the most basic information.
+6. Keep the total output under 768 characters
+
+Return ONLY the Python code, no explanations. The code should be self-contained and executable on its own.
+
+
+### Data Structure
+file location: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv
+
+### Python Code
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/data.csv"
+
+try:
+    df = pd.read_csv(file_path)
+    cols = df.columns.tolist()
+    if len(cols) > 20:
+        print(f"Columns: {cols[:10]} ... {cols[-10:]}")
+    else:
+        print(f"Columns: {cols}")
+    
+    pd.set_option('display.max_colwidth', 50)
+    print(df.head(3).to_string(index=False))
+except Exception:
+    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+        print(f.read(768))
+
+## Execution Results
+### Standard Output (stdout)
+
+Columns: ['Id', 'MSSubClass', 'MSZoning', 'LotFrontage', 'LotArea', 'Street', 'Alley', 'LotShape', 'LandContour', 'Utilities'] ... ['PoolArea', 'PoolQC', 'Fence', 'MiscFeature', 'MiscVal', 'MoSold', 'YrSold', 'SaleType', 'SaleCondition', 'SalePrice']
+ Id  MSSubClass MSZoning  LotFrontage  LotArea Street Alley LotShape LandContour Utilities LotConfig LandSlope Neighborhood Condition1 Condition2 BldgType HouseStyle  OverallQual  OverallCond  YearBuilt  YearRemodAdd RoofStyle RoofMatl Exterior1st Exterior2nd MasVnrType  MasVnrArea ExterQual ExterCond Foundation BsmtQual BsmtCond BsmtExposure BsmtFinType1  BsmtFinSF1 BsmtFinType2  BsmtFinSF2  BsmtUnfSF  TotalBsmtSF Heating HeatingQC CentralAir Electrical  1stFlrSF  2ndFlrSF  LowQualFinSF  GrLivArea  BsmtFullBath  BsmtHalfBath  FullBath  HalfBath  BedroomAbvGr  KitchenAbvGr KitchenQual  TotRmsAbvGrd Functional  Fireplaces FireplaceQu GarageType  GarageYrBlt GarageFinish  GarageCars  GarageArea GarageQual GarageCond PavedDrive  WoodDeckSF  OpenPorchSF  EnclosedPorch  3SsnPorch  ScreenPorch  PoolArea PoolQC Fence MiscFeature  MiscVal  MoSold  YrSold SaleType SaleCondition  SalePrice
+  1          60       RL         65.0     8450   Pave   NaN      Reg         Lvl    AllPub    Inside       Gtl      CollgCr       Norm       Norm     1Fam     2Story            7            5       2003          2003     Gable  CompShg     VinylSd     VinylSd    BrkFace       196.0        Gd        TA      PConc       Gd       TA           No          GLQ         706          Unf           0        150          856    GasA        Ex          Y      SBrkr       856       854             0       1710             1             0         2         1             3             1          Gd             8        Typ           0         NaN     Attchd       2003.0          RFn           2         548         TA         TA          Y           0           61              0          0            0         0    NaN   NaN         NaN        0       2    2008       WD        Normal     208500
+  2          20       RL         80.0     9600   Pave   NaN      Reg         Lvl    AllPub       FR2       Gtl      Veenker      Feedr       Norm     1Fam     1Story            6            8       1976          1976     Gable  CompShg     MetalSd     MetalSd        NaN         0.0        TA        TA     CBlock       Gd       TA           Gd          ALQ         978          Unf           0        284         1262    GasA        Ex          Y      SBrkr      1262         0             0       1262             0             1         2         0             3             1          TA             6        Typ           1          TA     Attchd       1976.0          RFn           2         460         TA         TA          Y         298            0              0          0            0         0    NaN   NaN         NaN        0       5    2007       WD        Normal     181500
+  3          60       RL         68.0    11250   Pave   NaN      IR1         Lvl    AllPub    Inside       Gtl      CollgCr       Norm       Norm     1Fam     2Story            7            5       2001          2002     Gable  CompShg     VinylSd     VinylSd    BrkFace       162.0        Gd        TA      PConc       Gd       TA           Mn          GLQ         486          Unf           0        434          920    GasA        Ex          Y      SBrkr       920       866             0       1786             1             0         2         1             3             1          Gd             6        Typ           1          TA     Attchd       2001.0          RFn           2         608         TA         TA          Y           0           42              0          0            0         0    NaN   NaN         NaN        0       9    2008       WD        Normal     223500
+
+
+### Standard Error (stderr)
+
+No standard error
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

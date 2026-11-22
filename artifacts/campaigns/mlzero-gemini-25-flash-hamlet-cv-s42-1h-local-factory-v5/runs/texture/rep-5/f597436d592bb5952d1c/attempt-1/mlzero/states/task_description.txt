@@ -1,0 +1,13 @@
+This data science task is a **classification** problem.
+
+**Input Format:**
+The input data is provided in a CSV file (`data.csv`) containing tabular data. It consists of 40 numerical feature columns, named `V1` through `V40`.
+
+**Prediction Output Format:**
+The model is expected to predict the `Class` column. The `predict(X)` method of the returned model should output the predicted class labels.
+
+**Additional Details:**
+*   **Target Column:** `Class`.
+*   **Evaluation Metric:** Balanced accuracy (higher is better).
+*   **Cross-validation:** The task uses a ten-fold cross-validation benchmark. There is no independent test set.
+*   **Constraints:** The dataset must not be shuffled, split, filtered, reordered, or sampled. Row IDs must not be added as features. All preprocessing must be performed within the model and fitted solely on the supplied training rows for each fold. Stochastic models should use `random_state/seed 42`.

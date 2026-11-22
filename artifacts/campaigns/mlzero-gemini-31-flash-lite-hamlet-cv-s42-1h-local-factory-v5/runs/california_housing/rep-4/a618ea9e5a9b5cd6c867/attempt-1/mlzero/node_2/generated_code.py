@@ -1,0 +1,69 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonRegressionWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to handle regression tasks
+    within a cross-validation loop.
+    """
+    def __init__(self, target_column):
+        self.target_column = target_column
+        self.model_path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+        self.predictor = None
+
+    def fit(self, X, y):
+        """
+        Fits the model on the provided training fold.
+        """
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_df = X.copy()
+        train_df[self.target_column] = y
+        
+        # Initialize predictor
+        # We use a conservative time_limit to ensure all 10 folds finish within the deadline.
+        # Given 1099s total, we allocate ~90s per fold.
+        self.predictor = MultiModalPredictor(
+            label=self.target_column,
+            problem_type="regression",
+            path=self.model_path,
+            eval_metric="rmse"
+        )
+        
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=90,
+            hyperparameters={
+                "env.num_gpus": 0,  # Ensure CPU usage if no GPU is available
+                "optim.max_epochs": 5,
+            }
+        )
+
+    def predict(self, X):
+        """
+        Predicts continuous values for the input features.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup the artifact directory after use.
+        """
+        if os.path.exists(self.model_path):
+            try:
+                shutil.rmtree(self.model_path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The target column is inferred from the training data context.
+    """
+    # The target column is 'median_house_value' based on the task description.
+    target_col = 'median_house_value'
+    return AutoGluonRegressionWrapper(target_column=target_col)

@@ -1,0 +1,60 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that adheres to the 
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self):
+        self.label_col = "class"
+        self.path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+        self.predictor = None
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label_col] = y
+        
+        # Initialize predictor
+        # We use a conservative time_limit and epoch count to ensure 
+        # all 10 folds complete within the shared 522s deadline.
+        self.predictor = MultiModalPredictor(
+            label=self.label_col,
+            path=self.path,
+            problem_type="binary" if len(y.unique()) == 2 else "multiclass"
+        )
+        
+        # Fit with constrained resources
+        self.predictor.fit(
+            train_data=train_data,
+            hyperparameters={
+                "optim.max_epochs": 3,
+                "env.num_gpus": 0,  # Ensure CPU usage to avoid OOM/GPU contention
+                "env.num_workers": 1,
+            },
+            time_limit=40,  # Strict per-fold limit to stay under total budget
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model must be fitted before calling predict.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifact directory to save disk space
+        if os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    return AutoGluonWrapper()

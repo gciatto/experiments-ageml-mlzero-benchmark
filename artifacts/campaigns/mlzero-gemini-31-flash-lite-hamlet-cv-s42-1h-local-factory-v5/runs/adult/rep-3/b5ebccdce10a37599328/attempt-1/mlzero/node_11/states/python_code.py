@@ -1,0 +1,75 @@
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+class ModelWrapper:
+    """
+    A wrapper class that encapsulates the preprocessing pipeline and the 
+    HistGradientBoostingClassifier. Handles label encoding to ensure 
+    consistency between training and prediction outputs.
+    """
+    def __init__(self):
+        self.label_encoder = LabelEncoder()
+        self.model = None
+        self._build_pipeline()
+
+    def _build_pipeline(self):
+        # Identify feature types
+        numeric_features = [
+            'age', 'fnlwgt', 'education-num', 'capital-gain', 
+            'capital-loss', 'hours-per-week'
+        ]
+        categorical_features = [
+            'workclass', 'education', 'marital-status', 'occupation', 
+            'relationship', 'race', 'sex', 'native-country'
+        ]
+
+        # Preprocessing for numeric data
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
+
+        # Preprocessing for categorical data
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, categorical_features)
+            ]
+        )
+
+        # Classifier with fixed random_state for reproducibility
+        self.model = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('classifier', HistGradientBoostingClassifier(
+                random_state=42,
+                max_iter=100,
+                early_stopping=True
+            ))
+        ])
+
+    def fit(self, X, y):
+        # Encode labels to integers and store the encoder
+        y_encoded = self.label_encoder.fit_transform(y)
+        self.model.fit(X, y_encoded)
+        return self
+
+    def predict(self, X):
+        # Predict integers and map back to original string labels
+        y_pred_encoded = self.model.predict(X)
+        return self.label_encoder.inverse_transform(y_pred_encoded)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    """
+    return ModelWrapper()

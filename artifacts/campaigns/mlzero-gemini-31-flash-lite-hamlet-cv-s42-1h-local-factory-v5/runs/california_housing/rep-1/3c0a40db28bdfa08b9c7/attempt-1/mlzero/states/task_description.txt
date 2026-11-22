@@ -1,0 +1,14 @@
+The data science task is a **regression** problem based on the California housing dataset.
+
+*   **Task Type:** Regression.
+*   **Evaluation Metric:** Root Mean Squared Error (RMSE), where lower values are better.
+*   **Evaluation Protocol:** Ten-fold cross-validation. The dataset is partitioned into ten fixed train/validation folds as defined in `cv_contract.json`.
+*   **Input Format:** A tabular dataset (`data.csv`) containing the following columns: `longitude`, `latitude`, `housing_median_age`, `total_rooms`, `total_bedrooms`, `population`, `households`, `median_income`, `ocean_proximity`, and `median_house_value`.
+*   **Target Variable:** `median_house_value`.
+*   **Prediction Output Format:** The model must provide a `predict(X)` method that outputs continuous numerical values corresponding to the predicted `median_house_value`.
+*   **Implementation Requirements:**
+    *   The solution must be a self-contained Python module providing a `build_model(X_train, y_train)` function.
+    *   `build_model` must return a new, unfitted model object with `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be encapsulated within the model and fitted only on the provided training fold data.
+    *   Stochastic models must use `random_state=42`.
+    *   The dataset must not be shuffled, split, filtered, reordered, or sampled. Row IDs must not be used as features.

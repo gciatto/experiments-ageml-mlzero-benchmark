@@ -1,0 +1,7 @@
+This data science task is a **classification** problem.
+
+**Input Format:** Tabular data provided as a CSV file (`data.csv`). Each instance consists of 561 numerical features (columns `V1` through `V561`). The model's `fit` and `predict` methods will receive this data, likely as a Pandas DataFrame or similar structure.
+
+**Prediction Output Format:** For each input instance, the model must predict a single class label, corresponding to the `Class` column in the original dataset.
+
+The task involves a ten-fold cross-validation benchmark, with no independent test set. The evaluation metric is `balanced_accuracy`.

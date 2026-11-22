@@ -1,0 +1,7 @@
+The data science task is **classification**.
+
+**Input Format:**
+Tabular data, sourced from `data.csv` (an AGE-ML exported CSV). The `build_model` function receives `X_train` (features) and `y_train` (target). The target column is named `Class`.
+
+**Prediction Output Format:**
+Class labels, as the output of the `predict(X)` method, for the classification task. The performance metric is `balanced_accuracy`.

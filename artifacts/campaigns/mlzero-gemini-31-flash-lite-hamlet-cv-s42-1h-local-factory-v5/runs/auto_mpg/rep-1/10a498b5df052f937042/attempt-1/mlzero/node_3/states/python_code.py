@@ -1,0 +1,68 @@
+import os
+import shutil
+import tempfile
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonRegressorWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, label='class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.path = os.path.join(tempfile.gettempdir(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor. 
+        The training data is combined into a single DataFrame as required by AutoGluon.
+        """
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # We use 'best_quality' to ensure high performance while maintaining 
+        # stability. 'extreme' is reserved for very small datasets or specific 
+        # hardware, but 'best_quality' is robust for 10-fold CV.
+        # We set a time_limit to ensure the total 10-fold process fits within 
+        # the remaining budget.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.path,
+            eval_metric='rmse'
+        ).fit(
+            train_data,
+            presets='best_quality',
+            time_limit=250,  # Conservative limit to ensure 10 folds finish in ~2500s
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        """
+        Predicts using the fitted AutoGluon predictor.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup artifacts after the fold evaluation is complete to prevent
+        disk space exhaustion.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluon wrapper.
+    The harness will call fit() on this object.
+    """
+    return AutoGluonRegressorWrapper(label='class')

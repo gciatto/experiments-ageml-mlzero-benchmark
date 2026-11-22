@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `ValueError` occurs because `tab_transformer` is not a valid model name in `AutoGluon.MultiModalPredictor`. The `MultiModalPredictor` expects specific model prefixes (e.g., `categorical_mlp`, `numerical_mlp`, `fusion_mlp`) for tabular data, and `tab_transformer` is not included in the allowed list of model architectures for this predictor.
+
+SUGGESTED_FIX: Remove the `model.names` hyperparameter configuration from your `predictor.fit` call. Allow AutoGluon to automatically select the appropriate default models for your tabular dataset, or use `fusion_mlp` if you specifically need to customize the architecture for tabular inputs.

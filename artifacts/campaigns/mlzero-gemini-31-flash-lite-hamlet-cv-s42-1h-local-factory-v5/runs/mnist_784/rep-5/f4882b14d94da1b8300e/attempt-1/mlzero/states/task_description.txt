@@ -1,0 +1,11 @@
+The data science task is a **classification** problem evaluated via **ten-fold cross-validation**.
+
+*   **Input Format:** The input data is provided in a CSV file (`data.csv`) containing 784 feature columns (labeled `pixel1` through `pixel784`) and one target column named `class`.
+*   **Prediction Output Format:** The model must provide a `predict(X)` method that outputs class predictions based on the input features.
+*   **Task Requirements:**
+    *   The objective is to maximize **balanced_accuracy**.
+    *   The dataset must not be shuffled, split, filtered, reordered, or sampled.
+    *   Row IDs must not be added as features.
+    *   Candidates must provide a self-contained Python module with a `build_model(X_train, y_train)` function that returns an unfitted model object containing `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be encapsulated within the model and fitted only on the training rows provided for each fold.
+    *   Stochastic models must use a `random_state` or seed of 42.

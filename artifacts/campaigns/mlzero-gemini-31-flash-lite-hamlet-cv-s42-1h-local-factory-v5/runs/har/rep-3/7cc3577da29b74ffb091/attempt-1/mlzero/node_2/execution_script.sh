@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+# Define paths
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/har/rep-3/7cc3577da29b74ffb091/attempt-1/mlzero/node_2/conda_env"
+REQ_COMMON="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+REQ_MM="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install dependencies
+# Using --no-upgrade to ensure existing versions (like autogluon.multimodal) are respected if present
+uv pip install --no-upgrade \
+    numpy \
+    pandas \
+    scikit-learn \
+    -r "$REQ_MM" \
+    --prerelease=allow \
+    -r "$REQ_COMMON"

@@ -1,0 +1,83 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-4/c4965b0b046f30ce8a37/attempt-1/mlzero/node_2:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.multimodal if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that adheres to the 
+    fit/predict interface required by the evaluation harness.
+    """
+    def __init__(self):
+        self.label_col = "class"
+        self.path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+        self.predictor = None
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label_col] = y
+        
+        # Initialize predictor
+        # Using a conservative time limit and epoch count to ensure 10 folds fit in 532s
+        self.predictor = MultiModalPredictor(
+            label=self.label_col,
+            problem_type="binary" if len(y.unique()) == 2 else "multiclass",
+            path=self.path,
+            eval_metric="balanced_accuracy"
+        )
+        
+        # Fit with constrained resources
+        self.predictor.fit(
+            train_data=train_data,
+            hyperparameters={
+                "optim.max_epochs": 5,
+                "env.num_gpus": 0,  # Ensure compatibility if GPU is unavailable
+                "env.num_workers": 0,
+            },
+            time_limit=40,  # Strict limit per fold to stay under total budget
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model must be fitted before calling predict.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifact directory to save disk space
+        if os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    return AutoGluonWrapper()
+### Previous errors
+
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-4/c4965b0b046f30ce8a37/attempt-1/mlzero/node_2/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 529 seconds.

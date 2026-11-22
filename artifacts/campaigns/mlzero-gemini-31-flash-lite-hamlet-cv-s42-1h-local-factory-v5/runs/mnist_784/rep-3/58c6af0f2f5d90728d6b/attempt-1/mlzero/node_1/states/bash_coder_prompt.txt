@@ -1,0 +1,74 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-3/58c6af0f2f5d90728d6b/attempt-1/mlzero/node_1:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import SGDClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+class ModelWrapper:
+    """
+    A wrapper for a Scikit-Learn pipeline that handles classification.
+    Uses SGDClassifier with 'log_loss' to approximate high-performance 
+    linear classification suitable for MNIST-like datasets.
+    """
+    def __init__(self, seed=42):
+        self.seed = seed
+        # Pipeline: Scale features to mean 0, var 1, then apply linear classifier.
+        # SGDClassifier is efficient for 784 features and large datasets.
+        self.model = Pipeline([
+            ('scaler', StandardScaler()),
+            ('clf', SGDClassifier(
+                loss='log_loss',
+                penalty='l2',
+                alpha=1e-4,
+                max_iter=1000,
+                tol=1e-3,
+                random_state=self.seed,
+                n_jobs=1
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided input features.
+        """
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The X_train and y_train arguments are provided by the harness 
+    but are not used for initialization, as the model must be 
+    unfitted upon return.
+    """
+    return ModelWrapper(seed=42)
+### Previous errors
+ERROR_SUMMARY: The error is caused by passing an unsupported keyword argument `random_seed` to the `TabularPredictor.fit()` method. AutoGluon's `fit()` method does not accept `random_seed` as a direct argument; instead, random seeds for individual models are managed internally or via the `ag_args_fit` dictionary.
+
+SUGGESTED_FIX: Remove the `random_seed=self.seed` argument from the `fit()` method call in your `AutoGluonWrapper`. If you need to control the seed for reproducibility, pass it through the `ag_args_fit` parameter as `ag_args_fit={'random_seed': self.seed}`.
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-3/58c6af0f2f5d90728d6b/attempt-1/mlzero/node_1/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 3548 seconds.

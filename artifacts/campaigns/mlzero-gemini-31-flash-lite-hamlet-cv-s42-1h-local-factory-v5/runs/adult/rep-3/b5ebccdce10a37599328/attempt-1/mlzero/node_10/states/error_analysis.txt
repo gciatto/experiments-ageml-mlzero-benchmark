@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `evaluate_cv.py` script is failing because the `balanced_accuracy_score` function is receiving a mix of string labels (from the validation set) and integer predictions (from the model), causing a type mismatch in scikit-learn's internal target validation.
+
+SUGGESTED_FIX: Modify the `predict` method in your `ModelWrapper` class to map the integer predictions back to the original string labels (e.g., '<=50K' and '>50K') before returning them. Ensure the mapping logic matches the binary encoding used in your `fit` method so that the output format is consistent with the ground truth labels in the validation set.

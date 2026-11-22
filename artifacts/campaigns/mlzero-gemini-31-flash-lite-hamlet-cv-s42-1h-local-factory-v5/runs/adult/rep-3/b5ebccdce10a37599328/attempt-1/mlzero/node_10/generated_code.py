@@ -1,0 +1,79 @@
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+class ModelWrapper:
+    """
+    A wrapper class that encapsulates the preprocessing pipeline and the 
+    HistGradientBoostingClassifier to ensure compatibility with the 
+    required fit/predict interface.
+    """
+    def __init__(self):
+        self.model = self._build_pipeline()
+
+    def _build_pipeline(self):
+        # Identify feature types
+        numeric_features = [
+            'age', 'fnlwgt', 'education-num', 'capital-gain', 
+            'capital-loss', 'hours-per-week'
+        ]
+        categorical_features = [
+            'workclass', 'education', 'marital-status', 'occupation', 
+            'relationship', 'race', 'sex', 'native-country'
+        ]
+
+        # Preprocessing for numeric data
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
+
+        # Preprocessing for categorical data
+        # sparse_output=False ensures dense output for HistGradientBoostingClassifier
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, categorical_features)
+            ]
+        )
+
+        # Classifier with fixed random_state for reproducibility
+        return Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('classifier', HistGradientBoostingClassifier(
+                random_state=42,
+                max_iter=100,
+                early_stopping=True
+            ))
+        ])
+
+    def fit(self, X, y):
+        # Ensure y is encoded as binary if necessary
+        # The adult dataset target is usually '<=50K' or '>50K'
+        if isinstance(y, pd.Series):
+            y_encoded = (y.astype(str).str.strip() == '>50K').astype(int)
+        else:
+            y_encoded = (np.array(y) == '>50K').astype(int)
+            
+        self.model.fit(X, y_encoded)
+        return self
+
+    def predict(self, X):
+        # Return original labels if needed, but standard sklearn classifiers 
+        # return the encoded labels. The evaluator handles metric calculation.
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    """
+    return ModelWrapper()

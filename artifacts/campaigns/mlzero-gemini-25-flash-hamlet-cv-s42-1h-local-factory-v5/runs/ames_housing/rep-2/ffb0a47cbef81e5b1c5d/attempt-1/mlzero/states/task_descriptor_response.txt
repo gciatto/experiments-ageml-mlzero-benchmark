@@ -1,0 +1,8 @@
+This data science task is a **regression** problem.
+
+*   **Problem Type**: Regression.
+*   **Input Format**: Tabular data provided as a pandas DataFrame (`X_train`) containing features (all columns from `data.csv` except `SalePrice`) and a pandas Series (`y_train`) containing the target `SalePrice`. The `predict` method receives a pandas DataFrame (`X`) of features.
+*   **Prediction Output Format**: A 1D array (e.g., NumPy array or list) of numerical values, where each value is the predicted `SalePrice` for the corresponding input row.
+*   **Target Column**: `SalePrice`.
+*   **Metric**: Root Mean Squared Error (RMSE), where lower is better.
+*   **Cross-validation**: Ten-fold cross-validation using predefined train/validation splits specified in `cv_contract.json`. There is no independent test set.

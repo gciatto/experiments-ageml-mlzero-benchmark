@@ -1,0 +1,58 @@
+import os
+import shutil
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that ensures a fresh environment
+    for each fold and adheres to the required fit/predict interface.
+    """
+    def __init__(self, label='Class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this specific model instance
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor.
+        # We use 'best_quality' to balance performance and time constraints.
+        # We rely on AutoGluon's internal validation splitting.
+        # We set verbosity=0 to keep logs clean.
+        # We use a small time_limit to ensure all 10 folds finish within the 26s budget.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data=train_data,
+            presets='best_quality',
+            time_limit=2.0,
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup the artifact directory to save disk space
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    The harness will call fit() on this object using the fold-specific data.
+    """
+    return AutoGluonWrapper(label='Class')

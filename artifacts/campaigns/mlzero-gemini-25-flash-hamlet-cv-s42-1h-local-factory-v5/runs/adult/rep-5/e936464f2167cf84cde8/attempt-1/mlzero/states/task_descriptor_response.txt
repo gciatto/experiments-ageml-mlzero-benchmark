@@ -1,0 +1,5 @@
+**Problem Type:** Classification.
+
+**Input Format:** Tabular data. Features (`X`) are provided as all columns from `data.csv` except the 'class' column. The target (`y`) is the 'class' column from `data.csv`. These are supplied to the model's `fit(X,y)` and `predict(X)` methods.
+
+**Prediction Output Format:** The model's `predict(X)` method must return predicted class labels.

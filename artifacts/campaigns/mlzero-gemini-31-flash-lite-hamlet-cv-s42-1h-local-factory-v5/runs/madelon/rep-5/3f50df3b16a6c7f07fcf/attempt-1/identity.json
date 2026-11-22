@@ -1,0 +1,219 @@
+{
+  "adapter_sha256": "b63f3678d89fbf43e28dc09a742e285594e194289e93bdf1e58801b97c04f726",
+  "config": {
+    "age_campaign": "/root/age-ml/experiments/results/gemini31-flash-lite-hamlet-cv-w8-storage",
+    "age_campaign_identity": "9ff59d982f308352c03d5f9b32547035c124caed2172f7ad4bae093025b27cc5",
+    "age_manifest_sha256": "76198b0fc9382a12089c73abfc3eeb2abb9ce6f783bceb11b3e0ceeb369dc083",
+    "budget": {
+      "search_wall_seconds": 3600,
+      "stop_grace_seconds": 30
+    },
+    "campaign_id": "mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5",
+    "dataset_entries": [
+      {
+        "input_hashes": {
+          "README.md": "6426d8bbf7cc59c02be9a1c8081c5d4eb213158b741704011e0378d6f7f012a9",
+          "cv_contract.json": "fa9f8dd088e67fa7779b3bd4d7ebfb038ab51fe988a8749559799d457e3d989f",
+          "data.csv": "547551a449e2453ec1b9a3044b0b74e59cf79a4c99291cd478914aa5f9efbcd0",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "adult",
+        "objective": "balanced_accuracy",
+        "openml_id": 1590,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/adult/547551a449e2-88ada5f9c32f-b8f667a91497-local",
+        "split_identity": "c4733339d10dbb58b745c82e5a9b4bab34faf057116830def4ed586a8b704f2c",
+        "target": "class",
+        "task": "classification"
+      },
+      {
+        "input_hashes": {
+          "README.md": "fe89b4ea8217a2ab21827bb1fe76ece0cf8cb82d8987d07d69b5df8106e71ed0",
+          "cv_contract.json": "ce29977857d4f4be71ab0c5b061f88087911217fd421e0542529a117d54a929e",
+          "data.csv": "aae972f53feea2f1d8ee1e493dca072a38033dd84c83dc100d507288ef73a3d3",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "har",
+        "objective": "balanced_accuracy",
+        "openml_id": 1478,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local",
+        "split_identity": "14111795c93d148a933b7fdd1a5a887e407e2a9bf12d9578e312bc47d58ac446",
+        "target": "Class",
+        "task": "classification"
+      },
+      {
+        "input_hashes": {
+          "README.md": "08608b3191e9fd3d8b35808e4095605143be1bb32ab98c759b8f55ca601eff66",
+          "cv_contract.json": "3939c9230e888d2f060cec7eb35daf63f8158bc68f392b92f0fbc08ec9cba529",
+          "data.csv": "52ab263e132df88c664712ba897c26b7fcbe2a58e5fcc7cf973db4fefefee145",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "madelon",
+        "objective": "balanced_accuracy",
+        "openml_id": 1485,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/madelon/52ab263e132d-d495b2ba732a-b8f667a91497-local",
+        "split_identity": "1e1191e0721ed166ea549e5e00d9c2b7241315519a3f4439424a4c4ce9b1e340",
+        "target": "Class",
+        "task": "classification"
+      },
+      {
+        "input_hashes": {
+          "README.md": "c6dc0e95382156e3a47c26806af7c7e57c4515c23a36eac23efeabe517e29530",
+          "cv_contract.json": "2f430a254d84824d1efd4342ee2b6412f83b5288eb08a20b665d53448bff3b70",
+          "data.csv": "30c9e1582974be8f5cb892d2d9ebc67fc1cf0a6074b16ef952a3458ba3e92e27",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "mnist_784",
+        "objective": "balanced_accuracy",
+        "openml_id": 554,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local",
+        "split_identity": "b7451a4d1c697c013386236b17547be25e785051cf778a04385b03991df0481a",
+        "target": "class",
+        "task": "classification"
+      },
+      {
+        "input_hashes": {
+          "README.md": "4899496718066a9aa851737fe066b2ac3dcb7bb9c02b957f3ecc21c7eb6146cf",
+          "cv_contract.json": "d4eccdf9b5506ed43f432e01e2b9105c7bb10bc6dcecf62ac9fd43aea2d3f475",
+          "data.csv": "c3e1db050fee07527f2c2e4ad177184d54b3b4d76eb855a5298919c3ef40a445",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "texture",
+        "objective": "balanced_accuracy",
+        "openml_id": 40499,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/texture/c3e1db050fee-1e668d3f7c50-b8f667a91497-local",
+        "split_identity": "a80eee61e65b7b4e1d809b5bfe009a74e2bef5667e7220f0055cae9ac7de8321",
+        "target": "Class",
+        "task": "classification"
+      },
+      {
+        "input_hashes": {
+          "README.md": "850c58da000ce0e3e4bac7233ade31626b3d98ad34538995fc7d40111b266aba",
+          "cv_contract.json": "241d3725b5d2723f0347ddfc11e65992dc1bf5e8b6f7bd7afd1b07e256e4f53a",
+          "data.csv": "a7fbce33d5040f9bce1e3a95b9922c904293f573508ec0abe54cba3fb13425d6",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "wilt",
+        "objective": "balanced_accuracy",
+        "openml_id": 40983,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local",
+        "split_identity": "097cf5ef1ecee7d098102dac1f8eaaa71cf28a9c38e8d43502b49b98bab351d7",
+        "target": "class",
+        "task": "classification"
+      },
+      {
+        "input_hashes": {
+          "README.md": "f3a4c12c77bc4689548bde580afdb80517978f9af807a3ac13f9ceca317aeedb",
+          "cv_contract.json": "ce322461607db9593067f15452ff08edccfd6136f6a8e2bb551d9265d3c644f3",
+          "data.csv": "06b4acbf769dab2e6b5851fe11e3fb716394535313cd269f157b817463c51ee2",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "ames_housing",
+        "objective": "rmse",
+        "openml_id": 42165,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local",
+        "split_identity": "d03c98baee5d69cdc7179c219fda83cf4efb5899fc0f9681166105c8fe600af0",
+        "target": "SalePrice",
+        "task": "regression"
+      },
+      {
+        "input_hashes": {
+          "README.md": "36634d0941a2b3ff81b46bf3493963090038859ee14fc0e6114504c80db5051f",
+          "cv_contract.json": "2057c3b46f5aad2a7688bd044e92a2fec8ffe129f79dee6381eeb45aa6813f2c",
+          "data.csv": "fbd59042054276d5fa37580e9c0ebfa72d58f14a04989edd59302e73aece805b",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "auto_mpg",
+        "objective": "rmse",
+        "openml_id": 196,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local",
+        "split_identity": "981dc16bf8d750f0f41efb96cce0133a14a978e1c95f7ea1485df4316b242f26",
+        "target": "class",
+        "task": "regression"
+      },
+      {
+        "input_hashes": {
+          "README.md": "7ecf91ca3ae1a18e02e96e2b3f27f1150de203a04f04b80a2e1caa8f8bc2d794",
+          "cv_contract.json": "90c7ac48c428efab04a2698b8f5a5b788b954ab2baa4eb3f8abcf00721784597",
+          "data.csv": "45e44ec0cb85a0de4a0a9174a92b3fecac9415bf0173247a541680eccb50c699",
+          "evaluate_cv.py": "b8f667a914977f7a4874c226a2991b7afa54a4732d3778e401653a85c46f6c1a"
+        },
+        "key": "california_housing",
+        "objective": "rmse",
+        "openml_id": 43939,
+        "prepared": "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local",
+        "split_identity": "62eb71d8795c31ec883e6c7af8174e312c7b5219109140940433193c185c27a5",
+        "target": "median_house_value",
+        "task": "regression"
+      }
+    ],
+    "llm": {
+      "api_key_env": "GEMINI_API_KEY",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta",
+      "model": "gemini-3.1-flash-lite",
+      "settings": {
+        "seed": 42,
+        "temperature": 0.0
+      },
+      "source": "explicit",
+      "transport": "gemini"
+    },
+    "local_runtime_identity": "b8ba8cc51115d93e01e20f126696fcf5bc4fe02c908c082bf576742db3831acc",
+    "mlzero": {
+      "command": [
+        "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/bin/mlzero"
+      ],
+      "commit": "f228cd7028e197750391c02d94afcb7eea8da5ff",
+      "conda_bin": "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/conda/bin",
+      "config_overrides": {
+        "remove_current_iteration_folder": false
+      },
+      "continuous_improvement": true,
+      "executor": "local",
+      "hard_timeout_seconds": 3600,
+      "image": "ageml-mlzero:hamlet-cv-native-gemini",
+      "instruction": "Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.",
+      "max_iterations": 10000,
+      "python": "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/env/bin/python",
+      "runtime_manifest": "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/runtime-gemini31.json",
+      "search_seed": 42
+    },
+    "outputs": {
+      "artifact_root": "/root/experiments-ageml-mlzero-benchmark/artifacts"
+    },
+    "pricing": "configs/pricing.yml",
+    "protocol": "ageml-evaluation-v3/hamlet_cv",
+    "repetitions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "resources": {
+      "cpus": 16,
+      "gpus": 0,
+      "memory_gib": 50,
+      "memory_high_gib": 40
+    },
+    "schema_version": 1,
+    "seed_support": "Requested on native Gemini and local Python/NumPy/sklearn; backend determinism is not guaranteed",
+    "timing_note": "MLZero initialization, generation, repair and all ten-fold fits are inside 3600 s. AGE-ML planning may precede its exploration deadline; resource-time equivalence is not asserted."
+  },
+  "dataset": "madelon",
+  "harness_sha256": "f804d0778446e3db46791434f1ef226b27224aa04947d0eaf14d9de447881827",
+  "image_digest": "b8ba8cc51115d93e01e20f126696fcf5bc4fe02c908c082bf576742db3831acc",
+  "local_executor_sources": {
+    "cv_export.py": "9e74451630097ec979a5aad1cae2388a336f2cae5a8fe96f52cfa31669431181",
+    "cv_gate.py": "298f32e985f1b56f706c59c91da2465d64634591eeb80cf8433c552ec2068c4d",
+    "local_runtime.py": "20e8e91aa7cae39181e82f7e805959295a86119d3a9b6af678c33046de88201e",
+    "sitecustomize.py": "8d939a47a564af8903f553b36dd4ab240b4dd98862dcc8a6f16c17c65ea09036",
+    "supervise.py": "6a1ad67897621ecadde6cac75a8acb9beec59ea12ef493d1ac6a873c5ed48deb"
+  },
+  "patches": {
+    "0001-ageml-bench-instrumentation.patch": "d8808e589c2e09075d49239ed9d77626b28fee23297ca0a82b91b01041799a1b",
+    "0002-native-gemini.patch": "0ba1e9d9a02591069faa32ef1ef8dcd721347e0bcb2966f829be054e108f9680",
+    "0003-enforce-matched-cv.patch": "366a9f0f1bdcbc63b59c7eabc1aa076d3c70a554b7c36144fb9319ba14392cd0",
+    "0004-normalize-factory-prompts.patch": "3ada6cb1f6c35b72e6c441662c5c9e66fdf00f36816bf9bbc605e1e501f1bbda"
+  },
+  "repetition": 5
+}

@@ -1,0 +1,5 @@
+This data science task is a **classification** problem.
+
+**Input Format:** Tabular data, sourced from a CSV file (`data.csv`). For training, features are provided as `X_train` and the target column `Class` as `y_train`. For prediction, features are provided as `X`.
+
+**Prediction Output Format:** The `predict(X)` method of the model should return the predicted values for the `Class` column.

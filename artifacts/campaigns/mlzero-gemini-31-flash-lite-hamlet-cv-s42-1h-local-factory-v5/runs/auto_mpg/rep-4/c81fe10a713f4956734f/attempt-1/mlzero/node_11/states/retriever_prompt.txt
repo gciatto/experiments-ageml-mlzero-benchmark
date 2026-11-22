@@ -1,0 +1,113 @@
+
+You are an expert at generating search queries to find relevant machine learning tutorials. Given the context below, generate a concise and effective search query that will help find the most relevant tutorials for this task.
+
+### Task Description
+The data science task is a **regression** problem based on the `auto_mpg` dataset.
+
+### Task Description
+*   **Problem Type:** Regression.
+*   **Evaluation Protocol:** Ten-fold cross-validation. The harness computes the mean of ten fold scores (RMSE).
+*   **Metric:** Root Mean Squared Error (RMSE), where lower is better.
+*   **Constraints:** 
+    *   Do not shuffle, split, filter, reorder, or sample the dataset.
+    *   Do not add row IDs as features.
+    *   Do not tune on validation labels, refit on all data, or perform fitting within the factory module.
+    *   Use `random_state` or seed 42 for stochastic models.
+
+### Input Format
+*   **Data Source:** `data.csv` containing the following columns: `cylinders`, `displacement`, `horsepower`, `weight`, `acceleration`, `model`, `origin`, and `class`.
+*   **Target Column:** `class`.
+*   **Contract:** A `cv_contract.json` file defines the specific row indices for the training and validation sets for each of the ten folds.
+
+### Prediction Output Format
+*   **Implementation:** A self-contained Python factory module (`model_factory.py`) must be provided.
+*   **Interface:** The module must define a `build_model(X_train, y_train)` function that returns a new, unfitted model object.
+*   **Model Requirements:** The returned model must implement `fit(X, y)` and `predict(X)` methods. All preprocessing must be encapsulated within the model and fitted exclusively on the provided training fold data.
+
+### Data Structures
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/data.csv
+Content:
+['cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model', 'origin', 'class']
+ cylinders  displacement  horsepower  weight  acceleration  model  origin  class
+         8         307.0       130.0  3504.0          12.0     70       1   18.0
+         8         350.0       165.0  3693.0          11.5     70       1   15.0
+         8         318.0       150.0  3436.0          11.0     70       1   18.0
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: auto_mpg
+Target column: `class`. Task: regression. Metric: rmse (lower is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other tools remain
+al
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/cv_contract.json
+Content:
+JSON structure loaded. Keys: ['cv_folds', 'dataset_id', 'dataset_version', 'evaluation_protocol', 'partitions', 'protocol_version', 'row_identity', 'source_row_count', 'source_sha256', 'split_hashes', 'split_identity', 'split_seed', 'splitter', 'stratification', 'target_column', 'task']
+Content preview: {'cv_folds': [{'train': [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/auto_mpg/fbd590420542-88e12ef7ab58-b8f667a91497-local/evaluate_cv.py
+Content:
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = Path(contract_path)
+    contract = j
+
+----------
+
+
+### User Instruction
+Follow the mandatory harness-managed CV contract: return a self-contained build_model module and install dependencies in conda_env. The harness executes ten prescribed fresh-fold fits and supplies the MCTS score. Never fit on a holdout or all rows.
+
+### Previous Error Analysis
+ERROR_SUMMARY: The `ValueError` is caused by passing an unsupported keyword argument `random_seed` to the `TabularPredictor.fit()` method. AutoGluon's `fit` method does not accept `random_seed` as a direct argument; instead, stochastic behavior is controlled via the `ag_args_fit` dictionary or by setting the seed globally before calling `fit`.
+
+SUGGESTED_FIX: Remove `random_seed=self.seed` from the `fit()` call in your `AutoGluonRegressorWrapper`. To ensure reproducibility, set the seed globally using `import random; random.seed(self.seed)`, `import numpy as np; np.random.seed(self.seed)`, and `import torch; torch.manual_seed(self.seed)` immediately before calling `fit()`.
+
+ERROR_SUMMARY: The error is caused by passing an unsupported keyword argument `random_seed` to the `TabularPredictor.fit()` method. AutoGluon's `fit()` method does not accept `random_seed` as a direct argument; instead, stochastic behavior is controlled via the `ag_args_fit` dictionary or by setting the seed globally before calling `fit()`.
+
+SUGGESTED_FIX: Remove `random_seed=self.seed` from the `fit()` method call. To ensure reproducibility, set the random seed using `numpy.random.seed(self.seed)` and `torch.manual_seed(self.seed)` at the beginning of the `fit` method before initializing the `TabularPredictor`.
+
+### Selected Tool/Library
+machine learning
+
+
+Based on the above context, generate a search query that will help find tutorials most relevant to this task. The query should:
+1. Include key technical terms and concepts
+2. Focus on the main task/problem to solve
+3. Be concise but specific
+
+IMPORTANT: Respond ONLY with the search query text. Do not include explanations, quotes, or any other formatting.

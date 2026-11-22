@@ -1,0 +1,64 @@
+import os
+import shutil
+import tempfile
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles fitting and prediction
+    within a self-contained, fold-specific artifact directory.
+    """
+    def __init__(self):
+        # Create a unique directory for this specific fold's artifacts
+        self.path = os.path.join(tempfile.gettempdir(), f"ag_fold_{uuid.uuid4().hex}")
+        self.predictor = None
+        self.label = 'Class'
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor on the provided training fold.
+        """
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor
+        # Using 'extreme' preset as requested, with a focus on balanced_accuracy
+        # We limit the time to ensure all 10 folds complete within the shared deadline.
+        # Given 3571s total, we allocate ~300s per fold.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            eval_metric='balanced_accuracy',
+            path=self.path
+        ).fit(
+            train_data,
+            presets='extreme',
+            time_limit=300,
+            verbosity=0
+        )
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided input data.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup the temporary directory after the object is destroyed.
+        """
+        if os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper instance.
+    """
+    return AutoGluonWrapper()

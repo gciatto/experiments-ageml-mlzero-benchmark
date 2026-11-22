@@ -1,0 +1,10 @@
+This data science task is a **regression** problem.
+
+**Input Format:**
+The input data is tabular, provided in `data.csv`. It consists of features including `longitude`, `latitude`, `housing_median_age`, `total_rooms`, `total_bedrooms`, `population`, `households`, `median_income` (numerical), and `ocean_proximity` (categorical). The `build_model` function receives `X_train` (features) and `y_train` (target) for training.
+
+**Prediction Output Format:**
+The model's `predict(X)` method must output numerical predictions for the target column, `median_house_value`.
+
+**Additional Details:**
+The objective is to predict the `median_house_value`. The evaluation metric is Root Mean Squared Error (RMSE), where lower values are better. The task utilizes a ten-fold cross-validation benchmark with predefined folds, and there is no independent test set. The dataset must not be shuffled, split, filtered, reordered, or sampled, and row IDs should not be used as features. Models must be provided as a Python factory module with a `build_model(X_train, y_train)` function that returns a new, unfitted model exposing `fit(X,y)` and `predict(X)` methods. All preprocessing must be encapsulated within this model and fitted solely on the supplied training data for each fold. Stochastic models are required to use `random_state/seed 42`.

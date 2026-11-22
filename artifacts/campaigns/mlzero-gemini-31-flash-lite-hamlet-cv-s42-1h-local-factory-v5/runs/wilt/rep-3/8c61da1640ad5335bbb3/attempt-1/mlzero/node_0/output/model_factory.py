@@ -1,0 +1,52 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that adheres to the 
+    fit(X, y) and predict(X) interface.
+    """
+    def __init__(self, label_name='class'):
+        self.label_name = label_name
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label_name] = y
+        
+        # Initialize and fit the predictor
+        # Using 'balanced_accuracy' as requested.
+        # Presets 'best_quality' is used for high performance.
+        # We limit time to ensure all 10 folds fit within the shared deadline.
+        # Given 10 folds and ~3500s total, we allocate ~300s per fold.
+        self.predictor = TabularPredictor(
+            label=self.label_name,
+            eval_metric='balanced_accuracy',
+            path=self.path
+        ).fit(
+            train_data,
+            presets='best_quality',
+            time_limit=300,
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    # The label name is inferred from the target column in the training data
+    # provided by the harness.
+    label_name = y_train.name if hasattr(y_train, 'name') else 'class'
+    return AutoGluonWrapper(label_name=label_name)

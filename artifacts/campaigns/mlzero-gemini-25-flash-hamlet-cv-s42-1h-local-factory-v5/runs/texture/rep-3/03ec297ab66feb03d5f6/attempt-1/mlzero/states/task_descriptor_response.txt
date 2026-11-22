@@ -1,0 +1,5 @@
+The data science task is **classification**.
+
+The input format is tabular data, consisting of 40 numerical features named `V1` through `V40`. This input is provided as a Pandas DataFrame to the model's `predict` method.
+
+The prediction output format is a 1-dimensional array of predicted class labels (integers), with its length matching the number of input samples.

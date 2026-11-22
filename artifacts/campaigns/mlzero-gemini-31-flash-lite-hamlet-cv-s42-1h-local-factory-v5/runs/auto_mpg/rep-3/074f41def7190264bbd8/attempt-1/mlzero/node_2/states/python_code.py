@@ -1,0 +1,62 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonRegressionWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor to handle regression tasks
+    within the required factory interface.
+    """
+    def __init__(self, label_column):
+        self.label_column = label_column
+        self.predictor = None
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the model using the provided training data.
+        X and y are combined into a single DataFrame for AutoGluon.
+        """
+        # Ensure we are working with a fresh directory
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path)
+        
+        train_df = X.copy()
+        train_df[self.label_column] = y
+        
+        # Initialize predictor
+        # Using 'medium_quality' to ensure we stay within the total time budget for 10 folds
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            problem_type="regression",
+            eval_metric="rmse",
+            path=self.path
+        )
+        
+        # Fit with a time limit that allows for 10 folds within the remaining budget
+        # Total budget ~3400s, 10 folds -> ~300s per fold including overhead
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=240,
+            presets="medium_quality"
+        )
+        return self
+
+    def predict(self, X):
+        """
+        Predicts using the fitted AutoGluon model.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model object.
+    The target column is identified from the training data context.
+    """
+    # The target column is 'class' based on the task description
+    target_col = 'class'
+    return AutoGluonRegressionWrapper(label_column=target_col)

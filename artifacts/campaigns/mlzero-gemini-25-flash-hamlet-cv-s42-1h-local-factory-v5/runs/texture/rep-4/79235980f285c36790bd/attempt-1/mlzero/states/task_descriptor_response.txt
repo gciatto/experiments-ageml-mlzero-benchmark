@@ -1,0 +1,13 @@
+The data science task is **classification**.
+
+**Input Format:**
+The input consists of tabular data provided as a pandas DataFrame. Features are 40 numerical columns named `V1` through `V40`.
+
+**Prediction Output Format:**
+The model must output a 1-dimensional NumPy array of predicted class labels. The length of this array must match the number of input samples.
+
+**Target Column:**
+The target column for prediction is `Class`.
+
+**Metric:**
+The performance metric used for evaluation is **balanced accuracy**, where a higher score is better.

@@ -1,0 +1,159 @@
+Generate a SELF-CONTAINED Python factory MODULE using machine learning.
+Return the module code directly, not a program that writes another Python file.
+Define def build_model(X_train, y_train), returning a fresh unfitted fit/predict
+wrapper. Include imports and wrapper classes in the same module. Module scope
+may use normal Python initialization, including scorer construction, logging,
+computed constants and helper objects. Do not fit,
+read CSVs, predict, execute an evaluator, or use an if __name__ main block there.
+The harness handles saving model_factory.py and ten-fold evaluation.
+All learned preprocessing must be fitted within each fold's fit(X,y), using only
+its training rows. Seed 42. AutoGluon and the selected library remain allowed.
+Use fresh artifact directories per fold and bound each fit so ALL ten fits finish
+inside the remaining shared deadline; do not assume 360 seconds per fold.
+Return Python code in a python fenced block.
+
+### Task
+The data science task is a **classification** problem evaluated via **ten-fold cross-validation**.
+
+*   **Input Format:** The input data is provided in a CSV file (`data.csv`) containing 784 feature columns (labeled `pixel1` through `pixel784`) and one target column named `class`.
+*   **Prediction Output Format:** The model must provide a `predict(X)` method that outputs class predictions based on the input features.
+*   **Task Requirements:**
+    *   The objective is to maximize **balanced_accuracy**.
+    *   The dataset must not be shuffled, split, filtered, reordered, or sampled.
+    *   Row IDs must not be added as features.
+    *   Candidates must provide a self-contained Python module with a `build_model(X_train, y_train)` function that returns an unfitted model object containing `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be encapsulated within the model and fitted only on the training rows provided for each fold.
+    *   Stochastic models must use a `random_state` or seed of 42.
+### Data and factory contract
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/data.csv
+Content:
+Columns: ['pixel1', 'pixel2', 'pixel3', 'pixel4', 'pixel5', 'pixel6', 'pixel7', 'pixel8', 'pixel9', 'pixel10'] ... ['pixel776', 'pixel777', 'pixel778', 'pixel779', 'pixel780', 'pixel781', 'pixel782', 'pixel783', 'pixel784', 'class']
+ pixel1  pixel2  pixel3  pixel4  pixel5  pixel6  pixel7  pixel8  pixel9  pixel10  pixel11  pixel12  pixel13  pixel14  pixel15  pixel16  pixel17  pixel18  pixel19  pixel20  pixel21  pixel22  pixel23  pixel24  pixel25  pixel26  pixel27  pixel28  pixel29  pixel30  pixel31  pixel32  pixel33  pixel34  pixel35  pixel36  pixel37  pixel38  pixel39  pixel40  pixel41  pixel42  pixel43  pixel44  pixel45  pixel46  pixel47  pixel48  pixel49  pixel50  pixel51  pixel52  pixel53  pixel54  pixel55  pixel56  pixel57  pixel58  pixel59  pixel60  ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/README.md
+Content:
+--- File: README.md ---
+# Ten-fold cross-validation benchmark: mnist_784
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training r...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/cv_contract.json
+Content:
+{
+  "cv_folds": [
+    {
+      "train": [
+        6653,
+        6656,
+        6669,
+        6672,
+        6674,
+        6689,
+        6714,
+        6716,
+        6724,
+        6729,
+        6733,
+        6753,
+        6759,
+        6761,
+        6770,
+        6777,
+        6778,
+        6794,
+        6796,
+        6797,
+        6798,
+        6799,
+        6800,
+        6804,
+        6807,
+        6810,
+        6812,
+        6817,
+        6818,
+        6824,
+        6828,
+        6833,
+        6835,
+        6837,
+        6843,
+        6845,
+        6854,
+        6862,
+        6865,
+        6866,
+        6869,
+        6871,
+        6874,
+        6876,
+        6878,
+        6879,
+        6881,
+        6882,
+        6887,
+        6889,
+        6890,
+        68...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/mnist_784/30c9e1582974-dda30b451a9f-b8f667a91497-local/evaluate_cv.py
+Content:
+--- File Content (First 768 chars) ---
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = ...
+----------
+
+### Library guidance (ignore incompatible standalone/holdout/export examples)
+In the bash script, install all necessary packages.
+### Native debug/evolution context
+
+### Previous errors
+
+### Reference tutorials (library usage, not the evaluation/export contract)
+### Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+# Condensed: Intro to Use Machine Learning or Deep Learning algorithms
+
+Summary: You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+# Intro to Use Machine Learning or Deep Learning algorithms
+
+You can use any machine learning or deep learning algorithms to complete the tasks. Make sure you have them installed in bash script.
+
+
+
+MANDATORY MATCHED-CV: return the factory MODULE directly, not MODEL_FACTORY_CONTENT or a file writer. Imports, comments, blank lines and helper classes/functions are allowed. No module-level fitting or main block.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-4/5ec6ffd62e5b27c2a3e1/attempt-1/mlzero/node_1/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 446 seconds.

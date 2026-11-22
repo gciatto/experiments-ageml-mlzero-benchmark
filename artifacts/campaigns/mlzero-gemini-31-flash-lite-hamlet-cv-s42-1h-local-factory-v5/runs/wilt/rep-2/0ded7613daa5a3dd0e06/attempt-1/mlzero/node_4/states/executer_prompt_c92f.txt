@@ -1,0 +1,369 @@
+You are an expert code evaluator. Analyze the execution results of the following Python code and determine if the execution was successful or if issues need to be fixed.
+
+### Task Descriptions
+The data science task is a **classification** problem evaluated via **ten-fold cross-validation**.
+
+### Task Details
+*   **Problem Type:** Classification.
+*   **Metric:** Balanced accuracy.
+*   **Constraint:** There is no independent test set; the evaluation is performed strictly according to the provided `cv_contract.json`, which defines the train/validation splits.
+
+### Input Format
+*   **Data Source:** A CSV file (`data.csv`) containing the following features: `GLCM_Pan`, `Mean_G`, `Mean_R`, `Mean_NIR`, and `SD_Plan`.
+*   **Target Variable:** The `class` column.
+*   **Processing Requirements:** 
+    *   Do not shuffle, split, filter, reorder, or sample the dataset.
+    *   Do not add row IDs as features.
+    *   All preprocessing must be contained within the model and fitted only on the training rows provided for each fold.
+
+### Prediction Output Format
+*   **Implementation:** The solution must provide a self-contained Python module that defines a `build_model(X_train, y_train)` function.
+*   **Model Interface:** The `build_model` function must return a new, unfitted estimator object that exposes `fit(X, y)` and `predict(X)` methods.
+
+### Data Structure
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/data.csv
+Content:
+Columns: ['GLCM_Pan', 'Mean_G', 'Mean_R', 'Mean_NIR', 'SD_Plan', 'class']
+  GLCM_Pan     Mean_G     Mean_R   Mean_NIR   SD_Plan  class
+120.362774 205.500000 119.395349 416.581395 20.676318      2
+124.739583 202.800000 115.333333 354.333333 16.707151      2
+134.691964 199.285714 116.857143 477.857143 22.496712      2
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/README.md
+Content:
+--- File: README.md ---
+# Ten-fold cross-validation benchmark: wilt
+Target column: `class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows o...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/cv_contract.json
+Content:
+{
+  "cv_folds": [
+    {
+      "train": [
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        531,
+        532,
+        533,
+        534,
+        535,
+        536,
+        537,
+        538,
+        539,
+        540,
+        541,
+        542,
+    ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/wilt/a7fbce33d504-1f460de77002-b8f667a91497-local/evaluate_cv.py
+Content:
+File: evaluate_cv.py
+--------------------
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path...
+----------
+
+
+### Python Code
+import numpy as np
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+class WiltClassifierWrapper(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper for a HistGradientBoostingClassifier.
+    This model is chosen for its speed and efficiency in handling tabular data
+    within strict time constraints, while providing robust performance.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        # HistGradientBoostingClassifier is natively fast and handles 
+        # missing values and scaling internally, but we include a 
+        # StandardScaler for consistency with standard ML pipelines.
+        self.model = Pipeline([
+            ('scaler', StandardScaler()),
+            ('clf', HistGradientBoostingClassifier(
+                max_iter=100,
+                learning_rate=0.1,
+                max_depth=8,
+                random_state=self.random_state,
+                class_weight='balanced',
+                early_stopping=True
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided data.
+        """
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted instance of the classifier.
+    
+    Parameters:
+    X_train: Training features (provided for context)
+    y_train: Training labels (provided for context)
+    
+    Returns:
+    An unfitted WiltClassifierWrapper instance.
+    """
+    # We return a fresh instance for every fold to ensure no state leakage.
+    return WiltClassifierWrapper(random_state=42)
+
+## Execution Results
+### Standard Output (stdout)
+
+Channels:
+ - conda-forge
+Platform: linux-64
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+## Package Plan ##
+  environment location: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_4/conda_env
+  added / updated specs:
+    - python=3.11
+The following NEW packages will be INSTALLED:
+  _openmp_mutex      conda-forge/linux-64::_openmp_mutex-4.5-20_gnu 
+  bzip2              conda-forge/linux-64::bzip2-1.0.8-hda65f42_10 
+  ca-certificates    conda-forge/noarch::ca-certificates-2026.11.20-hbd8a1cb_0 
+  ld_impl_linux-64   conda-forge/linux-64::ld_impl_linux-64-2.46.1-default_hbd61a6d_103 
+  libexpat           conda-forge/linux-64::libexpat-2.9.0-hd2095e1_0 
+  libffi             conda-forge/linux-64::libffi-3.7.0-h81df57d_1 
+  libgcc             conda-forge/linux-64::libgcc-16.2.0-ha9f2e26_7 
+  libgomp            conda-forge/linux-64::libgomp-16.2.0-he0feb66_7 
+  liblzma            conda-forge/linux-64::liblzma-5.8.3-hb03c661_1 
+  libnsl             conda-forge/linux-64::libnsl-2.0.1-hb9d3cd8_1 
+  libpython          conda-forge/linux-64::libpython-3.11.18-ha57cdbe_0_cpython 
+  libsqlite          conda-forge/linux-64::libsqlite-3.54.1-h0737f62_101 
+  libuuid            conda-forge/linux-64::libuuid-2.42.4-hcfc3c73_1 
+  libxcrypt          conda-forge/linux-64::libxcrypt-4.4.38-h280c20c_0 
+  libzlib            conda-forge/linux-64::libzlib-1.3.2-h25fd6f3_3 
+  ncurses            conda-forge/linux-64::ncurses-6.6-hdb14827_1 
+  openssl            conda-forge/linux-64::openssl-3.6.5-h781a0a9_0 
+  packaging          conda-forge/noarch::packaging-26.3-pyhc364b38_0 
+  pip                conda-forge/noarch::pip-26.2.2-pyh8b19718_2 
+  python             conda-forge/linux-64::python-3.11.18-h5f976f7_0_cpython 
+  readline           conda-forge/linux-64::readline-8.3-hd6e31c0_1 
+  setuptools         conda-forge/noarch::setuptools-84.2.1-pyhe730653_0 
+  tk                 conda-forge/linux-64::tk-8.6.13-noxft_h1df4ec4_4 
+  tzdata             conda-forge/noarch::tzdata-2026e-h5d301ff_0 
+  wheel              conda-forge/noarch::wheel-0.48.0-pyhd8ed1ab_0 
+  zstd               conda-forge/linux-64::zstd-1.5.7-hb78ec9c_7 
+Downloading and Extracting Packages: ...working... done
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+#
+# To activate this environment, use
+#     $ conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_4/conda_env
+# To deactivate an active environment, use
+#     $ conda deactivate
+Collecting uv
+  Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.6 MB)
+Installing collected packages: uv
+Successfully installed uv-0.13.9
+
+
+### Standard Error (stderr)
+
+WARNING conda.conda_pypi.main:notify_externally_managed_future(156): 
+  Did you know? You can install many PyPI packages with conda
+  using the conda-pypi beta. Get started:
+    https://docs.conda.io/projects/conda/en/stable/new-features.html
+
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+warning: Requirements file `.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt` does not contain any dependencies
+Using Python 3.11.18 environment at: artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-2/0ded7613daa5a3dd0e06/attempt-1/mlzero/node_4/conda_env
+Resolved 72 packages in 15ms
+Installed 70 packages in 181ms
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.3
+ + aiosignal==1.4.0
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + attrs==26.1.0
+ + certifi==2026.7.22
+ + chardet==7.6.0
+ + charset-normalizer==3.5.2
+ + click==8.5.0
+ + cuda-bindings==13.4.3
+ + cuda-pathfinder==1.8.2
+ + cuda-toolkit==13.0.3.0
+ + datasets==5.0.1
+ + dill==0.4.1
+ + filelock==4.0.7
+ + frozenlist==1.8.0
+ + fsspec==2026.6.0
+ + h11==0.16.0
+ + hf-xet==1.7.0.dev1
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + huggingface-hub==1.33.0
+ + idna==3.20
+ + jinja2==3.1.6
+ + markupsafe==3.0.3
+ + mpmath==1.3.0
+ + multidict==6.9.1
+ + multiprocess==0.70.19
+ + networkx==3.6.1
+ + numpy==2.4.6
+ + nvidia-cublas==13.1.1.3
+ + nvidia-cuda-cupti==13.0.85
+ + nvidia-cuda-nvrtc==13.0.88
+ + nvidia-cuda-runtime==13.0.96
+ + nvidia-cudnn-cu13==9.24.0.43
+ + nvidia-cufft==12.0.0.61
+ + nvidia-cufile==1.15.1.6
+ + nvidia-curand==10.4.0.35
+ + nvidia-cusolver==12.0.4.66
+ + nvidia-cusparse==12.6.3.3
+ + nvidia-cusparselt-cu13==0.8.1
+ + nvidia-nccl-cu13==2.30.7
+ + nvidia-nvjitlink==13.4.92
+ + nvidia-nvshmem-cu13==3.4.5
+ + nvidia-nvtx==13.0.85
+ + opencv-python==5.0.0.93
+ + pandas==3.1.0rc0
+ + pillow==12.3.0
+ + propcache==0.5.4
+ + pyarrow==25.0.1
+ + pydantic==2.14.0b2
+ + pydantic-core==2.49.0
+ + python-calamine==0.8.2
+ + python-dateutil==2.9.0.post0
+ + pytz==2026.4
+ + pyyaml==6.0.3
+ + requests==2.34.2
+ + six==1.17.0
+ + sympy==1.14.0
+ + torch==2.14.1
+ + torchaudio==2.11.0
+ + torchvision==0.29.1
+ + tqdm==4.70.1
+ + triton==3.8.0
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + urllib3==2.8.0
+ + xxhash==4.0.1
+ + yarl==1.25.1
+Resolved 10 packages in 2ms
+Installed 6 packages in 19ms
+ + cloudpickle==3.1.2
+ + joblib==1.6.0
+ + narwhals==2.26.0
+ + scikit-learn==1.9.1
+ + scipy==1.17.1
+ + threadpoolctl==3.7.0
+
+
+Evaluate the execution results and decide on one of the following actions:
+1. SUCCESS - If the execution was completely successful and met all requirements.
+2. FIX - If there were errors, issues, or performance problems that need to be addressed.
+
+Provide your decision in the following format:
+DECISION: [SUCCESS or FIX]
+ERROR_SUMMARY: [Brief summary of errors if any, or "None" if no errors]
+VALIDATION_SCORE: [If there is a validation score for the solution, provide it as a number, otherwise "None"]
+
+The error summary should be brief but informative enough for another agent to understand what needs to be fixed.
+Even if the code executed without throwing errors, it might still have issues with logic or not meet all requirements.
+
+For validation scores:
+- If there is a validation score present in the execution results, extract it (e.g. the last validation score reported in the training process).
+- Convert the score to ensure higher values indicate better performance (multiply "lower is better" metrics like RMSE, MAE, or loss by -1)
+- Return the converted score that follows the "higher is better" convention

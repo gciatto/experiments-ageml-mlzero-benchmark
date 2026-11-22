@@ -1,0 +1,192 @@
+
+You are a data science expert tasked with selecting and ranking the most appropriate ML libraries for a specific task.
+
+### Task Description:
+The data science task is a **classification** problem based on the "har" dataset.
+
+*   **Task Type:** Classification.
+*   **Input Format:** A CSV file (`data.csv`) containing 561 feature columns (labeled `V1` through `V561`) and a target column named `Class`.
+*   **Prediction Output Format:** The model must provide a `predict(X)` method that outputs class predictions.
+*   **Evaluation:** The performance is measured using the `balanced_accuracy` metric. The benchmark utilizes a ten-fold cross-validation procedure defined by a fixed `cv_contract.json` file, which specifies the row indices for training and validation folds.
+*   **Implementation Requirements:**
+    *   Candidates must provide a self-contained Python module that exports a `build_model(X_train, y_train)` function.
+    *   This function must return an unfitted model object that implements `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be encapsulated within the model and fitted exclusively on the provided training fold data.
+    *   Stochastic models must use `random_state=42`.
+    *   The dataset must not be shuffled, split, filtered, reordered, or sampled, and row IDs must not be used as features.
+
+### Data Information:
+Absolute path to the folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local
+
+Files structures:
+
+----------
+
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/data.csv
+Content:
+Columns: ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10'] ... ['V553', 'V554', 'V555', 'V556', 'V557', 'V558', 'V559', 'V560', 'V561', 'Class']
+      V1        V2        V3        V4        V5        V6        V7        V8        V9       V10       V11       V12      V13      V14      V15       V16       V17       V18       V19       V20       V21       V22       V23       V24       V25      V26       V27      V28       V29      V30       V31      V32       V33      V34       V35       V36       V37       V38       V39      V40      V41       V42      V43       V44       V45       V46       V47       V48       V49      V50       V51      V52      V53       V54      V55       V56      V57       V58       V59       V60       V61       V62  V63 ...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/README.md
+Content:
+# Ten-fold cross-validation benchmark: har
+Target column: `Class`. Task: classification. Metric: balanced_accuracy (higher is better).
+
+`data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+and all ten train/validation folds. There is NO independent test set. Do not
+shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+For EVERY candidate, return a self-contained Python factory module. The harness
+writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+`fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+fitted on the supplied fold training rows only. AutoGluon and other to
+
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/cv_contract.json
+Content:
+{
+  "cv_folds": [
+    {
+      "train": [
+        786,
+        787,
+        788,
+        789,
+        790,
+        791,
+        792,
+        793,
+        794,
+        795,
+        796,
+        920,
+        921,
+        922,
+        923,
+        924,
+        925,
+        926,
+        927,
+        928,
+        929,
+        930,
+        931,
+        932,
+        933,
+        934,
+        935,
+        936,
+        937,
+        938,
+        939,
+        940,
+        941,
+        942,
+        943,
+        944,
+        945,
+        964,
+        965,
+        966,
+        967,
+        985,
+        986,
+        987,
+        988,
+        989,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015,
+        1016,
+        1017,
+        1018,
+        1019,
+...
+----------
+Absolute path: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/har/aae972f53fee-d38ac3c1eae9-b8f667a91497-local/evaluate_cv.py
+Content:
+--- File Content (First 768 chars) ---
+"""Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+
+Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+No generated code is executed by the host-side benchmark orchestration.
+"""
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import random
+import sys
+import time
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def evaluate(factory_path, contract_path, output):
+    contract_path = ...
+----------
+
+
+### Available ML Libraries:
+Library Name: FlagEmbedding
+Version: v1.3.4
+Description: FlagEmbedding specializes in retrieval and reranking tasks.
+
+
+Library Name: machine learning
+Version: v0.1.0
+Description: You should select this as a general reference of machine learning or deep learning algorithms in case other tools are not helpful.
+
+
+Library Name: wav2vec2
+Version: v0.0.0
+Description: This model was pre-trained on 4.5M hours of unlabeled audio data covering more than 143 languages. It requires finetuning to be used for downstream tasks such as Automatic Speech Recognition (ASR), or Audio Classification.
+
+
+Library Name: qwen3
+Version: v0.0.0
+Description: Qwen3-0.6B is a compact 0.6 billion parameter text generation model that uniquely switches between thinking and non-thinking modes for both efficient dialogue and complex reasoning tasks.
+
+
+Library Name: autogluon.tabular
+Version: v1.4.0.dev
+Description: AutoGluon Tabular automates ML model training for tabular data, excelling at numerical and categorical data processing. It doesn't support NLP or image-based tasks.
+
+
+Library Name: autogluon.multimodal
+Version: v1.4.0.dev
+Description: AutoGluon Multimodal excels at multimodal classification, regression, document classification, and semantic segmentation tasks. The framework is not optimized for pure tabular data processing and DOES NOT support generative tasks (image generation, text generation, etc.) or audio-related tasks. It also doesn't handle object detection.
+
+
+Library Name: autogluon.timeseries
+Version: v1.4.0.dev
+Description: AutoGluon TimeSeries automates forecasting model training for time series data, supporting both univariate and multivariate predictions.
+
+
+
+
+IMPORTANT: Your response MUST follow this exact format:
+---
+EXPLANATION: <provide your detailed reasoning process for evaluating the libraries>
+
+RANKED_LIBRARIES:
+1. <first choice library name>
+2. <second choice library name>
+3. <third choice library name>
+...
+---
+
+Requirements for your response:
+1. First provide a detailed explanation of your reasoning process using the "EXPLANATION:" header
+2. Then provide a ranking of libraries using the "RANKED_LIBRARIES:" header
+3. The library names must be exactly as shown in the available libraries list
+4. Provide a ranking of at least 3 libraries (if available)
+5. In your explanation, analyze each library's strengths and weaknesses for this specific task
+6. Consider the task requirements, data characteristics, and library features
+
+Do not include any other formatting or additional sections in your response.

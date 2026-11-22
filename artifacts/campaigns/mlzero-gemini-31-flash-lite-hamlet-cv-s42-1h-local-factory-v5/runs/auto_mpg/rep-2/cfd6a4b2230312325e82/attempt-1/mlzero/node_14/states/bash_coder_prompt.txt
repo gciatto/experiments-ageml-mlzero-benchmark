@@ -1,0 +1,110 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-2/cfd6a4b2230312325e82/attempt-1/mlzero/node_14:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import numpy as np
+from sklearn.base import BaseEstimator, RegressorMixin
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, PowerTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.compose import ColumnTransformer
+
+class AutoMPGRegressor(BaseEstimator, RegressorMixin):
+    """
+    A robust regression wrapper for the auto_mpg dataset.
+    Uses a pipeline with power transformation for skewed features,
+    imputation, scaling, and a gradient boosting regressor.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        # Using PowerTransformer to handle non-normal distributions common in auto data
+        # HistGradientBoostingRegressor is efficient and handles missing values internally,
+        # but we include an imputer for safety.
+        self.pipeline = Pipeline([
+            ('imputer', SimpleImputer(strategy='median')),
+            ('transformer', PowerTransformer(method='yeo-johnson')),
+            ('scaler', StandardScaler()),
+            ('regressor', HistGradientBoostingRegressor(
+                random_state=self.random_state,
+                max_iter=100,
+                learning_rate=0.1,
+                max_depth=6,
+                early_stopping=True,
+                validation_fraction=0.1,
+                n_iter_no_change=5,
+                scoring='neg_root_mean_squared_error'
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.pipeline.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts using the fitted pipeline.
+        """
+        return self.pipeline.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model instance.
+    
+    Parameters:
+    X_train: Training features (pandas DataFrame or numpy array)
+    y_train: Training targets (pandas Series or numpy array)
+    
+    Returns:
+    An unfitted instance of AutoMPGRegressor.
+    """
+    # The model is initialized with a fixed seed for reproducibility.
+    # All preprocessing is encapsulated within the pipeline.
+    return AutoMPGRegressor(random_state=42)
+### Previous errors
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray runtime during task submission, likely caused by memory exhaustion or resource contention when AutoGluon attempts to spawn multiple parallel processes (Ray workers) within a restricted environment.
+
+SUGGESTED_FIX: Disable AutoGluon's parallel processing by setting `num_gpus=0` and `num_cpus=1` in the `fit()` call, and explicitly set `ag_args_fit={'num_gpus': 0}` to prevent Ray from attempting to initialize multi-process training. Additionally, ensure the `time_limit` is set conservatively to avoid triggering timeout-related cleanup crashes.
+### Previous installation attempt
+#!/bin/bash
+set -e
+
+# Define environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-2/cfd6a4b2230312325e82/attempt-1/mlzero/node_8/conda_env"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install required packages from registry
+# Note: Escaping spaces in paths for safety
+uv pip install \
+    -r "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt" \
+    --prerelease=allow \
+    -r "/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+
+# Install specific packages required by the factory module
+# numpy, pandas, and scikit-learn are explicitly required for the pipeline
+uv pip install numpy pandas scikit-learn
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/auto_mpg/rep-2/cfd6a4b2230312325e82/attempt-1/mlzero/node_14/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 70 seconds.

@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray runtime (`_raylet.so`), which is triggered by AutoGluon's internal parallelization and resource management during the `fit` process. This is likely caused by resource contention or environment instability when running multiple folds or parallel tasks within a restricted containerized environment.
+
+SUGGESTED_FIX: Disable AutoGluon's internal parallelization by setting `num_cpus=1` and `num_gpus=0` in the `fit()` method to force sequential execution. Additionally, ensure that the `artifact_dir` is created in a persistent, non-temporary location to avoid potential permission or cleanup issues during the cross-validation loop.

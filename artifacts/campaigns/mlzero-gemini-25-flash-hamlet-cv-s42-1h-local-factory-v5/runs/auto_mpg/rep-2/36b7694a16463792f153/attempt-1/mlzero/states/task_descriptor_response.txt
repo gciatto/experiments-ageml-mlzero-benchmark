@@ -1,0 +1,4 @@
+This data science task is a **regression** problem.
+
+*   **Input Format**: Tabular data, provided as a CSV file (`data.csv`). The input features for prediction are the columns `cylinders`, `displacement`, `horsepower`, `weight`, `acceleration`, `model`, and `origin`.
+*   **Prediction Output Format**: A 1-dimensional array of floating-point numbers, where each number represents a predicted value for the `class` target column. The length of the array must match the number of input rows.

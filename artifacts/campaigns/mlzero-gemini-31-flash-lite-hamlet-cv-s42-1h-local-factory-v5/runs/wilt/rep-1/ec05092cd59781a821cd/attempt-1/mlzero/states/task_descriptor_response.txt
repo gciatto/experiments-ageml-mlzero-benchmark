@@ -1,0 +1,18 @@
+The data science task is a **classification** problem evaluated via **ten-fold cross-validation**.
+
+### Task Details
+*   **Problem Type:** Classification.
+*   **Metric:** Balanced accuracy.
+*   **Constraint:** There is no independent test set; the evaluation is performed strictly according to the provided `cv_contract.json`, which defines the train/validation splits.
+
+### Input Format
+*   **Data Source:** A CSV file (`data.csv`) containing the following features: `GLCM_Pan`, `Mean_G`, `Mean_R`, `Mean_NIR`, and `SD_Plan`.
+*   **Target Variable:** The `class` column.
+*   **Processing Requirements:** 
+    *   Do not shuffle, split, filter, reorder, or sample the dataset.
+    *   Do not add row IDs as features.
+    *   All preprocessing must be contained within the model and fitted only on the training rows provided for each fold.
+
+### Prediction Output Format
+*   **Implementation:** The solution must provide a self-contained Python module that defines a `build_model(X_train, y_train)` function.
+*   **Model Interface:** The `build_model` function must return a new, unfitted estimator object that exposes `fit(X, y)` and `predict(X)` methods.

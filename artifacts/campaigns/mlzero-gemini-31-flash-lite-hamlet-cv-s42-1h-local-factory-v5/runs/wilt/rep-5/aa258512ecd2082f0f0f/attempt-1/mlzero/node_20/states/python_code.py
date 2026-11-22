@@ -1,0 +1,72 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that ensures a fresh environment
+    for each fold and adheres to the fit/predict interface.
+    """
+    def __init__(self, label='class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this specific model instance
+        # Using a unique ID to prevent collisions during parallel execution
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor.
+        X and y are provided as pandas objects.
+        """
+        # Combine X and y for AutoGluon's fit method
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor
+        # Using 'medium_quality' to ensure stability and memory efficiency.
+        # auto_stack=False is used to prevent memory exhaustion.
+        # num_cpus=1 and num_gpus=0 are set to respect the restricted environment.
+        # We set a time_limit to ensure the total CV process finishes within the deadline.
+        # We use balanced_accuracy as the metric as requested.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data=train_data,
+            presets='medium_quality',
+            auto_stack=False,
+            num_cpus=1,
+            num_gpus=0,
+            time_limit=30,  # Aggressively bound to ensure 10 folds fit within 371s
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        """
+        Predicts using the fitted AutoGluon predictor.
+        """
+        if self.predictor is None:
+            raise ValueError("Model must be fitted before calling predict.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup the artifact directory to save disk space.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    # The label is 'class' based on the provided dataset description.
+    return AutoGluonWrapper(label='class')

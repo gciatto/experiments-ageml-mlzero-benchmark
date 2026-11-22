@@ -1,0 +1,1 @@
+The output exceeds the 768-character limit because the `to_string()` method prints all 41 columns, violating the requirement to truncate columns and keep the total output under 768 characters.

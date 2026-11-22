@@ -1,0 +1,5 @@
+The data science task is **classification**.
+
+**Input Format:** Tabular data (e.g., Pandas DataFrame) with five numerical features: 'GLCM_Pan', 'Mean_G', 'Mean_R', 'Mean_NIR', and 'SD_Plan'.
+
+**Prediction Output Format:** Predicted class labels for the target column 'class'.

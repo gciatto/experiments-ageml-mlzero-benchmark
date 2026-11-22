@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `AssertionError` indicates that the `time_limit` provided to AutoGluon's `fit()` method is too restrictive for the internal model training pipeline, causing the process to terminate before completion. The training environment is likely constrained by the overhead of the ten-fold cross-validation harness, leaving insufficient time for the requested `best_quality` preset.
+
+SUGGESTED_FIX: Increase the `time_limit` parameter in the `fit()` method to allow more time for model training, or switch the `presets` to `'medium_quality'` to reduce the computational overhead. Additionally, consider setting `dynamic_stacking=False` in the `fit()` call to prevent AutoGluon from attempting complex ensemble structures that exceed the remaining time budget.

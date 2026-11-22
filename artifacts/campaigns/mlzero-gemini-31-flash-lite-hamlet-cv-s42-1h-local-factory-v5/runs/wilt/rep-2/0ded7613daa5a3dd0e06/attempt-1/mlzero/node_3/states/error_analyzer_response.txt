@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray runtime, which is AutoGluon's default parallelization engine. This is likely triggered by resource contention or environment instability when multiple Ray processes attempt to initialize or communicate within the restricted, non-interactive container environment.
+
+SUGGESTED_FIX: Disable AutoGluon's multi-processing and Ray-based parallelization by setting the environment variable `RAY_DISABLE_MEMORY_MONITOR=1` and passing `num_gpus=0` and `num_cpus=1` to the `fit()` method. Additionally, ensure that the `TabularPredictor` is initialized with `ag_args_fit={'num_gpus': 0}` to force sequential execution, which is more stable in constrained environments.

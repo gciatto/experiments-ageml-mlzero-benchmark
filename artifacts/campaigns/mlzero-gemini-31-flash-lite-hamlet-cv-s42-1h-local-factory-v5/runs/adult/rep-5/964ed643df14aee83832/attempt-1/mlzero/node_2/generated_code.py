@@ -1,0 +1,65 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that handles directory management
+    and ensures a fresh model state for each fold.
+    """
+    def __init__(self, label_column='class'):
+        self.label_column = label_column
+        self.predictor = None
+        # Create a unique path for this specific model instance
+        self.path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label_column] = y
+        
+        # Initialize predictor
+        # We use 'medium_quality' to ensure we stay within the total time budget
+        # for 10 folds.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        )
+        
+        # Fit the model
+        # We limit max_epochs and use a time_limit to ensure the 10-fold process
+        # completes within the shared deadline.
+        self.predictor.fit(
+            train_data=train_data,
+            presets='medium_quality',
+            hyperparameters={
+                "optim.max_epochs": 5,
+                "env.num_gpus": 0  # Ensure compatibility if no GPU is available
+            }
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup the artifact directory to save disk space
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    The actual fitting happens inside the fit() method of the returned object.
+    """
+    # Identify the target column name from the training data if needed,
+    # but based on the task description, it is 'class'.
+    return AutoGluonWrapper(label_column='class')

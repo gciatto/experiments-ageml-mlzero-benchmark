@@ -1,0 +1,3 @@
+ERROR_SUMMARY: The `AssertionError` occurs because the `time_limit` allocated to AutoGluon's `fit()` method is too restrictive for the default `best_quality` preset, which triggers complex stacking and bagging processes that cannot complete within the remaining time.
+
+SUGGESTED_FIX: Reduce the complexity of the AutoGluon training process by setting `auto_stack=False` and `presets='medium_quality'` in the `fit()` method. Additionally, ensure the `time_limit` is set to a value slightly lower than the total available time per fold to account for overhead.

@@ -1,0 +1,5 @@
+This data science task is a **classification** problem.
+
+The **input format** is tabular data, provided as a CSV file (`data.csv`).
+
+The **prediction output format** is the predicted class label for the target column `Class`.

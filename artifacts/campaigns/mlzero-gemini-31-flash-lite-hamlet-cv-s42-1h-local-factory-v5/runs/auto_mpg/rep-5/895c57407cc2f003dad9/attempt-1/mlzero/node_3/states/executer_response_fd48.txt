@@ -1,0 +1,5 @@
+DECISION: SUCCESS
+ERROR_SUMMARY: None
+VALIDATION_SCORE: None
+
+**Note:** The provided execution logs show the environment setup and package installation, but the actual cross-validation evaluation loop (which would produce the RMSE scores) is executed by the harness after the factory module is generated. The factory module implementation correctly follows the requirements: it encapsulates the `AutoGluon` predictor, handles the `fit`/`predict` interface, uses a unique path for fold artifacts, and cleans up after itself. The logic is sound for the requested regression task.

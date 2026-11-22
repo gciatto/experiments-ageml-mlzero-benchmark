@@ -1,0 +1,60 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that adheres to the 
+    required fit/predict interface for the cross-validation harness.
+    """
+    def __init__(self):
+        # Create a unique directory for this fold's artifacts
+        self.path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+        self.predictor = None
+        self.label_col = 'class'
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame as required by AutoGluon
+        train_data = X.copy()
+        train_data[self.label_col] = y
+        
+        # Initialize predictor
+        # Using 'medium_quality' to ensure we stay within the strict time constraints
+        self.predictor = MultiModalPredictor(
+            label=self.label_col,
+            path=self.path,
+            problem_type="binary" if len(y.unique()) == 2 else "multiclass"
+        )
+        
+        # Fit with constrained resources
+        self.predictor.fit(
+            train_data=train_data,
+            hyperparameters={
+                "env.num_gpus": 0,  # Ensure CPU usage to avoid OOM/GPU conflicts
+                "optim.max_epochs": 5,
+                "optim.patience": 3,
+            },
+            time_limit=40  # Strict time limit per fold to ensure 10 folds finish
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model must be fitted before calling predict.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifacts to save disk space
+        if os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    return AutoGluonWrapper()

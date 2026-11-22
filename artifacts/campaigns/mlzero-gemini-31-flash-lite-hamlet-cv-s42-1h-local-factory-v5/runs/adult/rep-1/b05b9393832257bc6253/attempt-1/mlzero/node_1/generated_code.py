@@ -1,0 +1,70 @@
+import pandas as pd
+import numpy as np
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+class ModelWrapper:
+    """
+    A wrapper class that encapsulates preprocessing and the HistGradientBoostingClassifier.
+    HistGradientBoostingClassifier is chosen for its efficiency and native support 
+    for missing values and categorical features, making it well-suited for 
+    the Adult dataset within a constrained time budget.
+    """
+    def __init__(self):
+        self.model = None
+        self._build_pipeline()
+
+    def _build_pipeline(self):
+        # Identify feature types
+        numeric_features = ['age', 'fnlwgt', 'education-num', 'capital-gain', 'capital-loss', 'hours-per-week']
+        categorical_features = ['workclass', 'education', 'marital-status', 'occupation', 
+                                'relationship', 'race', 'sex', 'native-country']
+
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
+
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, categorical_features)
+            ])
+
+        # HistGradientBoostingClassifier is fast and handles large datasets well.
+        # We set max_iter and early_stopping to ensure it fits within the time budget.
+        self.model = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('classifier', HistGradientBoostingClassifier(
+                random_state=42,
+                max_iter=100,
+                early_stopping=True,
+                validation_fraction=0.1
+            ))
+        ])
+
+    def fit(self, X, y):
+        # Ensure target is encoded correctly if necessary
+        # The Adult dataset 'class' column usually contains strings like '<=50K'
+        y_encoded = (y.astype(str).str.strip() == '>50K').astype(int)
+        self.model.fit(X, y_encoded)
+        return self
+
+    def predict(self, X):
+        # Return original class labels
+        preds = self.model.predict(X)
+        return np.where(preds == 1, '>50K', '<=50K')
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    """
+    return ModelWrapper()

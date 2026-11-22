@@ -1,0 +1,17 @@
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/ames_housing/06b4acbf769d-ebb2a7fe4397-b8f667a91497-local/README.md"
+
+def analyze_file(path):
+    if not os.path.exists(path):
+        print(f"File not found: {path}")
+        return
+
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read(768)
+            print(f"--- File Content (First 768 chars) ---\n{content}")
+    except Exception as e:
+        print(f"Binary or unreadable file: {os.path.basename(path)} ({os.path.getsize(path)} bytes)")
+
+analyze_file(file_path)

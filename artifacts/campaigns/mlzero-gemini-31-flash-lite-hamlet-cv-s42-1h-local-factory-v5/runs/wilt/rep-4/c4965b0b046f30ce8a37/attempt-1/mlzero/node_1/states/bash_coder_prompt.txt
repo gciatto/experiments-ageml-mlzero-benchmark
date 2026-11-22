@@ -1,0 +1,80 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-4/c4965b0b046f30ce8a37/attempt-1/mlzero/node_1:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/machine learning/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Install any additional packages that are needed for the python script to run successfully
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.base import BaseEstimator, ClassifierMixin
+
+class WiltClassifierWrapper(BaseEstimator, ClassifierMixin):
+    """
+    A wrapper for a Random Forest classifier with integrated scaling.
+    Designed to be efficient for 10-fold CV within the time constraints.
+    """
+    def __init__(self, random_state=42):
+        self.random_state = random_state
+        self.pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('rf', RandomForestClassifier(
+                n_estimators=100,
+                max_depth=10,
+                min_samples_split=5,
+                class_weight='balanced',
+                n_jobs=1,
+                random_state=self.random_state
+            ))
+        ])
+
+    def fit(self, X, y):
+        """
+        Fits the pipeline on the provided training data.
+        """
+        self.pipeline.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """
+        Predicts class labels for the provided data.
+        """
+        return self.pipeline.predict(X)
+
+    def get_params(self, deep=True):
+        return {"random_state": self.random_state}
+
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted WiltClassifierWrapper.
+    
+    Parameters:
+    X_train: Training features (not used for initialization, but required by contract)
+    y_train: Training labels (not used for initialization, but required by contract)
+    
+    Returns:
+    An unfitted instance of WiltClassifierWrapper.
+    """
+    return WiltClassifierWrapper(random_state=42)
+### Previous errors
+
+### Previous installation attempt
+
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-4/c4965b0b046f30ce8a37/attempt-1/mlzero/node_1/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 551 seconds.

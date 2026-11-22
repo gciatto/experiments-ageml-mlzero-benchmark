@@ -1,0 +1,123 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5-textfix/runs/adult/rep-3/b5ebccdce10a37599328/attempt-1/mlzero/node_12:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.tabular if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import os
+import shutil
+import tempfile
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of the predictor, including directory management and fitting.
+    """
+    def __init__(self, label):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.path = os.path.join(tempfile.gettempdir(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor.
+        # We use 'best_quality' for a balance of performance and time.
+        # We set a time_limit to ensure all 10 folds finish within the shared deadline.
+        # Given 149s total, we allocate 12s per fold to be safe.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            eval_metric='balanced_accuracy',
+            path=self.path
+        ).fit(
+            train_data=train_data,
+            presets='best_quality',
+            time_limit=12,
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Clean up the artifact directory after the object is destroyed
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to build a fresh, unfitted AutoGluonWrapper.
+    The target column is 'class' based on the task description.
+    """
+    target_col = 'class'
+    return AutoGluonWrapper(label=target_col)
+### Previous errors
+ERROR_SUMMARY: The error is caused by passing `random_state` as a keyword argument to the `TabularPredictor.fit()` method, which is not a valid parameter for that function.
+
+SUGGESTED_FIX: Remove the `random_state` argument from the `fit()` method call in your `AutoGluonWrapper`. If you need to control randomness, use the `ag_args_fit` dictionary within the `hyperparameters` argument or set the global seed using `numpy.random.seed()` and `torch.manual_seed()` before calling `fit()`.
+
+ERROR_SUMMARY: The `HistGradientBoostingClassifier` in scikit-learn expects dense input arrays, but the `OneHotEncoder` in your pipeline is configured by default to return sparse matrices, causing a `TypeError` during the `fit` process.
+
+SUGGESTED_FIX: Update the `OneHotEncoder` initialization within your `model_factory.py` to include the parameter `sparse_output=False`. This ensures the preprocessor outputs a dense array compatible with the `HistGradientBoostingClassifier`.
+
+ERROR_SUMMARY: The `ValueError` occurs because `tab_transformer` is not a valid model name in `AutoGluon.MultiModalPredictor`. The `MultiModalPredictor` expects specific model prefixes (e.g., `categorical_mlp`, `numerical_mlp`, `fusion_mlp`) for tabular data, and `tab_transformer` is not included in the allowed list of model architectures for this predictor.
+
+SUGGESTED_FIX: Remove the `model.names` hyperparameter configuration from your `predictor.fit` call. Allow AutoGluon to automatically select the appropriate default models for your tabular dataset, or use `fusion_mlp` if you specifically need to customize the architecture for tabular inputs.
+
+ERROR_SUMMARY: The `evaluate_cv.py` script is failing because the `balanced_accuracy_score` function is receiving a mix of string labels (from the validation set) and integer predictions (from the model), causing a type mismatch in scikit-learn's internal target validation.
+
+SUGGESTED_FIX: Modify the `predict` method in your `ModelWrapper` class to map the integer predictions back to the original string labels (e.g., '<=50K' and '>50K') before returning them. Ensure the mapping logic matches the binary encoding used in your `fit` method so that the output format is consistent with the ground truth labels in the validation set.
+### Previous installation attempt
+#!/bin/bash
+set -e
+
+# Define environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5-textfix/runs/adult/rep-3/b5ebccdce10a37599328/attempt-1/mlzero/node_9/conda_env"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Define requirement paths
+COMMON_REQ="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt"
+AG_REQ="/root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt"
+
+# Install base dependencies
+uv pip install numpy pandas scikit-learn
+
+# Install required packages from requirements files
+# --no-upgrade ensures we do not reinstall/upgrade packages already at the specified version
+uv pip install -r "$AG_REQ" --prerelease=allow -r "$COMMON_REQ" --no-upgrade
+
+# Verification
+python -c "import autogluon.tabular; import numpy; import pandas; import sklearn; print('Environment configured successfully')"
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5-textfix/runs/adult/rep-3/b5ebccdce10a37599328/attempt-1/mlzero/node_12/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 147 seconds.

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Define environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/mnist_784/rep-5/f4882b14d94da1b8300e/attempt-1/mlzero/node_2/conda_env"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install base dependencies and ML library requirements
+# Using --no-upgrade to respect existing versions if present, 
+# and --prerelease=allow as requested.
+uv pip install \
+    numpy \
+    pandas \
+    scikit-learn \
+    --prerelease=allow \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.multimodal/requirements.txt \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt

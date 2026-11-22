@@ -1,0 +1,859 @@
+2026-11-22 08:40:13 DEBUG    [faiss.loader] Environment variable FAISS_OPT_LEVEL is not set, so let's pick the instruction set according to the current CPU
+2026-11-22 08:40:13 INFO     [faiss.loader] Loading faiss with AVX512 support.
+2026-11-22 08:40:13 INFO     [faiss.loader] Could not load library with AVX512 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx512'")
+2026-11-22 08:40:13 INFO     [faiss.loader] Loading faiss with AVX2 support.
+2026-11-22 08:40:13 INFO     [faiss.loader] Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-11-22 08:40:13 INFO     [faiss.loader] Loading faiss.
+2026-11-22 08:40:13 INFO     [faiss.loader] Successfully loaded faiss.
+2026-11-22 08:40:16 DEBUG    [datasets] PyTorch version 2.15.0 available.
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loading indices from disk
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded qwen3 tutorials index with 1 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded qwen3 condensed_tutorials index with 1 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded autogluon.timeseries tutorials index with 4 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded autogluon.timeseries condensed_tutorials index with 4 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded wav2vec2 tutorials index with 1 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded wav2vec2 condensed_tutorials index with 1 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded machine learning tutorials index with 1 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded machine learning condensed_tutorials index with 1 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded autogluon.multimodal tutorials index with 38 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded autogluon.multimodal condensed_tutorials index with 38 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded FlagEmbedding tutorials index with 31 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded FlagEmbedding condensed_tutorials index with 31 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded autogluon.tabular tutorials index with 13 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.tools_registry.indexing] Loaded autogluon.tabular condensed_tutorials index with 13 vectors
+2026-11-22 08:40:17 INFO     [autogluon.assistant.managers.node_manager] DataPerceptionAgent: beginning to scan data folder and group similar files.
+2026-11-22 08:40:17 BRIEF    [autogluon.assistant.agents.data_perception_agent] Analyzing folder: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local
+2026-11-22 08:40:17 BRIEF    [autogluon.assistant.agents.data_perception_agent] Found 4 files
+2026-11-22 08:40:17 BRIEF    [autogluon.assistant.agents.data_perception_agent] Grouped into 4 patterns
+2026-11-22 08:40:17 INFO     [autogluon.assistant.agents.data_perception_agent] Processing pattern: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/*.csv (1 files)
+2026-11-22 08:40:17 BRIEF    [autogluon.assistant.agents.data_perception_agent] Reading file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/data.csv
+2026-11-22 08:40:18 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_prompt_1926.txt...
+2026-11-22 08:40:18 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:18 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:18 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfee72490>
+2026-11-22 08:40:18 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cff0c9eb0> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:18 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8e814074d0>
+2026-11-22 08:40:18 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:18 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:18 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:18 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:18 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:19 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1026'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:19 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:19 WARNING  [autogluon.assistant.prompts.utils] No code block found for python, looking for the code wrapped without language specified
+2026-11-22 08:40:19 WARNING  [autogluon.assistant.prompts.utils] No code block found, return the full response instead: import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/data.csv"
+
+try:
+    df = pd.read_csv(file_path)
+    cols = df.columns
+    if len(cols) > 20:
+        print(f"Columns: {list(cols[:10])} ... {list(cols[-10:])}")
+    else:
+        print(f"Columns: {list(cols)}")
+    
+    pd.set_option('display.max_colwidth', 50)
+    print(df.head(3).to_string(index=False))
+except Exception:
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            print(f.read(768))
+    except Exception as e:
+        print(f"File size: {os.path.getsize(file_path)} bytes. Binary/Other file.")
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_response_bb03.txt...
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_code_b971.py...
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: executing code and collecting stdout/stderr for evaluation.
+2026-11-22 08:40:19 DETAIL   [autogluon.assistant.agents.executer_agent] Columns: ['longitude', 'latitude', 'housing_median_age', 'total_rooms', 'total_bedrooms', 'population', 'households', 'median_income', 'ocean_proximity', 'median_house_value']
+2026-11-22 08:40:19 DETAIL   [autogluon.assistant.agents.executer_agent]  longitude  latitude  housing_median_age  total_rooms  total_bedrooms  population  households  median_income ocean_proximity  median_house_value
+2026-11-22 08:40:19 DETAIL   [autogluon.assistant.agents.executer_agent]    -122.23     37.88                  41        880.0           129.0       322.0       126.0         8.3252        NEAR BAY            452600.0
+2026-11-22 08:40:19 DETAIL   [autogluon.assistant.agents.executer_agent]    -122.22     37.86                  21       7099.0          1106.0      2401.0      1138.0         8.3014        NEAR BAY            358500.0
+2026-11-22 08:40:19 DETAIL   [autogluon.assistant.agents.executer_agent]    -122.24     37.85                  52       1467.0           190.0       496.0       177.0         7.2574        NEAR BAY            352100.0
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout_39ac.txt...
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr_6b51.txt...
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout.orig_9eb2.txt...
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr.orig_05d6.txt...
+2026-11-22 08:40:19 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_prompt_7d63.txt...
+2026-11-22 08:40:19 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:19 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:19 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfee4e410>
+2026-11-22 08:40:19 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffa060> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:19 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfef76890>
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:19 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:20 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=558'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:20 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:20 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_response_d686.txt...
+2026-11-22 08:40:20 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/decision_4d46.txt...
+2026-11-22 08:40:20 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/error_summary_8d02.txt...
+2026-11-22 08:40:20 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/validation_score_1f75.txt...
+2026-11-22 08:40:20 BRIEF    [autogluon.assistant.agents.executer_agent] Planner decision: SUCCESS
+2026-11-22 08:40:20 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: execution finished; planner decision logged.
+2026-11-22 08:40:20 INFO     [autogluon.assistant.agents.data_perception_agent] Processing pattern: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/*.md (1 files)
+2026-11-22 08:40:20 BRIEF    [autogluon.assistant.agents.data_perception_agent] Reading file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/README.md
+2026-11-22 08:40:20 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_prompt_5b2f.txt...
+2026-11-22 08:40:20 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:20 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:20 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeea35d0>
+2026-11-22 08:40:20 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffa570> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:20 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeea3590>
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:20 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:21 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:21 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1085'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:21 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:21 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:21 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:21 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:21 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:21 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_response_5180.txt...
+2026-11-22 08:40:21 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_code_184f.py...
+2026-11-22 08:40:21 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: executing code and collecting stdout/stderr for evaluation.
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] # Ten-fold cross-validation benchmark: california_housing
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] Target column: `median_house_value`. Task: regression. Metric: rmse (lower is better).
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] 
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] `data.csv` is the exact AGE-ML exported CSV. `cv_contract.json` fixes row positions
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] and all ten train/validation folds. There is NO independent test set. Do not
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] shuffle, split, filter, reorder or sample the dataset. Never add row IDs as features.
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] For EVERY candidate, return a self-contained Python factory module. The harness
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] writes it as `model_factory.py` in the node output folder. The module must provide `build_model(X_train, y_train)` returning a NEW, unfitted model with
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] `fit(X,y)` and `predict(X)` methods. All preprocessing must be inside that model,
+2026-11-22 08:40:21 DETAIL   [autogluon.assistant.agents.executer_agent] fitted on the supplied fold training rows only. AutoGluon an
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout_a83e.txt...
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr_89b7.txt...
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout.orig_1cd1.txt...
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr.orig_f48c.txt...
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_prompt_df0f.txt...
+2026-11-22 08:40:22 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:22 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:22 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfee72bd0>
+2026-11-22 08:40:22 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffaa80> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:22 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfee3fb10>
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:22 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=639'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:22 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:22 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_response_21fd.txt...
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/decision_52bd.txt...
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/error_summary_a963.txt...
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/validation_score_b1ae.txt...
+2026-11-22 08:40:22 BRIEF    [autogluon.assistant.agents.executer_agent] Planner decision: SUCCESS
+2026-11-22 08:40:22 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: execution finished; planner decision logged.
+2026-11-22 08:40:22 INFO     [autogluon.assistant.agents.data_perception_agent] Processing pattern: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/*.json (1 files)
+2026-11-22 08:40:22 BRIEF    [autogluon.assistant.agents.data_perception_agent] Reading file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/cv_contract.json
+2026-11-22 08:40:23 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_prompt_472e.txt...
+2026-11-22 08:40:23 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:23 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:23 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeea3650>
+2026-11-22 08:40:23 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffad50> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:23 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeea2ed0>
+2026-11-22 08:40:23 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:23 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:23 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:23 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:23 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:24 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1087'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:24 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:24 WARNING  [autogluon.assistant.prompts.utils] No code block found for python, looking for the code wrapped without language specified
+2026-11-22 08:40:24 WARNING  [autogluon.assistant.prompts.utils] No code block found, return the full response instead: import json
+import pandas as pd
+import os
+
+file_path = "/root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/cv_contract.json"
+
+try:
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+    
+    if isinstance(data, list) or isinstance(data, dict):
+        df = pd.DataFrame(data) if isinstance(data, list) else pd.DataFrame([data])
+        cols = df.columns.tolist()
+        if len(cols) > 20:
+            print(f"Columns: {cols[:10]} ... {cols[-10:]}")
+        else:
+            print(f"Columns: {cols}")
+        
+        pd.set_option('display.max_colwidth', 50)
+        print(df.head(3).to_string(index=False))
+    else:
+        print(str(data)[:768])
+except Exception:
+    with open(file_path, 'r') as f:
+        print(f.read(768))
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_response_964b.txt...
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_code_e03b.py...
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: executing code and collecting stdout/stderr for evaluation.
+2026-11-22 08:40:24 DETAIL   [autogluon.assistant.agents.executer_agent] Columns: ['cv_folds', 'dataset_id', 'dataset_version', 'evaluation_protocol', 'partitions', 'protocol_version', 'row_identity', 'source_row_count', 'source_sha256', 'split_hashes', 'split_identity', 'split_seed', 'splitter', 'stratification', 'target_column', 'task']
+2026-11-22 08:40:24 DETAIL   [autogluon.assistant.agents.executer_agent]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               cv_folds         dataset_id                                                  dataset_version evaluation_protocol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    partitions    protocol_version                                             row_identity  source_row_count                                                    source_sha256                                                                                                                                                                                                                                split_hashes                                                   split_identity  split_seed                                                                   splitter                                                stratification      target_column       task
+2026-11-22 08:40:24 DETAIL   [autogluon.assistant.agents.executer_agent] [{'train': [2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2078, 2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090, 2091, 2092, 2093, 2094, 2095, 2096, 2097, 2098, 2099, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110, 2111, 2112, 2113, 2114, 2115, 2116, 2117, 2118, 2119, 2120, 2121, 2122, 2123, 2124, 2125, 2126, 2127, 2128, 2129, 2130, 2131, 2132, 2133, 2134, 2135, 2136, 2137, 2138, 2139, 2140, 2141, 2142, 2143, 2144, 2145, 2146, 2147, 2148, 2149, 2150, 2151, 2152, 2153, 2154, 2155, 2156, 2157, 2158, 2159, 2160, 2161, 2162, 2163, ...], 'validation': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075, 2076, 2077, 2078, 2079, 2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090, 2091, 2092, 2093, 2094, 2095, 2096, 2097, 2098, 2099, 2100, 2101, 2102, 2103, 2104, 2105, 2106, 2107, 2108, 2109, 2110, 2111, 2112, 2113, 2114, 2115, 2116, 2117, 2118, 2119, 2120, 2121, 2122, 2123, 2124, 2125, 2126, 2127, 2128, 2129, 2130, 2131, 2132, 2133, 2134, 2135, 2136, 2137, 2138, 2139, 2140, 2141, 2142, 2143, 2144, 2145, 2146, 2147, 2148, 2149, 2150, 2151, 2152, 2153, 2154, 2155, 2156, 2157, 2158, 2159, 2160, 2161, 2162, 2163, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [4128, 4129, 4130, 4131, 4132, 4133, 4134, 4135, 4136, 4137, 4138, 4139, 4140, 4141, 4142, 4143, 4144, 4145, 4146, 4147, 4148, 4149, 4150, 4151, 4152, 4153, 4154, 4155, 4156, 4157, 4158, 4159, 4160, 4161, 4162, 4163, 4164, 4165, 4166, 4167, 4168, 4169, 4170, 4171, 4172, 4173, 4174, 4175, 4176, 4177, 4178, 4179, 4180, 4181, 4182, 4183, 4184, 4185, 4186, 4187, 4188, 4189, 4190, 4191, 4192, 4193, 4194, 4195, 4196, 4197, 4198, 4199, 4200, 4201, 4202, 4203, 4204, 4205, 4206, 4207, 4208, 4209, 4210, 4211, 4212, 4213, 4214, 4215, 4216, 4217, 4218, 4219, 4220, 4221, 4222, 4223, 4224, 4225, 4226, 4227, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [6192, 6193, 6194, 6195, 6196, 6197, 6198, 6199, 6200, 6201, 6202, 6203, 6204, 6205, 6206, 6207, 6208, 6209, 6210, 6211, 6212, 6213, 6214, 6215, 6216, 6217, 6218, 6219, 6220, 6221, 6222, 6223, 6224, 6225, 6226, 6227, 6228, 6229, 6230, 6231, 6232, 6233, 6234, 6235, 6236, 6237, 6238, 6239, 6240, 6241, 6242, 6243, 6244, 6245, 6246, 6247, 6248, 6249, 6250, 6251, 6252, 6253, 6254, 6255, 6256, 6257, 6258, 6259, 6260, 6261, 6262, 6263, 6264, 6265, 6266, 6267, 6268, 6269, 6270, 6271, 6272, 6273, 6274, 6275, 6276, 6277, 6278, 6279, 6280, 6281, 6282, 6283, 6284, 6285, 6286, 6287, 6288, 6289, 6290, 6291, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [8256, 8257, 8258, 8259, 8260, 8261, 8262, 8263, 8264, 8265, 8266, 8267, 8268, 8269, 8270, 8271, 8272, 8273, 8274, 8275, 8276, 8277, 8278, 8279, 8280, 8281, 8282, 8283, 8284, 8285, 8286, 8287, 8288, 8289, 8290, 8291, 8292, 8293, 8294, 8295, 8296, 8297, 8298, 8299, 8300, 8301, 8302, 8303, 8304, 8305, 8306, 8307, 8308, 8309, 8310, 8311, 8312, 8313, 8314, 8315, 8316, 8317, 8318, 8319, 8320, 8321, 8322, 8323, 8324, 8325, 8326, 8327, 8328, 8329, 8330, 8331, 8332, 8333, 8334, 8335, 8336, 8337, 8338, 8339, 8340, 8341, 8342, 8343, 8344, 8345, 8346, 8347, 8348, 8349, 8350, 8351, 8352, 8353, 8354, 8355, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [10320, 10321, 10322, 10323, 10324, 10325, 10326, 10327, 10328, 10329, 10330, 10331, 10332, 10333, 10334, 10335, 10336, 10337, 10338, 10339, 10340, 10341, 10342, 10343, 10344, 10345, 10346, 10347, 10348, 10349, 10350, 10351, 10352, 10353, 10354, 10355, 10356, 10357, 10358, 10359, 10360, 10361, 10362, 10363, 10364, 10365, 10366, 10367, 10368, 10369, 10370, 10371, 10372, 10373, 10374, 10375, 10376, 10377, 10378, 10379, 10380, 10381, 10382, 10383, 10384, 10385, 10386, 10387, 10388, 10389, 10390, 10391, 10392, 10393, 10394, 10395, 10396, 10397, 10398, 10399, 10400, 10401, 10402, 10403, 10404, 10405, 10406, 10407, 10408, 10409, 10410, 10411, 10412, 10413, 10414, 10415, 10416, 10417, 10418, 10419, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [12384, 12385, 12386, 12387, 12388, 12389, 12390, 12391, 12392, 12393, 12394, 12395, 12396, 12397, 12398, 12399, 12400, 12401, 12402, 12403, 12404, 12405, 12406, 12407, 12408, 12409, 12410, 12411, 12412, 12413, 12414, 12415, 12416, 12417, 12418, 12419, 12420, 12421, 12422, 12423, 12424, 12425, 12426, 12427, 12428, 12429, 12430, 12431, 12432, 12433, 12434, 12435, 12436, 12437, 12438, 12439, 12440, 12441, 12442, 12443, 12444, 12445, 12446, 12447, 12448, 12449, 12450, 12451, 12452, 12453, 12454, 12455, 12456, 12457, 12458, 12459, 12460, 12461, 12462, 12463, 12464, 12465, 12466, 12467, 12468, 12469, 12470, 12471, 12472, 12473, 12474, 12475, 12476, 12477, 12478, 12479, 12480, 12481, 12482, 12483, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [14448, 14449, 14450, 14451, 14452, 14453, 14454, 14455, 14456, 14457, 14458, 14459, 14460, 14461, 14462, 14463, 14464, 14465, 14466, 14467, 14468, 14469, 14470, 14471, 14472, 14473, 14474, 14475, 14476, 14477, 14478, 14479, 14480, 14481, 14482, 14483, 14484, 14485, 14486, 14487, 14488, 14489, 14490, 14491, 14492, 14493, 14494, 14495, 14496, 14497, 14498, 14499, 14500, 14501, 14502, 14503, 14504, 14505, 14506, 14507, 14508, 14509, 14510, 14511, 14512, 14513, 14514, 14515, 14516, 14517, 14518, 14519, 14520, 14521, 14522, 14523, 14524, 14525, 14526, 14527, 14528, 14529, 14530, 14531, 14532, 14533, 14534, 14535, 14536, 14537, 14538, 14539, 14540, 14541, 14542, 14543, 14544, 14545, 14546, 14547, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [16512, 16513, 16514, 16515, 16516, 16517, 16518, 16519, 16520, 16521, 16522, 16523, 16524, 16525, 16526, 16527, 16528, 16529, 16530, 16531, 16532, 16533, 16534, 16535, 16536, 16537, 16538, 16539, 16540, 16541, 16542, 16543, 16544, 16545, 16546, 16547, 16548, 16549, 16550, 16551, 16552, 16553, 16554, 16555, 16556, 16557, 16558, 16559, 16560, 16561, 16562, 16563, 16564, 16565, 16566, 16567, 16568, 16569, 16570, 16571, 16572, 16573, 16574, 16575, 16576, 16577, 16578, 16579, 16580, 16581, 16582, 16583, 16584, 16585, 16586, 16587, 16588, 16589, 16590, 16591, 16592, 16593, 16594, 16595, 16596, 16597, 16598, 16599, 16600, 16601, 16602, 16603, 16604, 16605, 16606, 16607, 16608, 16609, 16610, 16611, ...]}, {'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [18576, 18577, 18578, 18579, 18580, 18581, 18582, 18583, 18584, 18585, 18586, 18587, 18588, 18589, 18590, 18591, 18592, 18593, 18594, 18595, 18596, 18597, 18598, 18599, 18600, 18601, 18602, 18603, 18604, 18605, 18606, 18607, 18608, 18609, 18610, 18611, 18612, 18613, 18614, 18615, 18616, 18617, 18618, 18619, 18620, 18621, 18622, 18623, 18624, 18625, 18626, 18627, 18628, 18629, 18630, 18631, 18632, 18633, 18634, 18635, 18636, 18637, 18638, 18639, 18640, 18641, 18642, 18643, 18644, 18645, 18646, 18647, 18648, 18649, 18650, 18651, 18652, 18653, 18654, 18655, 18656, 18657, 18658, 18659, 18660, 18661, 18662, 18663, 18664, 18665, 18666, 18667, 18668, 18669, 18670, 18671, 18672, 18673, 18674, 18675, ...]}] california_housing 45e44ec0cb85a0de4a0a9174a92b3fecac9415bf0173247a541680eccb50c699           hamlet_cv {'test': [], 'train': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...], 'validation': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, ...]} ageml-evaluation-v3 zero-based parsed CSV source position; all rows eligible             20640 45e44ec0cb85a0de4a0a9174a92b3fecac9415bf0173247a541680eccb50c699 {'test': '4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945', 'train': '5a7a4d54ed5795fcb447fb68d5bf5d1cf2fdb832ccd9b7535916cef90fd084a7', 'validation': 'd3be51c254a53a35397edbd07be64c79e786db81ddde1884bd516827c5ff9a09'} 62eb71d8795c31ec883e6c7af8174e312c7b5219109140940433193c185c27a5          42 {'class': 'KFold', 'n_splits': 10, 'random_state': None, 'shuffle': False} [{'reason': None, 'stage': 'search_cv', 'stratified': False}] median_house_value regression
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout_989b.txt...
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr_e6e5.txt...
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout.orig_b945.txt...
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr.orig_f7c0.txt...
+2026-11-22 08:40:24 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_prompt_bed4.txt...
+2026-11-22 08:40:24 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:24 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:24 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeecc710>
+2026-11-22 08:40:24 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffb380> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:24 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeeaf290>
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:24 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:25 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=887'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:25 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:25 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_response_1528.txt...
+2026-11-22 08:40:25 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/decision_7e1e.txt...
+2026-11-22 08:40:25 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/error_summary_527c.txt...
+2026-11-22 08:40:25 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/validation_score_a24b.txt...
+2026-11-22 08:40:25 BRIEF    [autogluon.assistant.agents.executer_agent] Planner decision: FIX
+2026-11-22 08:40:25 INFO     [autogluon.assistant.agents.executer_agent] Error summary: The output exceeds the 768-character limit significantly due to the large size of the JSON data being printed. The code needs to truncate the output more aggressively or summarize the data structure instead of printing the entire content.
+2026-11-22 08:40:25 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: execution finished; planner decision logged.
+2026-11-22 08:40:25 INFO     [autogluon.assistant.agents.data_perception_agent] Processing pattern: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/*.py (1 files)
+2026-11-22 08:40:25 BRIEF    [autogluon.assistant.agents.data_perception_agent] Reading file: /root/experiments-ageml-mlzero-benchmark/artifacts/datasets-cv/california_housing/45e44ec0cb85-d3be51c254a5-b8f667a91497-local/evaluate_cv.py
+2026-11-22 08:40:25 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_prompt_070f.txt...
+2026-11-22 08:40:25 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.started
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.complete
+2026-11-22 08:40:25 DEBUG    [asyncio] Using selector: EpollSelector
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.started
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.complete
+2026-11-22 08:40:25 DEBUG    [asyncio] Using selector: EpollSelector
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.started
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.complete
+2026-11-22 08:40:25 DEBUG    [asyncio] Using selector: EpollSelector
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.started
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] close.complete
+2026-11-22 08:40:25 DEBUG    [asyncio] Using selector: EpollSelector
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeecc7d0>
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffb800> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:25 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeeccf90>
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:25 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:26 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:26 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=895'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:26 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:26 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:26 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:26 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:26 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:26 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_response_1610.txt...
+2026-11-22 08:40:26 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/python_reader_code_2982.py...
+2026-11-22 08:40:26 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: executing code and collecting stdout/stderr for evaluation.
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] --- File: evaluate_cv.py ---
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] """Trusted ten-fold candidate evaluator, executed inside MLZero's node environment.
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] 
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] Generated factory contract: build_model(X_train, y_train) returns a NEW unfitted
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] estimator exposing fit/predict. AutoGluon may be used through a compatible wrapper.
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] No generated code is executed by the host-side benchmark orchestration.
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] """
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import argparse
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import hashlib
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import importlib.util
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import json
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import os
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import random
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import sys
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import time
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] from pathlib import Path
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import numpy as np
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] import pandas as pd
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] from sklearn.metrics import balanced_accuracy_score, mean_squared_error
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] def digest(path):
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent]     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent] def evaluate(factory_path, contract_path, output):
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent]     contract_path = Path(contract_path)
+2026-11-22 08:40:26 DETAIL   [autogluon.assistant.agents.executer_agent]     contract = j
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout_7e47.txt...
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr_d0a3.txt...
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stdout.orig_72b2.txt...
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/stderr.orig_77b4.txt...
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_prompt_f8d8.txt...
+2026-11-22 08:40:27 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeedcc10>
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffb020> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeedcdd0>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:27 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=652'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:27 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/executer_response_8d24.txt...
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/decision_23b2.txt...
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/error_summary_58d9.txt...
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_init/states/validation_score_2dcc.txt...
+2026-11-22 08:40:27 BRIEF    [autogluon.assistant.agents.executer_agent] Planner decision: SUCCESS
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: execution finished; planner decision logged.
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] DataPerceptionAgent: completed folder scan and assembled data prompt.
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] DescriptionFileRetrieverAgent: identifying description files from data prompt.
+2026-11-22 08:40:27 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/description_file_retriever_prompt.txt...
+2026-11-22 08:40:27 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeea19d0>
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffade0> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:27 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeea04d0>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:27 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:28 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:28 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=884'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:28 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:28 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:28 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:28 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:28 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:28 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/description_file_retriever_response.txt...
+2026-11-22 08:40:28 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/description_files.txt...
+2026-11-22 08:40:28 INFO     [autogluon.assistant.managers.node_manager] DescriptionFileRetrieverAgent: description file list extracted.
+2026-11-22 08:40:28 INFO     [autogluon.assistant.managers.node_manager] TaskDescriptorAgent: generating a concise task description from source materials.
+2026-11-22 08:40:28 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/task_descriptor_prompt.txt...
+2026-11-22 08:40:29 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:29 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:29 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeeed250>
+2026-11-22 08:40:29 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeffa060> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:29 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfeeed010>
+2026-11-22 08:40:29 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:29 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:29 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:29 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:29 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:30 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1488'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:30 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:30 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/task_descriptor_response.txt...
+2026-11-22 08:40:30 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/task_description.txt...
+2026-11-22 08:40:30 INFO     [autogluon.assistant.managers.node_manager] TaskDescriptorAgent: task description generated.
+2026-11-22 08:40:30 INFO     [autogluon.assistant.managers.node_manager] ToolSelectorAgent: choosing and ranking ML libraries for the task.
+2026-11-22 08:40:30 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/tool_selector_prompt.txt...
+2026-11-22 08:40:30 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:30 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:30 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdd74450>
+2026-11-22 08:40:30 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeef5760> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:30 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdd74410>
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:30 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:32 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1762'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:32 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:32 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/tool_selector_response.txt...
+2026-11-22 08:40:32 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/selected_tool.txt...
+2026-11-22 08:40:32 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/states/tool_selector_explanation.txt...
+2026-11-22 08:40:32 INFO     [autogluon.assistant.managers.node_manager] ToolSelectorAgent: selected tools in priority order: autogluon.tabular, machine learning, autogluon.multimodal
+2026-11-22 08:40:32 BRIEF    [autogluon.assistant.coding_agent] Starting MCTS iteration 1/10000
+2026-11-22 08:40:32 INFO     [autogluon.assistant.managers.node_manager] Found unused tool autogluon.tabular, creating evolve node from root using this tool
+2026-11-22 08:40:32 DETAIL   [autogluon.assistant.managers.node_manager] Node 0 is added to children of Node -1.
+2026-11-22 08:40:32 DEBUG    [autogluon.assistant.managers.node_manager] Starting code generation for Node 0
+2026-11-22 08:40:32 DEBUG    [autogluon.assistant.managers.node_manager]   Tool being used: autogluon.tabular
+2026-11-22 08:40:32 DEBUG    [autogluon.assistant.managers.node_manager]   Getting user input for step 0
+2026-11-22 08:40:32 DEBUG    [autogluon.assistant.managers.node_manager]   Retrieving tool info from registry
+2026-11-22 08:40:32 DEBUG    [autogluon.assistant.managers.node_manager]   Starting tutorial retrieval and reranking (this may take time)...
+2026-11-22 08:40:32 INFO     [autogluon.assistant.managers.node_manager] RetrieverAgent: generating search query and retrieving tutorials.
+2026-11-22 08:40:32 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/retriever_prompt.txt...
+2026-11-22 08:40:32 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:32 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:32 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdd74f50>
+2026-11-22 08:40:32 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfeef5d00> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:32 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdd74f10>
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:32 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:33 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=629'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:33 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:33 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/retriever_response.txt...
+2026-11-22 08:40:33 INFO     [autogluon.assistant.prompts.retriever_prompt] Generated search query: 'AutoGluon Tabular regression custom model factory build_model sklearn-compatible wrapper tutorial'
+2026-11-22 08:40:33 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/parsed_search_query.txt...
+2026-11-22 08:40:33 INFO     [autogluon.assistant.tools_registry.indexing] Loading embedding model: BAAI/bge-base-en-v1.5
+2026-11-22 08:40:33 INFO     [autogluon.assistant.tools_registry.indexing] Embedding model loaded successfully
+2026-11-22 08:40:33 INFO     [autogluon.assistant.tools_registry.indexing] Found 13 results for query: AutoGluon Tabular regression custom model factory build_model sklearn-compatible wrapper tutorial
+2026-11-22 08:40:33 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/tutorial_retriever_results.txt...
+2026-11-22 08:40:33 INFO     [autogluon.assistant.managers.node_manager] RetrieverAgent: retrieved 13 tutorial candidates using query: 'AutoGluon Tabular regression custom model factory build_model sklearn-compatible wrapper tutorial'
+2026-11-22 08:40:33 INFO     [autogluon.assistant.managers.node_manager] RerankerAgent: reranking and selecting top tutorials from retrieved candidates.
+2026-11-22 08:40:33 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/reranker_prompt.txt...
+2026-11-22 08:40:33 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:33 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:33 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdbbed90>
+2026-11-22 08:40:33 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfdcb6600> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:33 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdbbedd0>
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:33 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:34 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=504'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:34 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/reranker_response.txt...
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/selected_tutorials.txt...
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/tutorial_reranking_results.txt...
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] RerankerAgent: selected 5 tutorials and formatted prompt.
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/tutorial_retrievals.txt...
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/tutorial_prompt.txt...
+2026-11-22 08:40:34 DEBUG    [autogluon.assistant.managers.node_manager]   Finished tutorial retrieval and reranking
+2026-11-22 08:40:34 DEBUG    [autogluon.assistant.managers.node_manager]   Calling Python coder agent...
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] CoderAgent: starting to build and send code-generation prompt to the LLM.
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/python_coder_prompt.txt...
+2026-11-22 08:40:34 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/python_coder_prompt.txt...
+2026-11-22 08:40:34 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:34 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:34 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdbde2d0>
+2026-11-22 08:40:34 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfdcb74a0> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:34 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfdbde950>
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:34 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:36 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1703'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:36 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:36 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/python_coder_response.txt...
+2026-11-22 08:40:36 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/python_code.py...
+2026-11-22 08:40:36 INFO     [autogluon.assistant.managers.node_manager] CoderAgent: code-generation prompt handled and code parsed from response.
+2026-11-22 08:40:36 DEBUG    [autogluon.assistant.managers.node_manager]   Finished Python code generation
+2026-11-22 08:40:36 DEBUG    [autogluon.assistant.managers.node_manager]   Writing Python code to: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/generated_code.py
+2026-11-22 08:40:36 DEBUG    [autogluon.assistant.managers.node_manager]   Calling Bash coder agent...
+2026-11-22 08:40:36 INFO     [autogluon.assistant.managers.node_manager] CoderAgent: starting to build and send code-generation prompt to the LLM.
+2026-11-22 08:40:36 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/bash_coder_prompt.txt...
+2026-11-22 08:40:36 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/bash_coder_prompt.txt...
+2026-11-22 08:40:36 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:36 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:36 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfc706c50>
+2026-11-22 08:40:36 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfdcb7a40> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:36 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfc706c10>
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:36 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:37 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:37 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1172'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:37 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:37 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:37 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:37 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:37 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:37 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/bash_coder_response.txt...
+2026-11-22 08:40:37 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/extracted_bash_script.sh...
+2026-11-22 08:40:37 INFO     [autogluon.assistant.managers.node_manager] CoderAgent: code-generation prompt handled and code parsed from response.
+2026-11-22 08:40:37 DEBUG    [autogluon.assistant.managers.node_manager]   Finished Bash script generation
+2026-11-22 08:40:37 DEBUG    [autogluon.assistant.managers.node_manager]   Writing Bash script to: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/execution_script.sh
+2026-11-22 08:40:37 DEBUG    [autogluon.assistant.managers.node_manager] Completed code generation for Node 0
+2026-11-22 08:40:37 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: executing code and collecting stdout/stderr for evaluation.
+2026-11-22 08:40:38 DETAIL   [autogluon.assistant.agents.executer_agent] Channels:
+2026-11-22 08:40:38 DETAIL   [autogluon.assistant.agents.executer_agent]  - conda-forge
+2026-11-22 08:40:38 DETAIL   [autogluon.assistant.agents.executer_agent] Platform: linux-64
+2026-11-22 08:40:38 DETAIL   [autogluon.assistant.agents.executer_agent] Collecting package metadata (repodata.json): ...working... done
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent] Solving environment: ...working... done
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent] 
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent] ## Package Plan ##
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   environment location: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/conda_env
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   added / updated specs:
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]     - python=3.11
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent] The following NEW packages will be INSTALLED:
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   _openmp_mutex      conda-forge/linux-64::_openmp_mutex-4.5-20_gnu
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   bzip2              conda-forge/linux-64::bzip2-1.0.8-hda65f42_10
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   ca-certificates    conda-forge/noarch::ca-certificates-2026.11.20-hbd8a1cb_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   ld_impl_linux-64   conda-forge/linux-64::ld_impl_linux-64-2.46.1-default_hbd61a6d_103
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libexpat           conda-forge/linux-64::libexpat-2.9.0-hd2095e1_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libffi             conda-forge/linux-64::libffi-3.7.0-h81df57d_1
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libgcc             conda-forge/linux-64::libgcc-16.2.0-ha9f2e26_7
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libgomp            conda-forge/linux-64::libgomp-16.2.0-he0feb66_7
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   liblzma            conda-forge/linux-64::liblzma-5.8.3-hb03c661_1
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libnsl             conda-forge/linux-64::libnsl-2.0.1-hb9d3cd8_1
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libpython          conda-forge/linux-64::libpython-3.11.18-ha57cdbe_0_cpython
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libsqlite          conda-forge/linux-64::libsqlite-3.54.1-h0737f62_101
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libuuid            conda-forge/linux-64::libuuid-2.42.4-hcfc3c73_1
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libxcrypt          conda-forge/linux-64::libxcrypt-4.4.38-h280c20c_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   libzlib            conda-forge/linux-64::libzlib-1.3.2-h25fd6f3_3
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   ncurses            conda-forge/linux-64::ncurses-6.6-hdb14827_1
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   openssl            conda-forge/linux-64::openssl-3.6.5-h781a0a9_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   packaging          conda-forge/noarch::packaging-26.3-pyhc364b38_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   pip                conda-forge/noarch::pip-26.2.2-pyh8b19718_2
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   python             conda-forge/linux-64::python-3.11.18-h5f976f7_0_cpython
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   readline           conda-forge/linux-64::readline-8.3-hd6e31c0_1
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   setuptools         conda-forge/noarch::setuptools-84.2.1-pyhe730653_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   tk                 conda-forge/linux-64::tk-8.6.13-noxft_h1df4ec4_4
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   tzdata             conda-forge/noarch::tzdata-2026e-h5d301ff_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   wheel              conda-forge/noarch::wheel-0.48.0-pyhd8ed1ab_0
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent]   zstd               conda-forge/linux-64::zstd-1.5.7-hb78ec9c_7
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent] Downloading and Extracting Packages: ...working... done
+2026-11-22 08:40:39 DETAIL   [autogluon.assistant.agents.executer_agent] Preparing transaction: ...working... done
+2026-11-22 08:40:40 DETAIL   [autogluon.assistant.agents.executer_agent] Verifying transaction: ...working... done
+2026-11-22 08:40:42 DETAIL   [autogluon.assistant.agents.executer_agent] Executing transaction: ...working... done
+2026-11-22 08:40:42 DETAIL   [autogluon.assistant.agents.executer_agent] WARNING conda.conda_pypi.main:notify_externally_managed_future(156):
+2026-11-22 08:40:42 DETAIL   [autogluon.assistant.agents.executer_agent] #
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] # To activate this environment, use
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] #     $ conda activate /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/conda_env
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] # To deactivate an active environment, use
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] #     $ conda deactivate
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] Collecting uv
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent]   Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] Using cached uv-0.13.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.6 MB)
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] Installing collected packages: uv
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] Successfully installed uv-0.13.9
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent]   Did you know? You can install many PyPI packages with conda
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent]   using the conda-pypi beta. Get started:
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent]     https://docs.conda.io/projects/conda/en/stable/new-features.html
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] 
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+2026-11-22 08:40:43 DETAIL   [autogluon.assistant.agents.executer_agent] Using Python 3.11.18 environment at: artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/conda_env
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent] Resolved 10 packages in 107ms
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent] Installed 10 packages in 24ms
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + cloudpickle==3.1.2
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + joblib==1.6.0
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + narwhals==2.26.0
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + numpy==2.4.6
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + pandas==3.0.6
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + python-dateutil==2.9.0.post0
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + scikit-learn==1.9.1
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + scipy==1.17.1
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + six==1.17.0
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent]  + threadpoolctl==3.7.0
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent] Resolved 264 packages in 845ms
+2026-11-22 08:40:44 DETAIL   [autogluon.assistant.agents.executer_agent] Uninstalled 2 packages in 27ms
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent] Installed 253 packages in 197ms
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + absl-py==2.5.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + accelerate==1.15.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + adagio==0.2.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + aiohappyeyeballs==2.7.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + aiohttp==3.14.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + aiohttp-cors==0.8.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + aiosignal==1.4.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + alembic==1.20.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + annotated-doc==0.0.5
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + annotated-types==0.8.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + antlr4-python3-runtime==4.9.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + anyio==4.15.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + apsw==3.53.4.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + apswutils==0.1.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + attrs==26.1.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + autogluon==1.6.4b20260930
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + autogluon-common==1.6.4b20260930
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + autogluon-core==1.6.4b20260930
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + autogluon-features==1.6.4b20260930
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + autogluon-multimodal==1.6.4b20260930
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + autogluon-tabular==1.6.4b20260930
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + autogluon-timeseries==1.6.4b20260930
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + beartype==0.23.0rc2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + beautifulsoup4==4.15.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + blis==1.3.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + boto3==1.43.106
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + botocore==1.43.106
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + catalogue==2.0.10
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + catboost==1.2.10
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + certifi==2026.7.22
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cffi==2.1.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + chardet==7.6.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + charset-normalizer==3.5.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + chronos-forecasting==2.3.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + click==8.5.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cloudpathlib==0.25.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + colorama==0.4.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + colorful==0.6.0a1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + colorlog==6.12.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + confection==1.3.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + contourpy==1.3.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + coreforecast==0.0.18
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cryptography==50.0.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cuda-bindings==13.4.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cuda-pathfinder==1.8.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cuda-toolkit==13.0.3.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cycler==0.12.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + cymem==2.0.13
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + daal==2026.1.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + datasets==5.0.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + defusedxml==0.7.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + dill==0.4.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + distlib==0.4.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + einops==0.8.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + einx==0.4.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + evaluate==0.4.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fastai==2.8.7
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fastcore==1.14.5
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fastdownload==0.0.8
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fastlite==0.2.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fastprogress==1.1.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fasttransform==0.0.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + filelock==4.0.7
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fonttools==4.66.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + formulaic==1.2.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + frozendict==2.4.7
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + frozenlist==1.8.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fsspec==2026.6.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + fugue==0.9.7
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + future==1.0.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + gdown==6.4.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + gluonts==0.17.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + google-api-core==2.40.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + google-auth==2.59.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + googleapis-common-protos==1.75.5
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + graphviz==0.21
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + grpcio==1.84.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + h11==0.16.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + hf-xet==1.7.0.dev1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + httpcore==1.0.9
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + httpcore2==2.13.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + httptools==0.8.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + httpx==0.28.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + httpx2==2.13.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + huggingface-hub==1.33.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + hyperopt==0.2.7
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + idna==3.20
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + imageio==2.38.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + interface-meta==2.0.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + itsdangerous==2.2.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + jinja2==3.1.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + jmespath==1.1.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + jsonschema==4.23.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + jsonschema-specifications==2025.9.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + kiwisolver==1.5.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + lazy-loader==0.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + lightgbm==4.7.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + lightning==2.6.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + lightning-utilities==0.15.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + llvmlite==0.50.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + loguru==0.7.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + mako==1.4.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + markdown==3.11
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + markdown-it-py==4.2.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + markupsafe==3.0.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + matplotlib==3.11.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + mdurl==0.1.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + mlforecast==0.14.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + model-index==0.1.11
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + mpmath==1.3.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + msgpack==1.2.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + multidict==6.9.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + multiprocess==0.70.19
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + murmurhash==1.0.15
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + networkx==3.6.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nlpaug==1.1.11
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nltk==3.10.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + numba==0.68.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cublas==13.1.1.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cuda-cupti==13.0.85
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cuda-nvrtc==13.0.88
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cuda-runtime==13.0.96
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cudnn-cu13==9.20.0.48
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cufft==12.0.0.61
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cufile==1.15.1.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-curand==10.4.0.35
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cusolver==12.0.4.66
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cusparse==12.6.3.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-cusparselt-cu13==0.8.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-ml-py3==7.352.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-nccl-cu13==2.29.7
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-nvjitlink==13.4.92
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-nvshmem-cu13==3.4.5
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + nvidia-nvtx==13.0.85
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + oauthlib==4.0.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + omegaconf==2.3.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opencensus==0.11.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opencensus-context==0.2.dev0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opencv-python==5.0.0.93
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opendatalab==0.0.10
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + openmim==0.3.9
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opentelemetry-api==1.45.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opentelemetry-exporter-prometheus==0.66b0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opentelemetry-proto==1.45.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opentelemetry-sdk==1.45.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + opentelemetry-semantic-conventions==0.66b0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + openxlab==0.0.11
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + optuna==5.0.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + ordered-set==4.1.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + orjson==3.12.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  - pandas==3.0.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pandas==2.3.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + patsy==1.0.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pbr==7.0.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pdf2image==1.17.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + peft==0.19.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pillow==12.3.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + platformdirs==4.12.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + plotly==7.1.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + plum-dispatch==2.9.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + preshed==3.0.13
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + prometheus-client==0.26.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + propcache==0.5.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + proto-plus==1.29.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + protobuf==7.36.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + psutil==7.2.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + py-spy==0.4.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + py4j==0.10.9.9
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pyarrow==24.0.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pyasn1==0.6.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pyasn1-modules==0.4.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pycparser==3.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pycryptodome==3.23.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pydantic==2.14.0b2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pydantic-core==2.49.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pygments==2.21.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pyparsing==3.3.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pysocks==1.7.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pytesseract==0.3.13
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + python-calamine==0.8.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + python-discovery==1.6.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + python-dotenv==1.2.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + python-fasthtml==0.14.5
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + python-multipart==0.0.32
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pytorch-lightning==2.6.6
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pytorch-metric-learning==2.8.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pytz==2026.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + pyyaml==6.0.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + ray==2.58.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + referencing==0.37.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + regex==2026.9.29
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + requests==2.34.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + rich==15.0.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + rpds-py==2026.6.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + s3transfer==0.19.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + safetensors==0.9.0rc1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + scikit-image==0.25.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + scikit-learn-intelex==2026.1.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + sentencepiece==0.2.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + seqeval==1.2.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  - setuptools==84.2.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + setuptools==81.0.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + shellingham==1.5.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + smart-open==8.0.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + soupsieve==2.10
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + spacy==3.8.16
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + spacy-legacy==3.0.12
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + spacy-loggers==1.0.5
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + sqlalchemy==2.1.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + srsly==2.5.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + starlette==1.7.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + statsforecast==2.1.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + statsmodels==0.15.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + stevedore==5.4.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + sympy==1.14.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tabulate==0.10.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tbb==2023.1.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tcmlib==1.5.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tensorboard==2.21.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tensorboard-data-server==0.7.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tensorboardx==2.6.5
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + text-unidecode==1.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + thinc==8.3.13
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tifffile==2026.3.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + timm==1.0.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tokenizers==0.23.0rc0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + toolz==0.12.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + torch==2.13.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + torchaudio==2.11.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + torchmetrics==1.7.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + torchvision==0.28.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tqdm==4.70.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + transformers==5.14.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + triad==1.0.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + triton==3.7.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + truststore==0.10.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + typer==0.27.2
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + typing-extensions==4.16.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + typing-inspection==0.4.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + tzdata==2026.4
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + urllib3==2.8.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + utilsforecast==0.2.11
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + uvicorn==0.54.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + uvloop==0.22.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + virtualenv==21.14.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + wasabi==1.1.3
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + watchfiles==1.3.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + weasel==1.0.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + websockets==17.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + werkzeug==3.1.9
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + window-ops==0.0.15
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + wrapt==2.5.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + xgboost-cpu==3.2.0
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + xxhash==4.0.1
+2026-11-22 08:40:45 DETAIL   [autogluon.assistant.agents.executer_agent]  + yarl==1.25.1
+2026-11-22 08:40:45 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/stdout_d741.txt...
+2026-11-22 08:40:45 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/stderr_5679.txt...
+2026-11-22 08:40:45 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/stdout.orig_9d80.txt...
+2026-11-22 08:40:45 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/stderr.orig_60ed.txt...
+2026-11-22 08:40:45 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/executer_prompt_3d2c.txt...
+2026-11-22 08:40:45 INFO     [google_genai.models] AFC is enabled with max remote calls: 10.
+2026-11-22 08:40:45 DEBUG    [httpcore.connection] connect_tcp.started host='generativelanguage.googleapis.com' port=443 local_address=None timeout=None socket_options=None
+2026-11-22 08:40:45 DEBUG    [httpcore.connection] connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfc705f50>
+2026-11-22 08:40:45 DEBUG    [httpcore.connection] start_tls.started ssl_context=<ssl.SSLContext object at 0x7b8cfdbc1010> server_hostname='generativelanguage.googleapis.com' timeout=None
+2026-11-22 08:40:45 DEBUG    [httpcore.connection] start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7b8cfc705e10>
+2026-11-22 08:40:45 DEBUG    [httpcore.http11] send_request_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:45 DEBUG    [httpcore.http11] send_request_headers.complete
+2026-11-22 08:40:45 DEBUG    [httpcore.http11] send_request_body.started request=<Request [b'POST']>
+2026-11-22 08:40:45 DEBUG    [httpcore.http11] send_request_body.complete
+2026-11-22 08:40:45 DEBUG    [httpcore.http11] receive_response_headers.started request=<Request [b'POST']>
+2026-11-22 08:40:46 DEBUG    [httpcore.http11] receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'X-Gemini-Service-Tier', b'standard'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'X-Origin'), (b'Vary', b'Referer'), (b'Content-Encoding', b'gzip'), (b'Date', b'Sun, 22 Nov 2026 08:40:46 GMT'), (b'Server', b'scaffolding on HTTPServer2'), (b'X-XSS-Protection', b'0'), (b'X-Frame-Options', b'SAMEORIGIN'), (b'X-Content-Type-Options', b'nosniff'), (b'Server-Timing', b'gfet4t7; dur=1181'), (b'Alt-Svc', b'h3=":443"; ma=2592000,h3-29=":443"; ma=2592000'), (b'Transfer-Encoding', b'chunked')])
+2026-11-22 08:40:46 INFO     [httpx] HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent "HTTP/1.1 200 OK"
+2026-11-22 08:40:46 DEBUG    [httpcore.http11] receive_response_body.started request=<Request [b'POST']>
+2026-11-22 08:40:46 DEBUG    [httpcore.http11] receive_response_body.complete
+2026-11-22 08:40:46 DEBUG    [httpcore.http11] response_closed.started
+2026-11-22 08:40:46 DEBUG    [httpcore.http11] response_closed.complete
+2026-11-22 08:40:46 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/executer_response_0381.txt...
+2026-11-22 08:40:46 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/decision_123f.txt...
+2026-11-22 08:40:46 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/error_summary_e058.txt...
+2026-11-22 08:40:46 INFO     [autogluon.assistant.managers.node_manager] Saving /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/california_housing/rep-2/fcb0208c6c8fda4ed59b/attempt-1/mlzero/node_0/states/validation_score_1afb.txt...
+2026-11-22 08:40:46 BRIEF    [autogluon.assistant.agents.executer_agent] Planner decision: SUCCESS
+2026-11-22 08:40:46 INFO     [autogluon.assistant.managers.node_manager] ExecuterAgent: execution finished; planner decision logged.

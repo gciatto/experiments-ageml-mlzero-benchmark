@@ -1,0 +1,8 @@
+This is a **classification** task.
+
+**Input Format:** Tabular data provided in `data.csv`, consisting of 784 numerical features named `pixel1` through `pixel784`.
+
+**Prediction Output Format:** Predicted values for the `class` target column.
+
+**Additional Details:**
+The task uses a ten-fold cross-validation benchmark, with `balanced_accuracy` as the evaluation metric (higher is better). Models must be provided as a Python module with a `build_model(X_train, y_train)` function that returns a new, unfitted model exposing `fit(X,y)` and `predict(X)` methods. All preprocessing must be contained within this model and fitted solely on the supplied training rows. Stochastic models should use `random_state/seed 42`.

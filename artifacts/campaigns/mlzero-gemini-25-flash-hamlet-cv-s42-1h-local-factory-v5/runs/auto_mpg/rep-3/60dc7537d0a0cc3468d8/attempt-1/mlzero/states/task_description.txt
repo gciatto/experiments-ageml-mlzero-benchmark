@@ -1,0 +1,7 @@
+The data science task is **regression**.
+
+**Input Format:**
+The input consists of tabular data, specifically a Pandas DataFrame (or similar structure) where each row represents an instance and columns represent features. The features are `cylinders`, `displacement`, `horsepower`, `weight`, `acceleration`, `model`, and `origin`. All these features are numerical.
+
+**Prediction Output Format:**
+The prediction output is a 1D array or list of numerical values (floats). Each value in the array represents the predicted regression target for a corresponding input instance. The length of the prediction array must match the number of input instances.

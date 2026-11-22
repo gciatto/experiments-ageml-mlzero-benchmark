@@ -1,0 +1,71 @@
+import os
+import shutil
+import tempfile
+import uuid
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, target_column):
+        self.target_column = target_column
+        self.predictor = None
+        # Create a unique directory for this fold's artifacts
+        self.path = os.path.join(tempfile.gettempdir(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor.
+        X and y are provided as a training fold.
+        """
+        # Combine X and y for AutoGluon
+        train_data = X.copy()
+        train_data[self.target_column] = y
+        
+        # Initialize and fit the predictor
+        # Using 'extreme' preset as requested, with a focus on performance.
+        # We disable auto_stack to ensure we stay within time limits if needed,
+        # but allow it to manage internal validation.
+        self.predictor = TabularPredictor(
+            label=self.target_column,
+            path=self.path,
+            eval_metric='rmse'
+        ).fit(
+            train_data,
+            presets='extreme',
+            time_limit=None,  # Rely on the global deadline managed by the harness
+            verbosity=1
+        )
+
+    def predict(self, X):
+        """
+        Predicts using the fitted AutoGluon model.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup temporary artifacts after the model is no longer needed.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to build a fresh, unfitted model wrapper.
+    The target column is inferred from the training data provided.
+    """
+    # The target column is the one not in X_train but present in the full dataset.
+    # Since the contract provides X_train and y_train separately, we identify
+    # the target name from the y_train series name.
+    target_name = y_train.name if y_train.name is not None else 'median_house_value'
+    
+    return AutoGluonWrapper(target_column=target_name)

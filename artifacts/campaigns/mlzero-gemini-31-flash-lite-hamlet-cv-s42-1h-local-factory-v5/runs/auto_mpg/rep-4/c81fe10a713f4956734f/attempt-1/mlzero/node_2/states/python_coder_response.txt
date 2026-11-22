@@ -1,0 +1,72 @@
+```python
+import os
+import uuid
+import shutil
+import pandas as pd
+import numpy as np
+import torch
+import random
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonRegressorWrapper:
+    """
+    A wrapper for AutoGluon MultiModal Predictor to handle regression tasks.
+    Each instance creates a fresh directory for artifacts to ensure isolation.
+    """
+    def __init__(self, seed=42):
+        self.seed = seed
+        self.path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+        self.predictor = None
+        self._set_seeds()
+
+    def _set_seeds(self):
+        random.seed(self.seed)
+        np.random.seed(self.seed)
+        torch.manual_seed(self.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(self.seed)
+
+    def fit(self, X, y):
+        # Combine X and y into a single DataFrame for AutoGluon
+        train_df = X.copy()
+        train_df['class'] = y
+        
+        # Initialize predictor
+        self.predictor = MultiModalPredictor(
+            label='class',
+            problem_type='regression',
+            path=self.path,
+            eval_metric='rmse'
+        )
+        
+        # Fit with constraints to ensure completion within the shared deadline
+        # We use a conservative time_limit per fold to ensure all 10 folds finish
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=240, 
+            hyperparameters={
+                "env.num_gpus": 1 if torch.cuda.is_available() else 0,
+                "optim.max_epochs": 10,
+                "optim.patience": 3
+            }
+        )
+
+    def predict(self, X):
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        # Cleanup artifacts to save disk space
+        if os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonRegressorWrapper.
+    """
+    return AutoGluonRegressorWrapper(seed=42)
+```

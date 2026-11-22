@@ -1,0 +1,75 @@
+import numpy as np
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.ensemble import HistGradientBoostingClassifier
+
+class ModelWrapper:
+    """
+    A wrapper class that encapsulates the preprocessing pipeline and the 
+    HistGradientBoostingClassifier to ensure compatibility with the 
+    required fit/predict interface.
+    """
+    def __init__(self):
+        self.model = None
+        self._build_pipeline()
+
+    def _build_pipeline(self):
+        # Identify feature types
+        numeric_features = [
+            'age', 'fnlwgt', 'education-num', 'capital-gain', 
+            'capital-loss', 'hours-per-week'
+        ]
+        categorical_features = [
+            'workclass', 'education', 'marital-status', 'occupation', 
+            'relationship', 'race', 'sex', 'native-country'
+        ]
+
+        # Preprocessing for numeric data
+        numeric_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='median')),
+            ('scaler', StandardScaler())
+        ])
+
+        # Preprocessing for categorical data
+        categorical_transformer = Pipeline(steps=[
+            ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
+            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', numeric_transformer, numeric_features),
+                ('cat', categorical_transformer, categorical_features)
+            ]
+        )
+
+        # Classifier with fixed random_state for reproducibility
+        self.model = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('classifier', HistGradientBoostingClassifier(
+                random_state=42,
+                max_iter=100,
+                early_stopping=True
+            ))
+        ])
+
+    def fit(self, X, y):
+        # Ensure y is encoded as binary if necessary
+        if y.dtype == 'object':
+            y = (y != '<=50K').astype(int)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The X_train and y_train are provided per the contract but 
+    the model is initialized fresh.
+    """
+    return ModelWrapper()

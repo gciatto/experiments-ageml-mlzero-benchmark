@@ -1,0 +1,17 @@
+---
+EXPLANATION: The task is a classification problem on the "adult" tabular dataset, which contains a mix of numerical and categorical features. The primary objective is to maximize `balanced_accuracy` within a strict ten-fold cross-validation framework. 
+
+1. **autogluon.tabular**: This is the optimal choice. It is specifically designed for tabular data, handles automatic feature engineering (encoding categorical variables, handling missing values, scaling), and employs ensemble methods (stacking, bagging) that are highly effective for the "adult" dataset. Its ability to automate model selection and hyperparameter tuning makes it the most robust candidate for achieving high `balanced_accuracy`.
+2. **machine learning**: This is selected as the secondary choice. Since it serves as a general reference for machine learning algorithms, it implies access to standard libraries like `scikit-learn`. While it requires manual implementation of preprocessing pipelines (e.g., `ColumnTransformer`, `OneHotEncoder`, `StandardScaler`) and model selection (e.g., `RandomForestClassifier` or `GradientBoostingClassifier`), it provides the necessary flexibility to meet the `model_factory.py` requirements if AutoGluon's overhead is restricted by the environment.
+3. **autogluon.multimodal**: This is ranked third. While it is part of the AutoGluon ecosystem, it is explicitly noted as not being optimized for pure tabular data. It is intended for multimodal tasks (text/image/tabular fusion), which introduces unnecessary complexity and potential performance degradation compared to the specialized `autogluon.tabular` library.
+4. **FlagEmbedding**, **wav2vec2**, **qwen3**, and **autogluon.timeseries**: These libraries are entirely inappropriate for this task. They are specialized for retrieval, audio processing, text generation, and time-series forecasting, respectively, and lack the necessary architecture to handle standard tabular classification.
+
+RANKED_LIBRARIES:
+1. autogluon.tabular
+2. machine learning
+3. autogluon.multimodal
+4. FlagEmbedding
+5. wav2vec2
+6. qwen3
+7. autogluon.timeseries
+---

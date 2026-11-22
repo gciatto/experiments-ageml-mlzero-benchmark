@@ -1,0 +1,62 @@
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.multimodal import MultiModalPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon MultiModalPredictor that handles the lifecycle
+    of a model within a cross-validation fold.
+    """
+    def __init__(self, label_column="SalePrice"):
+        self.label_column = label_column
+        self.predictor = None
+        # Create a unique directory for this specific model instance
+        self.path = os.path.join(os.getcwd(), f"autogluon_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the model on the provided training data.
+        X and y are combined into a single DataFrame for AutoGluon.
+        """
+        # Ensure we clean up any previous artifacts if this instance is reused
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path, ignore_errors=True)
+
+        train_df = X.copy()
+        train_df[self.label_column] = y
+
+        # Initialize predictor
+        # We use 'medium_quality' to ensure we stay within the shared time budget
+        # across 10 folds.
+        self.predictor = MultiModalPredictor(
+            label=self.label_column,
+            problem_type="regression",
+            eval_metric="rmse",
+            path=self.path
+        )
+
+        # Fit with a time limit that allows for 10 folds within the remaining budget.
+        # Total budget is ~2725s, so we allocate ~240s per fold to be safe.
+        self.predictor.fit(
+            train_data=train_df,
+            time_limit=240,
+            presets="medium_quality"
+        )
+
+    def predict(self, X):
+        """
+        Predicts the target variable for the provided features.
+        """
+        if self.predictor is None:
+            raise ValueError("Model has not been fitted yet.")
+        return self.predictor.predict(X)
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted model wrapper.
+    The X_train and y_train arguments are provided by the harness but
+    are not used here as the model must remain unfitted.
+    """
+    return AutoGluonWrapper(label_column="SalePrice")

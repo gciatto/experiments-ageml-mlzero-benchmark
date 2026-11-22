@@ -1,0 +1,12 @@
+The data science task is a **classification** problem based on the "har" dataset.
+
+*   **Task Type:** Classification.
+*   **Input Format:** A CSV file (`data.csv`) containing 561 feature columns (labeled `V1` through `V561`) and a target column named `Class`.
+*   **Prediction Output Format:** The model must provide a `predict(X)` method that outputs class predictions.
+*   **Evaluation:** The performance is measured using the `balanced_accuracy` metric. The benchmark utilizes a ten-fold cross-validation procedure defined by a fixed `cv_contract.json` file, which specifies the row indices for training and validation folds.
+*   **Implementation Requirements:**
+    *   Candidates must provide a self-contained Python module that exports a `build_model(X_train, y_train)` function.
+    *   This function must return an unfitted model object that implements `fit(X, y)` and `predict(X)` methods.
+    *   All preprocessing must be encapsulated within the model and fitted exclusively on the provided training fold data.
+    *   Stochastic models must use `random_state=42`.
+    *   The dataset must not be shuffled, split, filtered, reordered, or sampled, and row IDs must not be used as features.

@@ -1,0 +1,126 @@
+Generate a minimal BASH INSTALLATION script for the factory module below.
+
+Create and configure a conda environment in "conda_env" folder under /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-5/aa258512ecd2082f0f0f/attempt-1/mlzero/node_9:
+ - Python version: 3.11
+ - Activate the environment
+ - pip install uv
+ - Install required packages from /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt and /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt using uv pip install -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt --prerelease=allow -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+ - Only install the exact packages specified in the requirements files with their dependencies.
+ - Do NOT upgrade or reinstall autogluon.tabular if it's already at the correct version specified in the requirements.
+Prepare this node's conda_env with numpy, pandas, scikit-learn and the selected
+ML library. Use its interpreter/pip, not the orchestration or AGE-ML environment.
+Do NOT run training, predictions, holdout evaluation, file-generation scripts,
+or the factory module itself. The harness invokes the trusted ten-fold evaluator
+after installation. Propagate installation errors. Return a bash fenced block.
+### Factory module (dependencies must support these imports)
+import os
+import uuid
+import shutil
+import pandas as pd
+from autogluon.tabular import TabularPredictor
+
+class AutoGluonWrapper:
+    """
+    A wrapper for AutoGluon TabularPredictor that ensures a fresh environment
+    for each fold and adheres to the fit/predict interface.
+    """
+    def __init__(self, label='class'):
+        self.label = label
+        self.predictor = None
+        # Create a unique directory for this specific model instance
+        # Using a unique ID to prevent collisions during parallel execution
+        self.path = os.path.join(os.getcwd(), f"ag_model_{uuid.uuid4().hex}")
+
+    def fit(self, X, y):
+        """
+        Fits the AutoGluon predictor.
+        X and y are provided as pandas objects.
+        """
+        # Combine X and y for AutoGluon's fit method
+        train_data = X.copy()
+        train_data[self.label] = y
+        
+        # Initialize and fit the predictor
+        # Using 'medium_quality' to ensure stability and memory efficiency.
+        # auto_stack=False is used to prevent memory exhaustion.
+        # num_cpus=1 and num_gpus=0 are set to respect the restricted environment.
+        # We set a time_limit to ensure the total CV process finishes within the deadline.
+        # We use balanced_accuracy as the metric as requested.
+        self.predictor = TabularPredictor(
+            label=self.label,
+            path=self.path,
+            eval_metric='balanced_accuracy'
+        ).fit(
+            train_data=train_data,
+            presets='medium_quality',
+            auto_stack=False,
+            num_cpus=1,
+            num_gpus=0,
+            time_limit=180,  # Bound to ensure 10 folds fit within remaining time
+            verbosity=0
+        )
+        return self
+
+    def predict(self, X):
+        """
+        Predicts using the fitted AutoGluon predictor.
+        """
+        if self.predictor is None:
+            raise ValueError("Model must be fitted before calling predict.")
+        return self.predictor.predict(X)
+
+    def __del__(self):
+        """
+        Cleanup the artifact directory to save disk space.
+        """
+        if self.path and os.path.exists(self.path):
+            try:
+                shutil.rmtree(self.path, ignore_errors=True)
+            except Exception:
+                pass
+
+def build_model(X_train, y_train):
+    """
+    Factory function to return a fresh, unfitted AutoGluonWrapper.
+    """
+    # The label is 'class' based on the provided dataset description.
+    return AutoGluonWrapper(label='class')
+### Previous errors
+ERROR_SUMMARY: The error is a segmentation fault occurring within the Ray task management layer, likely triggered by resource contention or memory exhaustion during the AutoGluon training process. This is exacerbated by the use of `presets='best_quality'` (which enables heavy stacking/bagging) and the lack of explicit resource constraints in a constrained environment.
+
+SUGGESTED_FIX: Reduce the complexity of the AutoGluon training by setting `presets='medium_quality'` and disabling auto-stacking (`auto_stack=False`) to lower memory overhead. Additionally, explicitly set `num_gpus=0` and `num_cpus=1` in the `fit()` call to prevent Ray from attempting to over-allocate resources in the restricted node environment.
+
+ERROR_SUMMARY: The `KeyError: "env.num_cpus" is not found in the config` occurs because the `MultiModalPredictor` configuration schema does not support the `env.num_cpus` key in the `hyperparameters` dictionary. AutoGluon manages CPU/GPU resources internally via PyTorch Lightning settings or environment variables rather than through the `hyperparameters` override dictionary.
+
+SUGGESTED_FIX: Remove the `env.num_cpus` and `env.num_gpus` keys from the `hyperparameters` dictionary in your `fit` call. If you need to restrict resource usage, set the `num_gpus` parameter directly in the `MultiModalPredictor.fit()` method (e.g., `num_gpus=0`) instead of passing it inside the `hyperparameters` argument.
+### Previous installation attempt
+#!/bin/bash
+set -e
+
+# Define environment path
+ENV_PATH="/root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-5/aa258512ecd2082f0f0f/attempt-1/mlzero/node_5/conda_env"
+
+# Create conda environment
+conda create --prefix "$ENV_PATH" python=3.11 -y
+
+# Activate environment
+source activate "$ENV_PATH"
+
+# Install uv
+pip install uv
+
+# Install base dependencies
+uv pip install numpy pandas scikit-learn
+
+# Install required packages from registry
+# --no-upgrade prevents reinstalling/upgrading existing packages
+# --prerelease=allow allows prerelease versions as requested
+uv pip install \
+    --no-upgrade \
+    --prerelease=allow \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/autogluon.tabular/requirements.txt \
+    -r /root/experiments-ageml-mlzero-benchmark/.mlzero-local/source/src/autogluon/assistant/tools_registry/_common/requirements.txt
+
+MANDATORY MATCHED-CV: return only a conda_env dependency-installation Bash script. Do not execute training or factory-generation code.
+Exact candidate environment: /root/experiments-ageml-mlzero-benchmark/artifacts/campaigns/mlzero-gemini-31-flash-lite-hamlet-cv-s42-1h-local-factory-v5/runs/wilt/rep-5/aa258512ecd2082f0f0f/attempt-1/mlzero/node_9/conda_env
+Remaining TOTAL search time, including all ten fits and overhead: 2325 seconds.

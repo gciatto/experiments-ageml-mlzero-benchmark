@@ -1,0 +1,7 @@
+This is a **regression** task.
+
+**Input Format:**
+The model's `build_model` and `fit` methods receive features as a Pandas DataFrame (`X_train`) and the target as a Pandas Series (`y_train`). The `predict` method receives features as a Pandas DataFrame (`X`). The features are `['cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model', 'origin']` from `data.csv`.
+
+**Prediction Output Format:**
+The `predict` method must return a 1-dimensional array of numerical values, where each value is a regression prediction for a corresponding input row. The length of the array must match the number of input rows. The performance metric is Root Mean Squared Error (RMSE).
