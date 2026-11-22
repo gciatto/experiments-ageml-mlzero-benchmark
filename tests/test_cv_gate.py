@@ -1,5 +1,6 @@
 """Real node-environment fold evaluation must precede native candidate selection."""
 
+import shlex
 import shutil
 import sys
 import time
@@ -51,7 +52,10 @@ def node(tmp_path, monkeypatch):
         shutil.copy2(evaluator, prepared / "evaluate_cv.py")
         python = tmp_path / "node/conda_env/bin/python"
         python.parent.mkdir(parents=True)
-        python.symlink_to(sys.executable)
+        # Preserve the active venv on Python 3.13 too: an extra interpreter
+        # symlink can make Python discover its base installation instead.
+        python.write_text(f'#!/bin/sh\nexec {shlex.quote(sys.executable)} "$@"\n')
+        python.chmod(0o755)
         code = (
             'from sklearn.dummy import DummyRegressor\ndef build_model(X_train,y_train):\n return DummyRegressor(strategy="constant",constant=0)\n'
             if task == "regression"

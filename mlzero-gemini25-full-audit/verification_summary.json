@@ -1,0 +1,41 @@
+{
+  "final_runs": 45,
+  "completed": 35,
+  "no_artifact": 10,
+  "failure_termination_counts": {
+    "timeout": 8,
+    "native_completed": 2
+  },
+  "generated_nodes": 335,
+  "cv_exports": 89,
+  "failed_run_nodes": 73,
+  "failed_run_cv_exports": 0,
+  "checked_winner_exports": 35,
+  "regressor_winners_reviewed": 12,
+  "all_winner_oof_folds_match_age": true,
+  "all_recorded_dataset_hashes_match_age": true,
+  "all_recorded_split_identities_match_age": true,
+  "maximum_regression_relative_fold_rounding_difference": 7.158835984306499e-08,
+  "all_regression_winners_use_autogluon": true,
+  "raw_targets_in_archive": true,
+  "runtime_failure_logs_in_archive": true,
+  "experiment_reruns_performed": 0,
+  "datasets_with_verified_original_inputs": 9,
+  "independently_recomputed_candidate_exports": 89,
+  "independently_recomputed_selected_winners": 35,
+  "maximum_selected_record_recomputation_error": 0.0,
+  "terminal_phases": {
+    "Timeout during setup": 1,
+    "Valid CV export": 35,
+    "Timeout with evaluation unfinished": 7,
+    "Repair branches exhausted": 2
+  },
+  "failed_run_candidate_errors": {
+    "No returned diagnostic": 8,
+    "Library API / imports": 43,
+    "Environment / dependencies": 21,
+    "Native runtime backtrace": 1
+  },
+  "winner_selection_discrepancies": [],
+  "experiment_reruns": 0
+}

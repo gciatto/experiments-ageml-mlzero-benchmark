@@ -14,7 +14,10 @@ def snapshot(prefix):
     prefix = Path(prefix).resolve()
     source = prefix / "source"
     python = prefix / "env/bin/python"
-    git = lambda *args: subprocess.check_output(["git", "-C", str(source), *args])
+
+    def git(*args: str) -> bytes:
+        return subprocess.check_output(["git", "-C", str(source), *args])
+
     if (
         git("rev-parse", "HEAD").decode().strip()
         != "f228cd7028e197750391c02d94afcb7eea8da5ff"

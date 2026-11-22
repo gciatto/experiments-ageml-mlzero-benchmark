@@ -1,0 +1,14 @@
+{
+  "artifacts(1).zip": {
+    "sha256": "5583f00a37ed112935d4bf4a96f8a74f7953b385327dfb514d16b86101109d8d",
+    "bytes": 90448161
+  },
+  "age-ml-gemini25-compliance-all-r1-r5.zip": {
+    "sha256": "e8f80863d9cf3d944a6bf58a19bc4b1bf6247bf2c2ae3fe1550a473c917fbabd",
+    "bytes": 238148177
+  },
+  "paper-2026-agentic-automl-main.pdf": {
+    "sha256": "200ac9c34f27e2e04cccce7c08554334e7c914b4db326d91dbc282b750276d61",
+    "bytes": 1952201
+  }
+}

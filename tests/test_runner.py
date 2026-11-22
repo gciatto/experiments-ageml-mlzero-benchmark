@@ -205,9 +205,12 @@ def test_report_without_credentials(
     assert (
         reg.planned_runs == 1 and reg.valid_runs == 0 and reg.n_export_failed == 1
     )  # denominator kept
-    assert (out / "table_balanced_accuracy.tex").exists() and (
-        out / "test_rmse.pdf"
-    ).exists()
+    assert (out / "table_balanced_accuracy.tex").exists()
+    for objective in ("balanced_accuracy", "rmse"):
+        for extension in ("png", "pdf", "svg"):
+            figure = out / f"test_{objective}.{extension}"
+            assert figure.is_file() and figure.stat().st_size > 0
+    assert "Unsuccessful outcomes" in (out / "test_rmse.svg").read_text()
     assert (
         yaml.safe_load((project / "configs" / "c.yml").read_text())["campaign_id"]
         == "test"

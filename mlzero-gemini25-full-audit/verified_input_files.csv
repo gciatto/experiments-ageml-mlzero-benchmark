@@ -1,0 +1,10 @@
+dataset,rows,features,target_column,original_data_hash_verified,original_contract_hash_verified,evaluator_hash_verified,readme_hash_verified
+adult,48842,14,class,True,True,True,True
+ames_housing,1460,80,SalePrice,True,True,True,True
+auto_mpg,398,7,class,True,True,True,True
+california_housing,20640,9,median_house_value,True,True,True,True
+har,10299,561,Class,True,True,True,True
+madelon,2600,500,Class,True,True,True,True
+mnist_784,70000,784,class,True,True,True,True
+texture,5500,40,Class,True,True,True,True
+wilt,4839,5,class,True,True,True,True

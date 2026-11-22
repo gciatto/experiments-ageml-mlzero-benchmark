@@ -1,0 +1,173 @@
+{
+  "source": {
+    "title": "AGE-ML: A Data-Centric, Specification-Driven Architecture for Agentic AutoML",
+    "filename": "paper-2026-agentic-automl-main.pdf",
+    "sha256": "200ac9c34f27e2e04cccce7c08554334e7c914b4db326d91dbc282b750276d61",
+    "tables": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "note": "Historical values transcribed from the supplied draft, not rerun or independently verified. Dataset definitions/protocols may differ from the current campaign."
+  },
+  "performance_references": {
+    "wilt": {
+      "score": 0.975,
+      "source": "HAMLET (paper reference [30])"
+    },
+    "texture": {
+      "score": 0.997,
+      "source": "HAMLET (paper reference [30])"
+    },
+    "madelon": {
+      "score": 0.875,
+      "source": "HAMLET (paper reference [30])"
+    },
+    "har": {
+      "score": 0.959,
+      "source": "HAMLET (paper reference [30])"
+    },
+    "adult": {
+      "score": 0.805,
+      "source": "HAMLET (paper reference [30])"
+    },
+    "mnist_784": {
+      "score": 0.972,
+      "source": "HAMLET (paper reference [30])"
+    },
+    "california_housing": {
+      "score": 69838.844,
+      "source": "Ahmed Mahmoud Kaggle notebook (paper section 6.4)"
+    },
+    "ames_housing": {
+      "score": 29660.363,
+      "source": "Gus Martins Kaggle notebook (paper section 6.4)"
+    },
+    "auto_mpg": {
+      "score": 2.508,
+      "source": "Ertugrul Demir Kaggle notebook (paper section 6.4)"
+    }
+  },
+  "dataset_table": {
+    "wilt": {
+      "features": 5,
+      "instances": 4839,
+      "numeric_features": 5,
+      "discrete_features": 0
+    },
+    "texture": {
+      "features": 40,
+      "instances": 5500,
+      "numeric_features": 40,
+      "discrete_features": 0
+    },
+    "madelon": {
+      "features": 500,
+      "instances": 2600,
+      "numeric_features": 500,
+      "discrete_features": 0
+    },
+    "har": {
+      "features": 561,
+      "instances": 10299,
+      "numeric_features": 561,
+      "discrete_features": 0
+    },
+    "adult": {
+      "features": 14,
+      "instances": 48842,
+      "numeric_features": 6,
+      "discrete_features": 8
+    },
+    "mnist_784": {
+      "features": 784,
+      "instances": 70000,
+      "numeric_features": 784,
+      "discrete_features": 0
+    },
+    "california_housing": {
+      "features": 8,
+      "instances": 20640,
+      "numeric_features": 8,
+      "discrete_features": 0
+    },
+    "ames_housing": {
+      "features": 80,
+      "instances": 2930,
+      "numeric_features": 37,
+      "discrete_features": 43
+    },
+    "auto_mpg": {
+      "features": 7,
+      "instances": 398,
+      "numeric_features": 6,
+      "discrete_features": 1
+    }
+  },
+  "qualitative_comparison": [
+    {
+      "Feature": "End-to-end pipeline",
+      "HAMLET": true,
+      "FLAML": false,
+      "DS-Agent": true,
+      "AutoML-Agent": true,
+      "MLZero": true,
+      "AGE-ML": true
+    },
+    {
+      "Feature": "Human-centered design",
+      "HAMLET": true,
+      "FLAML": false,
+      "DS-Agent": false,
+      "AutoML-Agent": false,
+      "MLZero": false,
+      "AGE-ML": true
+    },
+    {
+      "Feature": "Constrained generation",
+      "HAMLET": true,
+      "FLAML": true,
+      "DS-Agent": false,
+      "AutoML-Agent": false,
+      "MLZero": false,
+      "AGE-ML": true
+    },
+    {
+      "Feature": "Pipeline validation",
+      "HAMLET": true,
+      "FLAML": false,
+      "DS-Agent": true,
+      "AutoML-Agent": true,
+      "MLZero": true,
+      "AGE-ML": true
+    },
+    {
+      "Feature": "Interpretable pipeline",
+      "HAMLET": false,
+      "FLAML": false,
+      "DS-Agent": true,
+      "AutoML-Agent": true,
+      "MLZero": true,
+      "AGE-ML": true
+    },
+    {
+      "Feature": "Zero-data cold start",
+      "HAMLET": true,
+      "FLAML": true,
+      "DS-Agent": false,
+      "AutoML-Agent": false,
+      "MLZero": false,
+      "AGE-ML": true
+    },
+    {
+      "Feature": "MLOps oriented",
+      "HAMLET": false,
+      "FLAML": false,
+      "DS-Agent": false,
+      "AutoML-Agent": false,
+      "MLZero": false,
+      "AGE-ML": true
+    }
+  ]
+}

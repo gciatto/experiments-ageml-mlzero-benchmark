@@ -38,6 +38,18 @@ addopts = "-m 'not live'"
 [tool.mypy]
 ignore_missing_imports = true
 
+[tool.ruff]
+# Saved generated implementations are experimental evidence, not maintained code.
+extend-exclude = ["mlzero-gemini25-full-audit/reference"]
+
+[tool.ruff.format]
+# This frozen validator revision is recorded byte-for-byte in runtime provenance.
+# Lint it, but preserve both the installed module and its repair copy verbatim.
+exclude = [
+    "ageml_mlzero_benchmark/cv_export.py",
+    "scripts/cv_export_corrected.py",
+]
+
 [tool.poe.tasks]
 test = "pytest"
 coverage = "coverage run -m pytest"
